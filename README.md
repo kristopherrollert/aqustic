@@ -1,2 +1,3 @@
-# CS115
-Group Project for CMPS 115: Intro to Software Engineering
+# aquestic
+A collaborative music selection web application made with JavaScript using the
+libraries: Node.js, jQuery, Express.js. We are also using the Spotify API.
