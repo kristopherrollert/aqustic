@@ -27,12 +27,12 @@ function Queue(){
             this.bottom.next = node;
         }
         this.bottom = node;
-        if (this.size == 0){
+        if (this.size === 0){
             this.top = node;
         }
         this.size++;
-        return
-    }
+
+    };
 
     this.pop = function(){
         let node = this.top;
@@ -40,13 +40,13 @@ function Queue(){
         this.top.prev = null;
         this.size--;
         return node;
-    }
+    };
 
     //moves a song up the queue by 1
     //I think the swapping is correct but I haven't tested it
     this.moveUp = function(id){
         let node = this.top;
-        while(node.id != id){
+        while(node.id !== id){
             node = node.next;
         }
 
@@ -56,12 +56,12 @@ function Queue(){
         node.next.prev = node;
         node.next.next.prev = node.next;
         node.prev.next = node;
-    }
+    };
 
     //moves a song down the queue by 1
     this.moveDown = function(id){
         let node = this.top;
-        while(node.id != id){
+        while(node.id !== id){
             node = node.next;
         }
 
