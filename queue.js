@@ -6,142 +6,160 @@
 //of what was moving where so I am not sure if it worked properly
 
 //id = song id
-//prev = song before it in the queue
-//next = song after it in the queue
-function Node(id, prev, next){
-    this.id = id;
-    this.prev = prev;
-    this.next = next;
-}
+//prev = songObject before it in the queue
+//next = songObject after it in the queue
 
-//queue: want to push stuff to the bottom of the queue and pop
-//stuff from the top
+
+//queue: want to push stuff to the tail of the queue and pop
+//stuff from the head
 function Queue(){
-    this.top = null;
-    this.bottom = null;
+    this.head = null;
+    this.tail = null;
     this.size = 0;
 
     this.push = function(id) {
-        let node = new Node(id, this.bottom, null);
-        if (this.bottom){
-            this.bottom.next = node;
+        let song = new SongObject(id, this.tail, null);
+        if (this.tail){
+            this.tail.next = song;
         }
-        this.bottom = node;
+        this.tail = song;
         if (this.size === 0){
-            this.top = node;
+            this.head = song;
         }
         this.size++;
-
     };
 
-    this.ammendInsert = function(insertNode, prevNode, nextNode) {
+    this.pop = function(){
+        let song = this.head;
+        if (this.size === 0){
+            this.head = null;
+            this.tail = null;
+            this.size--;
+            return song;
+        }
+        this.head = song.next;
+        this.head.prev = null;
+        this.size--;
+        return song;
+    };
+
+    this.insertAndAmmend = function(insertSong, prevSong, nextSong) {
 
         // nothing in queue, just add it to queue
-        if(prevNode == null && nextNode == null) {
-            this.bottom = insertNode;
-            this.top = insertNode;
+        if(prevSong == null && nextSong == null) {
+            this.tail = insertSong;
+            this.head = insertSong;
             this.size = 1;
         }
-        // previous node is null, meaning it is being added to top of queue
-        else if(prevNode == null) {
-            this.top = insertNode;
-            insertNode.next = nextNode;
-            insertNode.prev = null;
-            nextNode.prev = insertNode;
+        // previous song is null, meaning it is being added to head of queue
+        else if(prevSong == null) {
+            this.head = insertSong;
+            insertSong.next = nextSong;
+            insertSong.prev = null;
+            nextSong.prev = insertSong;
             this.size++;
         }
-        // next node is null, meaining it is being added to bottom of queue
-        else if(nextNode == null) {
-            this.bottom = insertNode;
-            insertNode.next = null
-            insertNode.prev = prevNode;
-            prevNode.next = insertNode;
+        // next Song is null, meaining it is being added to tail of queue
+        else if(nextSong == null) {
+            this.tail = insertSong;
+            insertSong.next = null
+            insertSong.prev = prevSong;
+            prevSong.next = insertSong;
             this.size++;
         }
         // adding to middle of queue
         else {
-            insertNode.prev = prevNode;
-            insertNode.next = nextNode;
-            prevNode.next = insertNode;
-            nextNode.prev = insertNode;
+            insertSong.prev = prevSong;
+            insertSong.next = nextSong;
+            prevSong.next = insertSong;
+            nextSong.prev = insertSong;
             this.size++;
         }
     };
 
-    this.pop = function(){
-        let node = this.top;
-        if (this.size === 0){
-            this.top = null;
-            this.bottom = null;
-            this.size--;
-            return node;
+    //fixes Songs around Song to remove or move
+    this.removeAndAmmend = function(songToRemove) {
+        //If the song is by itself
+        if (songToRemove.prev == null && songToRemove.next == null){
+            this.pop();
         }
-        this.top = node.next;
-        this.top.prev = null;
-        this.size--;
-        return node;
+        //If the song is the head
+        if (songToRemove.prev == null) {
+            this.pop();
+        }
+        //If the song is the tail
+        if (songToRemove.next == null) {
+            songToRemove.prev.next = null;
+        }
+        //If both sides are not null
+        else {
+            songToRemove.next.prev = songToRemove.prev;
+            songToRemove.prev.next = songToRemove.next;
+            this.size--;
+        }
+
+    };
+
+    /*
+     * Takes a song and checks if that song needs to be moved to a new spot.
+     * Assumes that it is only possible for this song to be moved up in the
+     * queue.
+     *
+     * Return: true if moved, false if it stays in place
+     */
+    this.adjustSongUp = function(songToAdjust) {
+        curr = songToAdjust.prev;
+        while(curr != null) {
+            // set to largerSong to the larger song, but if both are equal, then
+            // getLargerSongObject returns null, so set it to curr.prev.
+            let largerSong = getLargerSongObject(songToAdjust, curr) || curr;
+            if(largerSong == curr)
+                break;
+            curr = curr.prev;
+        }
+        // curr represents the songObject that is larger than songToAdjust
+        if (curr == songToAdjust.prev)
+            return false; // this means that the songObject shouldn't move
+        this.removeAndAmmend(songToAdjust);
+        this.insertAndAmmend(songToAdjust, curr, curr.next);
+        return true;
     };
 
     //moves a song up the queue by 1
     //I think the swapping is correct but I haven't tested it
-    this.moveUp = function(id){
-        let node = this.top;
-        while(node.id !== id){
-            node = node.next;
+    this.moveUp = function(id) {
+        let song = this.head;
+        while(song.id !== id){
+            song = song.next;
         }
 
-        node.prev.next = node.next;
-        node.prev = node.prev.prev;
-        node.next = node.prev;
-        node.next.prev = node;
-        node.next.next.prev = node.next;
-        node.prev.next = node;
+        song.prev.next = song.next;
+        song.prev = song.prev.prev;
+        song.next = song.prev;
+        song.next.prev = song;
+        song.next.next.prev = song.next;
+        song.prev.next = song;
     };
 
-    //fixes nodes around node to remove or move
-    this.ammendRemoval = function(nodeToRemove) {
-        //If the node is by itself
-        if (nodeToRemove.prev == null && nodeToRemove.next == null){
-            this.pop();
-        }
-        //If the node is the head
-        if (nodeToRemove.prev == null) {
-            this.pop();
-        }
-        //If the node is the tail
-        if (nodeToRemove.next == null) {
-            nodeToRemove.prev.next = null;
-        }
-        //If both sides are not null
-        else {
-            nodeToRemove.next.prev = nodeToRemove.prev;
-            nodeToRemove.prev.next = nodeToRemove.next;
-            this.size--;
-        }
-
-    }
-
     //moves a song down the queue by 1
-    this.moveDown = function(id){
-        let node = this.top;
-        while(node.id !== id){
-            node = node.next;
+    this.moveDown = function(id) {
+        let song = this.head;
+        while(song.id !== id){
+            song = song.next;
         }
-
-        node.next.prev = node.prev;
-        node.prev = node.next;
-        node.next = node.prev.next;
-        node.prev.next = node;
-        node.next.prev = node;
-        node.prev.prev.next = node.prev;
+        song.next.prev = song.prev;
+        song.prev = song.next;
+        song.next = song.prev.next;
+        song.prev.next = song;
+        song.next.prev = song;
+        song.prev.prev.next = song.prev;
     }
 }
 
+
 var myQueue = new Queue;
 
-console.log(myQueue);
-myQueue.push(1234);
-myQueue.push(34345);
-console.log(myQueue);
-console.log(myQueue.pop());
-console.log(myQueue);
+myQueue.push(1);
+myQueue.push(2);
+myQueue.push(3);
+myQueue.push(4);
