@@ -3,11 +3,11 @@ function SongObject(id, prev, next){
     this.prev = prev;
     this.next = next;
 
-    this.getSongInfo(){
+    this.getSongInfo = function(){
         return this.songInfo;
-    }
+    };
 
-    this.setSongInfo(newSongInfo){
+    this.setSongInfo = function(newSongInfo){
         this.songInfo = newSongInfo;
     }
 }
