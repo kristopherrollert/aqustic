@@ -1,13 +1,13 @@
-function SongObject(id, prev, next){
+function SongObject(id, prev, next) {
     this.songInfo = new SongInfo(id, 0, 0);
     this.prev = prev;
     this.next = next;
 
-    this.getSongInfo = function(){
+    this.getSongInfo = function() {
         return this.songInfo;
     };
 
-    this.setSongInfo = function(newSongInfo){
+    this.setSongInfo = function(newSongInfo) {
         this.songInfo = newSongInfo;
     }
 }
@@ -17,7 +17,7 @@ function SongObject(id, prev, next){
  * returns the larger song object
  * if both are equal, returns null
  */
-function getLargerSongObject(songObject1, songObject2){
+function getLargerSongObject(songObject1, songObject2) {
     let score1 = songObject1.getSongInfo().getScore();
     let score2 = songObject2.getSongInfo().getScore();
     if(score1 > score2)

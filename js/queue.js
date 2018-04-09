@@ -12,24 +12,24 @@
 
 //queue: want to push stuff to the tail of the queue and pop
 //stuff from the head
-function Queue(){
+function Queue() {
     this.head = null;
     this.tail = null;
     this.size = 0;
 
     this.push = function(id) {
         let song = new SongObject(id, this.tail, null);
-        if (this.tail){
+        if (this.tail) {
             this.tail.next = song;
         }
         this.tail = song;
-        if (this.size === 0){
+        if (this.size === 0) {
             this.head = song;
         }
         this.size++;
     };
 
-    this.pop = function(){
+    this.pop = function() {
         let song = this.head;
         if (this.size === 0){
             this.head = null;
@@ -129,7 +129,7 @@ function Queue(){
     //I think the swapping is correct but I haven't tested it
     this.moveUp = function(id) {
         let song = this.head;
-        while(song.id !== id){
+        while(song.id !== id) {
             song = song.next;
         }
 
@@ -144,7 +144,7 @@ function Queue(){
     //moves a song down the queue by 1
     this.moveDown = function(id) {
         let song = this.head;
-        while(song.id !== id){
+        while(song.id !== id) {
             song = song.next;
         }
         song.next.prev = song.prev;
