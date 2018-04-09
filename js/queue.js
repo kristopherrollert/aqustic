@@ -1,24 +1,43 @@
-//working on the queue, I am trying to just write one that stores
-//a number(the song id) and that can have pieces of the queue move
+/*
+ *                               _    _
+ *                              | |  (_)
+ *      __ _   __ _  _   _  ___ | |_  _   ___
+ *     / _` | / _` || | | |/ __|| __|| | / __|
+ *    | (_| || (_| || |_| |\__ \| |_ | || (__
+ *     \__,_| \__, | \__,_||___/ \__||_| \___|
+ *               | |
+ *               |_|
+ *
+ * Version: 0.0
+ * Website:
+ * Developers:
+ *  Kristopher Rollert
+ *  Kai Schniedergers
+ *  Michelle Slaughter
+ *  Lorenzo Yabut
+ *
+ */
 
-//I tried to add a function to move a specific song id up the queue
-//and one to move the id down the queue but I had trouble keeping track
-//of what was moving where so I am not sure if it worked properly
 
-//id = song id
-//prev = songObject before it in the queue
-//next = songObject after it in the queue
-
-
-//queue: want to push stuff to the tail of the queue and pop
-//stuff from the head
+/*
+ * DESCRIPTION: A queue system for songObjects
+ * ARGUMENTS:
+ *  head -> the first element in the queue
+ *  tail -> last element in the queue
+ *  size -> size of the queue
+ */
 function Queue() {
     this.head = null;
     this.tail = null;
     this.size = 0;
 
-    this.push = function(id) {
-        let song = new SongObject(id, this.tail, null);
+    /*
+     * DESCRIPTION: adds the given songInfo object to the tail of the queue
+     * ARGUEMENTS: takes a songInfo object
+     * RETURN: none
+     */
+    this.push = function(songInfo) {
+        let song = new SongObject(songInfo, this.tail, null);
         if (this.tail) {
             this.tail.next = song;
         }
@@ -29,6 +48,11 @@ function Queue() {
         this.size++;
     };
 
+    /*
+     * DESCRIPTION: removes and returns an item from the head of the queue
+     * ARGUEMENTS: none
+     * RETURN: returns the songObject at the head of the queue
+     */
     this.pop = function() {
         let song = this.head;
         if (this.size === 0){
@@ -43,7 +67,12 @@ function Queue() {
         return song;
     };
 
-    this.insertAndAmmend = function(insertSong, prevSong, nextSong) {
+    /*
+     * DESCRIPTION: inserts an element into the queue between two elements
+     * ARGUEMENTS: takes two songObjects to insert between
+     * RETURN: none
+     */
+    this.insertAndAmend = function(insertSong, prevSong, nextSong) {
 
         // nothing in queue, just add it to queue
         if(prevSong == null && nextSong == null) {
@@ -77,8 +106,12 @@ function Queue() {
         }
     };
 
-    //fixes Songs around Song to remove or move
-    this.removeAndAmmend = function(songToRemove) {
+    /*
+     * DESCRIPTION: removes a songObject from the queue
+     * ARGUEMENTS: takes a songInfo object to remove
+     * RETURN: none
+     */
+    this.removeAndAmend = function(songToRemove) {
         //If the song is by itself
         if (songToRemove.prev == null && songToRemove.next == null){
             this.pop();
@@ -101,11 +134,11 @@ function Queue() {
     };
 
     /*
-     * Takes a song and checks if that song needs to be moved to a new spot.
-     * Assumes that it is only possible for this song to be moved up in the
-     * queue.
-     *
-     * Return: true if moved, false if it stays in place
+     * DESCRIPTION: Takes a song and checks if that song needs to be moved to a
+     * new spot. Assumes that it is only possible for this song to be moved up
+     * in the queue.
+     * ARGUEMENTS: takes a songInfo object to adjust
+     * RETURN: false if the object isn't moved, true if it is
      */
     this.adjustSongUp = function(songToAdjust) {
         curr = songToAdjust.prev;
@@ -120,8 +153,8 @@ function Queue() {
         // curr represents the songObject that is larger than songToAdjust
         if (curr == songToAdjust.prev)
             return false; // this means that the songObject shouldn't move
-        this.removeAndAmmend(songToAdjust);
-        this.insertAndAmmend(songToAdjust, curr, curr.next);
+        this.removeAndAmend(songToAdjust);
+        this.insertAndAmend(songToAdjust, curr, curr.next);
         return true;
     };
 
@@ -153,11 +186,11 @@ function Queue() {
         song.prev.next = song;
         song.next.prev = song;
         song.prev.prev.next = song.prev;
-    }
+    };
 }
 
 
-var myQueue = new Queue;
+var myQueue = new Queue();
 
 myQueue.push(1);
 myQueue.push(2);

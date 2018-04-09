@@ -1,5 +1,25 @@
-function SongObject(id, prev, next) {
-    this.songInfo = new SongInfo(id, 0, 0);
+/*
+ *                               _    _
+ *                              | |  (_)
+ *      __ _   __ _  _   _  ___ | |_  _   ___
+ *     / _` | / _` || | | |/ __|| __|| | / __|
+ *    | (_| || (_| || |_| |\__ \| |_ | || (__
+ *     \__,_| \__, | \__,_||___/ \__||_| \___|
+ *               | |
+ *               |_|
+ *
+ * Version: 0.0
+ * Website:
+ * Developers:
+ *  Kristopher Rollert
+ *  Kai Schniedergers
+ *  Michelle Slaughter
+ *  Lorenzo Yabut
+ *
+ */
+ 
+function SongObject(songInfo, prev, next) {
+    this.songInfo = songInfo;
     this.prev = prev;
     this.next = next;
 
