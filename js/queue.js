@@ -95,9 +95,9 @@ function Queue(){
         else {
             songToRemove.next.prev = songToRemove.prev;
             songToRemove.prev.next = songToRemove.next;
-            this.size--;
         }
 
+        this.size--;
     };
 
     /*
