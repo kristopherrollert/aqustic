@@ -91,6 +91,7 @@ app.get('/callback', function(req, res) {
       json: true
     };
 
+    // COMMENT FUCNTIONS
     request.post(authOptions, function(error, response, body) {
       if (!error && response.statusCode === 200) {
 
