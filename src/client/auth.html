@@ -11,22 +11,49 @@
     </script>
 </head>
 <script>
-    var ip = "127.0.0.1";
-    var port = "8080";
+    var ip = "localhost";
+    var port = "3000";
     var ipPort = `${ip}:${port}`;
     $(document).ready(function() {
         $("button").click(function() {
+            // var data = {};
+			// data.title = "title";
+			// data.message = "message";
             $.ajax({
-                url : ipPort + "/login",
-                success : function(result){
-                    console.log(`RESULT: ${result}`);
+                type: 'GET',
+                //data: JSON.stringify(data),
+                //contentType: 'application/json',
+                url: 'http://'+ ipPort +'/spotify-authorization',
+                success: function(data) {
+                    console.log('success');
+                    console.log(data);
                 },
-                error: function(result, status){
+                error: function(data){
                     console.log("ERROR");
-                    console.log(result);
-                    console.log(status);
+                    console.log(data.getResponseHeader());
                 }
             });
+
+
+
+
+            // $.ajax({
+            //     type: "GET",
+            //     url: "/login",
+            //     success : function(result){
+            //         console.log(`RESULT: ${result}`);
+            //     },
+            //     error: function(result, status){
+            //         console.log("ERROR");
+            //         console.log(result);
+            //         console.log(status);
+            //     }
+            // });
+
+
+            // $.get('/login', function(data){
+            //     console.log(data);
+            // });
 
             // $.ajax(ipPort + "/login", {
             //     data: {}
