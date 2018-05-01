@@ -1,0 +1,54 @@
+/* All page styling */
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: #ffcfba;
+  color: #ff9580;
+}
+
+.page-header {
+  font-weight: 600;
+  text-align: center;
+  font-size: 50px;
+}
+
+/* Header Styling */
+.secondary-header {
+  font-size: 50px;
+  font-weight: 600;
+}
+
+/* Form Styling */
+.form-text {
+  margin-bottom: 5px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+input[type=text], input[type=password] {
+  font-family: "Poppins", sans-serif;
+  background-color: #eeeeee;
+  color: #242226;
+  border-radius: 3px;
+  padding: 5px;
+  padding-left: 15px;
+  border: none;
+  font-size: 20px;
+}
+
+input[type=submit] {
+  background-color: #ff9580;
+  color: white;
+  font-size: 20px;
+  border: none;
+  border-radius: 3px;
+  padding: 8px;
+  padding-left: 12px;
+  padding-right: 12px;
+  font-weight: 600;
+}
+
+input[type=submit]:hover {
+  background-color: #3a8069;
+}
+
+/*# sourceMappingURL=style/style.css.map */
