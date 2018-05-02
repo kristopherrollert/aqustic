@@ -15,10 +15,10 @@
     <div class="content-section">
         <div class="content-box">
             <div class="content-header">
-                <h2 class="secondary-header">Sign In</h2>
+                <h2 class="secondary-header">Sign Up</h2>
             </div>
             <div class="sign-in-section">
-                <form>
+                <form action="/login">
                     <div class="form-text-box">
                         <p class="form-text">USERNAME</p>
                     </div>
@@ -27,13 +27,20 @@
                         <p class="form-text">PASSWORD</p>
                     </div>
                     <input type="password" name="password" placeholder="••••••••••">
+                    <div class="form-text-box">
+                        <p class="form-text">CONFIRM PASSWORD</p>
+                    </div>
+                    <input type="password" name="password" placeholder="••••••••••">
                     <br>
-                    <input type="submit" value="Login">
+                    <input type="submit" value="Create">
                 </form>
             </div>
             <div class="extra-options">
                 <div class="extra">
-                    <a href="/src/client/signup.html">Don't have an account?</a>
+                    <a href="/src/client/index.html">Already have an account?</a>
+                </div>
+                <div class="extra">
+                    <a href="#">Forgot your password?</a>
                 </div>
             </div>
         </div>

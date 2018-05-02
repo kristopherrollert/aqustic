@@ -1,58 +1,138 @@
 /* All page styling */
-$primary-color : #ffcfba;
-$highlight-color : #ff9580;
+$primary-color : #2a363b;
+$highlight-color : #f6ca5a;
+
+html {
+    margin: 0;
+    padding: 0;
+}
 
 body {
     font-family: 'Poppins', sans-serif;
     background-color: $primary-color;
     color: $highlight-color;
+    margin: 0;
+    padding: 0;
 }
 
 .page-header {
-    font-weight: 600;
+    font-weight: 500;
     text-align: center;
-    font-size: 50px;
+    font-size: 35px;
+    color: white;
+    padding-bottom: 15px;
+    background-color: rgba(255, 255, 255, .15);
+    background-color: #FF8476;
+    padding-top: 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+
 }
 
 /* Header Styling */
 
-.secondary-header{
+.header{
+    position: fixed;
+    width: 100vw;
+    top: 0;
+    left: 0;
+}
+
+.content-header {
+    display: inline-block;
+}
+
+.secondary-header {
     font-size: 50px;
     font-weight: 600;
+    display: inline-block;
+    margin-bottom: 10px;
 }
 
 /* Form Styling */
 
+.form-text-box {
+    width: auto;
+}
+
 .form-text {
-    margin-bottom: 5px;
-    font-weight: 600;
+    margin-bottom: 10px;
+    margin-left: 5px;
+    font-weight: 100;
     font-size: 15px;
+    display: inline-block;
 }
 
 input[type="text"], input[type="password"]{
     font-family: 'Poppins', sans-serif;
-    background-color: #eeeeee;
-    color: #242226;
+    background: transparent;
+    background: rgba(255, 255, 255, .15);
+    border: none;
+    color: white;
     border-radius: 3px;
     padding: 5px;
     padding-left: 15px;
-    border: none;
     font-size: 20px;
+}
+
+input[type="text"]::placeholder, input[type="password"]::placeholder {
+    color:#aaaaaa;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    outline: none;
 }
 
 input[type="submit"]{
     background-color: $highlight-color;
     color: white;
-    font-size: 20px;
+    font-size: 18px;
     border: none;
     border-radius: 3px;
     padding: 8px;
     padding-left: 12px;
     padding-right: 12px;
     font-weight: 600;
+    margin-top: 35px;
+    cursor: pointer;
 }
 
 
 input[type="submit"]:hover {
-    background-color: #3a8069;
+    background-color: #b99844;
+}
+
+/* Page: Sign in Specific */
+
+.extra-options {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.extra {
+    margin-top: 10px;
+}
+
+.extra>a {
+    color: $highlight-color;
+    text-decoration: none;
+    font-weight: 500;
+    margin: 0;
+    margin-bottom: 1px;
+}
+
+.extra>a:hover {
+    border-bottom: 1px solid $highlight-color;
+    margin-bottom: 0px;
+}
+
+.content-section{
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sign-in-section {
+    margin-left: 25px;
 }
