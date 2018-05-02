@@ -1,19 +1,27 @@
+/* Constants to be changed before release */
+const clientID = "1951f93df40942a59574ed5d17e5425a";
+const clientSecret = "048262fe59c048e18ce94d18d5784078";
+const baseUrl = 'http://localhost:3000';
+const port = 3000;
+const mongoUrl = `mongodb://localhost:/${port}`
+
+/* Local server functions */
+const servFunc = require('./serverFunctions.js');
+
+/* Server Modules */
 const http = require('http');
 const express = require('express');
 const request = require('request');
 const querystring = require('querystring');
-const servFunc = require('./serverFunctions.js');
 const cookieParser = require('cookie-parser');
-const cors = require('cors');
+const mongo = require('mongodb');
+
+const mongoClient = mongo.MongoClient;
 const app = express();
-const port = 3000;
 
 //TODO CHANGE WHEN ACTUALLY ON SERVER
-const baseUrl = 'http://localhost:3000';
 
-// THESE ARE KRIS': if you change them, make sure to let the group know
-const clientID = "1951f93df40942a59574ed5d17e5425a";
-const clientSecret = "048262fe59c048e18ce94d18d5784078";
+
 
 var authStateKey = 'spotify_auth_state';
 

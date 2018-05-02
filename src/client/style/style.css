@@ -11,13 +11,12 @@ body {
   padding: 0; }
 
 .page-header {
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
-  font-size: 35px;
-  color: white;
+  font-size: 45px;
+  color: #faf6cd;
   padding-bottom: 15px;
-  background-color: rgba(255, 255, 255, 0.15);
-  background-color: #FF8476;
+  background-color: #222b2f;
   padding-top: 10px;
   margin-top: 0px;
   margin-bottom: 0px; }
