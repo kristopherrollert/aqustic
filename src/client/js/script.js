@@ -13,7 +13,7 @@ $(document).ready(function() {
 
 function indexPage() {
     $("#login-button").click(function() {
-        let userame = $("#username-section").val();
+        let username = $("#username-section").val();
         let password = $("#password-section").val();
         if (password.length < 1 && username.length < 1){
             throwLoginError("Please enter a username and a password!");
