@@ -1,6 +1,15 @@
 const fetch = require('node-fetch');
 const Request = require('request');
 
+/*
+ * DESCRIPTION: A way to search for songs on spotify
+ * ARGUMENTS:
+ *  authorization -> authorization to work with spotify api
+ *  query -> what we are searching
+ */
+ // We will probably want to change how we deal with the response that is returned
+ // Right now it just gets the names of the top 20 results for tracks, albums, playlist and artists
+ // I'm not sure how we want to get the query and how we want to show the results
 function search(authorization, query) {
     var headers = {
         "Accept": "application/json",
