@@ -16,10 +16,9 @@
     "express": "^4.16.3",
     "http": "0.0.0",
     "mongodb": "^3.0.7",
+    "node-fetch": "^2.1.2",
     "querystring": "^0.2.0",
     "request": "^2.85.0"
   },
-  "devDependencies": {
-    "http": "0.0.0"
-  }
+  "devDependencies": {}
 }
