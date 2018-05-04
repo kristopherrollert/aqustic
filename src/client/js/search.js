@@ -6,6 +6,7 @@ const Request = require('request');
  * ARGUMENTS:
  *  authorization -> authorization to work with spotify api
  *  query -> what we are searching
+ * Returns a dictionary of the names of the top 20 results from spotify
  */
  // We will probably want to change how we deal with the response that is returned
  // Right now it just gets the names of the top 20 results for tracks, albums, playlist and artists
@@ -64,6 +65,12 @@ function search(authorization, query) {
     });
 }
 
+/*
+ * DESCRIPTION: A way to parse a query from a user into something usable by the spotify API
+ * ARGUMENTS:
+ *  query -> a search query from a user
+ * returns a usable string for the spotify API
+ */
 function parse_search(query) {
     return query.replace(/ /i, '%20')
 }
