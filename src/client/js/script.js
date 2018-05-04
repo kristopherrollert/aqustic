@@ -141,3 +141,52 @@ function generateRandomString(length) {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
 }
+
+
+/* ----------------------------------------------------------------------- */
+/* -------------------------- Playing Songs! ----------------------------- */
+/* ----------------------------------------------------------------------- */
+
+window.onSpotify = function() {
+
+    var player = new Spotify.Player({
+        name: 'aqustic Spotify Web Player',
+        getOAuthToken: function(callback) {
+            //TODO the token must be put in the args for callback()
+            //Also outdated token, was just temporary one for testing
+            callback("your mom");
+        }
+    });
+
+/*
+ *  THE FOLLOWING CODE IS COPIED OFF OF https://beta.developer.spotify.com/documentation/web-playback-sdk/quick-start/#
+ */
+
+
+    // Error handling
+    player.addListener('initialization_error', ({ message }) => { console.error(message); });
+    player.addListener('authentication_error', ({ message }) => { console.error(message); });
+    player.addListener('account_error', ({ message }) => { console.error(message); });
+    player.addListener('playback_error', ({ message }) => { console.error(message); });
+
+    // Playback status updates
+    player.addListener('player_state_changed', state => { console.log(state); });
+
+    // Ready
+    player.addListener('ready', ({ device_id }) => {
+        console.log('Ready with Device ID', device_id);
+    });
+
+    // Not Ready
+    player.addListener('not_ready', ({ device_id }) => {
+        console.log('Device ID has gone offline', device_id);
+    });
+
+    // Connect to the player!
+    player.connect();
+
+
+
+
+
+}
