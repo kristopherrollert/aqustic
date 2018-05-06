@@ -1,29 +1,126 @@
+/*jshint esversion: 6 */
+// ^ this is just for kris, please don't delete
+/*
+ *                               _    _
+ *                              | |  (_)
+ *      __ _   __ _  _   _  ___ | |_  _   ___
+ *     / _` | / _` || | | |/ __|| __|| | / __|
+ *    | (_| || (_| || |_| |\__ \| |_ | || (__
+ *     \__,_| \__, | \__,_||___/ \__||_| \___|
+ *               | |
+ *               |_|
+ *
+ * Version: 1.0
+ * Developers:
+ *  Kristopher Rollert | Kai Schniedergers | Michelle Slaughter | Lorenzo Yabut
+ *
+ */
+
+/* ------------------------------------------------------------------------- */
+/* -------------------------------- GLOBALS -------------------------------- */
+/* ------------------------------------------------------------------------- */
+
 /* Constants to be changed before release */
 const clientID = "1951f93df40942a59574ed5d17e5425a";
 const clientSecret = "048262fe59c048e18ce94d18d5784078";
-const baseUrl = 'http://localhost:3000';
 const port = 3000;
-const mongoUrl = `mongodb://localhost:/${port}`
-
-/* Local server functions */
-const servFunc = require('./serverFunctions.js');
+const baseUrl = `http://localhost:${port}`;
 
 /* Server Modules */
 const http = require('http');
+const mongo = require('mongodb');
 const express = require('express');
 const request = require('request');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
-const mongo = require('mongodb');
 
 const mongoClient = mongo.MongoClient;
 const app = express();
 
-//TODO CHANGE WHEN ACTUALLY ON SERVER
-
-
-
+/* TODO : I am unsure what this does, but I feel like it shouldn't be a global
+ *        varible. -kris */
 var authStateKey = 'spotify_auth_state';
+
+
+/* ------------------------------------------------------------------------- */
+/* ----------------------------- DATABASE CODE ----------------------------- */
+/* ------------------------------------------------------------------------- */
+
+var database = {
+    /* General Databse Information */
+    name: "aqusticDB",
+    url: 'mongodb://localhost:27017/',
+    createCollection: function(collectionName) {
+        mongoClient.connect(this.url, function(err, db) {
+            if (err) throw err;
+            var database = db.db(this.name);
+            database.createCollection(collectionName, function(err, res) {
+                if (err) throw err;
+                console.log(`Created ${collectionName} collection!`);
+                db.close();
+            });
+        });
+    },
+    insertOne: function (collectionName, item) {
+        mongoClient.connect(this.url, function(err, db) {
+            if (err) throw err;
+            var database = db.db(this.name);
+            database.collection(collectionName).insertOne(item, function(err, res) {
+                if (err) throw err;
+                console.log("Inserted One Element");
+                db.close();
+            });
+        });
+    },
+    insertMany: function(collectionName, items) {
+        mongoClient.connect(this.url, function(err, db) {
+            if (err) throw err;
+            var database = db.db(this.name);
+            database.collection(collectionName).insertOne(item, function(err, res) {
+                if (err) throw err;
+                console.log("Inserted One Element");
+                db.close();
+            });
+        });
+    },
+
+    /* returns an array of */
+    findOne: function(collectionName, query = {}){
+        mongoClient.connect(this.url, function(err, db) {
+            if (err) throw err;
+            var database = db.db(this.name);
+            return database.collection(collectionName).findOne(query, function(err, result) {
+                if (err) throw err;
+                db.close();
+                return result;
+            });
+        });
+    },
+
+    find: function(collectionName, query = {}){
+        mongoClient.connect(this.url, function(err, db) {
+            if (err) throw err;
+            var database = db.db(this.name);
+            return database.collection(collectionName).find(query, function(err, result) {
+                if (err) throw err;
+                db.close();
+                return result;
+            });
+        });
+    },
+
+    findAll: function(collectionName) {
+        return this.find(collectionName, {});
+    },
+};
+
+database.createCollection("PARTIES");
+database.insertOne("PARTIES",  {name: "Kristopher Rollert", title: "orange grapes"});
+console.log(database.findAll("PARTIES"));
+
+/* -------------------------------------------------------------------------- */
+/* ------------------------------- MIDDLEWARE ------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 /*
  * description: middleware thatremoves the browwer from blocking certain
@@ -42,9 +139,13 @@ app.use(function(req, res, next) {
 
 /*
  * description: middleware that parses cookies from the client folder.
- *
  */
 app.use(express.static(__dirname + '/client')).use(cookieParser());
+
+
+/* ------------------------------------------------------------------------- */
+/* ------------------------------- ENDPOINTS ------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 app.get('/spotify-authorization', function(req, res){
     console.log("GOT SPOTIFY AUTH");
@@ -58,7 +159,7 @@ app.get('/spotify-authorization', function(req, res){
         querystring.stringify({
              response_type: 'code',
              client_id: clientID,
-             scope: 'user-read-private user-read-email',
+             scope: 'streaming user-read-private user-read-email',
              redirect_uri: `${baseUrl}/callback/`,
              state: state
      }));
@@ -71,6 +172,7 @@ app.get('/spotify-authorization', function(req, res){
 app.get('/settings', function(req, res){
     res.sendFile(__dirname+"\\client\\auth.html");
 });
+
 
 app.get('/callback', function(req, res) {
 
@@ -139,9 +241,29 @@ app.get('/callback', function(req, res) {
     }
 });
 
+/* ------------------------------------------------------------------------- */
+/* --------------------------- GENERAL FUNCTIONS --------------------------- */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * Generates a random string containing numbers and letters
+ * @param  {number} length The length of the string
+ * @return {string} The generated string
+ */
+function generateRandomString(length) {
+    var text = '';
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (var i = 0; i < length; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return text;
+}
+
+
+/* ----------------------------------------------------------------------- */
+
 app.listen(port, (err) => {
-  if (err) {
-    return console.log('Something bad happened', err)
- }
-  console.log(`server is listening on ${port}`);
+    if (err) {
+        return console.log('Something bad happened', err);
+    }
+    console.log(`server is listening on ${port}`);
 });

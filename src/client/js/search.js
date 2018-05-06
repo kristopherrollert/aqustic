@@ -17,13 +17,13 @@ function search(authorization, query) {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${authorization}`
     }
-    
+
     var init = {
         method: 'GET',
-        headers: headers,
+        headers: headers
     }
-    
-    
+
+
     return fetch(`https://api.spotify.com/v1/search?q=${query}&type=track,album,playlist,artist`, init)
         .then(response => {
         if (response.status === 200) {
