@@ -40,6 +40,9 @@ const bodyParser = require('body-parser');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
 
+/* Local Modules */
+const queue = require('./queue');
+
 const mongoClient = mongo.MongoClient;
 const app = express();
 
@@ -56,48 +59,52 @@ var database = {
     /* General Databse Information */
     name: "aqusticDB",
     url: 'mongodb://localhost:27017/',
-    createCollection: function(collectionName) {
+    createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
             var database = db.db(this.name);
             database.createCollection(collectionName,
-                function(err, res) {
+                function(err, result) {
                     if (err) throw err;
                     if (debug) console.log(`Created ${collectionName} collection!`);
                     db.close();
+                    if (callback) callback(result);
                 }
             );
         });
     },
-    insertOne: function (collectionName, item) {
+    insertOne: function (collectionName, item, callback = null) {
         mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
             var database = db.db(this.name);
             database.collection(collectionName).insertOne(item,
-                function (err, res) {
+                function (err, result) {
                     if (err) throw err;
                     if (debug) console.log("Inserted One Element");
+                    //console.log(result);
                     db.close();
+                    if (callback) callback(result);
                 }
             );
         });
     },
-    insertMany: function (collectionName, items) {
+    insertMany: function (collectionName, items, callback = null) {
         mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
             var database = db.db(this.name);
             database.collection(collectionName).insertOne(item,
-                function(err, res) {
+                function(err, result) {
                     if (err) throw err;
-                    if (debug) console.log("Inserted One Element");
+                    if (debug) console.log("Inserted Elements");
                     db.close();
+                    if (callback) callback(result);
                 }
             );
         });
     },
 
     /* returns an array of */
-    findOne: function (collectionName, query = {}) {
+    findOne: function (collectionName, query = {}, callback = null) {
         return mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
             var database = db.db(this.name);
@@ -107,14 +114,15 @@ var database = {
                     db.close();
                     if (debug) {
                         console.log("FIND ONE RESULT: ");
-                        console.log(result);
+                        //console.log(result);
                     }
+                    if (callback) callback(result);
                 }
             );
         });
     },
 
-    find: function(collectionName, query = {}, limit = 0){
+    find: function(collectionName, query = {}, limit = 0, callback = null){
         return mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
             var database = db.db(this.name);
@@ -126,77 +134,131 @@ var database = {
                         console.log(result);
                     }
                     db.close();
-                    return result;
+                    if (callback) callback(result);
                 }
             );
         });
     },
 
-    findAll: function (collectionName) {
-        return this.find(collectionName);
+    findAll: function (collectionName, query = {}, callback = null) {
+        return this.find(collectionName, query, 0, callback );
     },
 
-    updateOne: function (collectionName, query, newValues) {
+    updateOne: function (collectionName, query, newValues, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
             var database = db.db(this.name);
             database.collection(collectionName).updateOne(query, newValues,
-                function(err, res) {
+                function(err, result) {
                     if (err) throw err;
                     if (debug) {
                         console.log("UPDATE ONE RESULT:");
-                        console.log(res);
+                        console.log(result);
                     }
                     db.close();
+                    if (callback) callback(result);
             });
         });
     },
 
-    update: function (collectionName, query, newValues) {
+    update: function (collectionName, query, newValues, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
             var database = db.db(this.name);
             database.collection(collectionName).updateMany(query, newValues,
-                function(err, res) {
+                function(err, result) {
                     if (err) throw err;
                     if (debug) {
                         console.log("UPDATE RESULT:");
-                        console.log(res);
+                        //console.log(result);
                     }
                     db.close();
-            });
+                    if (callback) callback(result);
+                });
         });
     },
 
-    deleteOne: function (collectionName, query) {
+    deleteOne: function (collectionName, query, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
             var database = db.db(this.name);
             database.collection(collectionName).deleteOne(query,
-                function(err, res) {
+                function(err, result) {
                     if (err) throw err;
                     if (debug) console.log("DELETED ELEMENT");
                     db.close();
+                    if (callback) callback(result);
             });
         });
     },
 
-    delete: function (collectionName, query) {
+    delete: function (collectionName, query, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
             var database = db.db(this.name);
             database.collection(collectionName).deleteMany(query,
-                function(err, res) {
+                function(err, result) {
                     if (err) throw err;
-                    if (debug) console.log(`DELETED ${res.result.n} ELEMENT(S)`);
+                    if (debug) console.log(`DELETED ${result.result.n} ELEMENT(S)`);
                     db.close();
+                    if (callback) callback(result);
             });
         });
     },
 
 };
 
+
 database.createCollection("ACCOUNTS");
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------- SONG OBJECT/INFO ---------------------------- */
+/* -------------------------------------------------------------------------- */
+
+function Song (prev = null, next = null) {
+    this.prev = prev;
+    this.next = next;
+
+    this.songId = null;
+    this.likes = 0;
+    this.dislikes = 0;
+    this.score = 0;
+
+    this.getSongId = function() {
+        return this.id;
+    };
+
+    this.setSongId = function(songId) {
+        this.songId = songId;
+    };
+
+    this.getLikes = function() {
+        return this.likes;
+    };
+
+    this.getDislikes = function() {
+        return this.dislikes;
+    };
+
+    this.getScore = function() {
+        return this.score;
+    };
+
+    this.addLike = function() {
+        this.likes++;
+        this.updateScore();
+    };
+
+    this.addDislike = function() {
+        this.dislikes++;
+        this.updateScore();
+    };
+
+    this.updateScore = function() {
+        //TODO Better voting score algorithm goes here
+        this.score = this.likes - this.dislikes;
+    };
+}
 
 /* -------------------------------------------------------------------------- */
 /* ------------------------------- MIDDLEWARE ------------------------------- */
@@ -238,9 +300,6 @@ app.get('/signup', function(req, res){
 });
 
 app.put('/account/sign-in', function (req, res) {
-    console.log("SIGN IN DATA");
-    console.log(req.body);
-
     let username = req.body.username || '';
     let password = req.body.password || '';
     if (password.length < 1 && username.length < 1)
@@ -250,33 +309,28 @@ app.put('/account/sign-in', function (req, res) {
     else if (password.length < 1)
         res.send({error: "Password cannot be blank!"});
     else {
-        var dbResult = database.findOne("ACCOUNTS", {username: username});
-        console.log("DBRESULT");
-        console.log(dbResult);
-        if (dbResult == null)
-            res.send({error: "Username not found!"});
-        else {
-            var hashPassword = hashPassword(password, dbResult.salt);
-            if (dbResult.password != hashPassword)
-                res.send({error: "Password is not correct!"});
-            else {
-                res.send({loginCode: dbResult.loginCode });
-                res.redirect('/home');
-            }
-        }
+        database.findOne("ACCOUNTS", {username: username},
+            function (result) {
+                if (result == null)
+                    res.send({error: "Username not found!"});
+                else {
+                    var hashPass = hashPassword(password, result.salt);
+                    if (result.password != hashPass)
+                        res.send({error: "Password is not correct!"});
+                    else {
+                        res.send({loginCode: result.loginCode });
+                    }
+                }
+            });
     }
 });
 
 
 app.put('/account/sign-up', function (req, res) {
-    console.log("SIGN UP GOT MESSAGE");
     let minUserLen = 4;
     let maxUserLen = 20;
     let maxPassLen = 128;
     let minPassLen = 5;
-
-    console.log("SIGN UP DATA");
-    console.log(req.body);
 
     let username = req.body.username || '';
     let password = req.body.password || '';
@@ -302,7 +356,7 @@ app.put('/account/sign-up', function (req, res) {
         var loginCode = generateRandomString(16);
         var query = {
             username: username,
-            password: passwordData.passwordHash,
+            password: passwordData.hashPassword,
             salt: passwordData.salt,
             loginCode: loginCode
         };
@@ -442,6 +496,8 @@ var sha512 = function(password, salt){
     var hash = crypto.createHmac('sha512', salt); /** Hashing algorithm sha512 */
     hash.update(password);
     var value = hash.digest('hex');
+    console.log("SHA");
+    console.log(value);
     return {
         salt:salt,
         passwordHash:value
@@ -455,6 +511,8 @@ var sha512 = function(password, salt){
 function saltHashPassword(userpassword) {
     let salt = generateRandomString(16);
     let passwordData = sha512(userpassword, salt);
+    console.log("SALT HASH PASS");
+    console.log(passwordData);
     return { hashPassword: passwordData.passwordHash,
              salt: passwordData.salt };
 }
@@ -469,4 +527,14 @@ function hashPassword(userpassword, salt) {
  */
 function isValid(str){
  return !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(str);
+}
+
+function getLargerSong(song1, song2) {
+    let score1 = song1.getScore();
+    let score2 = song2.getScore();
+    if(score1 > score2)
+        return song1;
+    else if(score2 > score1)
+        return song2;
+    return null;
 }

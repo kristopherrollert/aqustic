@@ -45,7 +45,7 @@ function signInPage() {
             }
             else {
                 console.log("SUCCESS");
-                consele.log(data);
+                console.log(data);
                 sessionStorage.setItem("username", data.username);
                 sessionStorage.setItem("loginCode", data.loginCode);
             }
@@ -80,14 +80,14 @@ function signUpPage() {
         }).done(function(data) {
             if (data.hasOwnProperty('error')){
                 console.log("ERROR");
-                console.log(data.error)
+                console.log(data.error);
                 throwLoginError(data.error);
                 $("#password-section").val('');
                 $("#password-confirm-section").val('');
             }
             else {
                 console.log("SUCCESS");
-                console.log(data)
+                console.log(data);
                 sessionStorage.setItem("username", data.username);
                 sessionStorage.setItem("loginCode", data.loginCode);
             }
