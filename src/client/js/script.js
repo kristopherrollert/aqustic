@@ -1,17 +1,11 @@
 $(document).ready(function() {
     switch (window.location.pathname) {
-        case "/src/client/index.html":
-            indexPage();
-            break
-        case "/src/client/signup.html":
+        case "/signup":
             signUpPage();
-            break
-        case "/createaccount":
-            signUpPage();
-            break
+            break;
         case "/signin":
-            indexPage();
-            break
+            signInPage();
+            break;
         default:
             alert("Cannot find: " + window.location.pathname);
             break;
@@ -25,24 +19,38 @@ $(document).ready(function() {
 /*
  * signup page: password length and username length control
  */
-function indexPage() {
+function signInPage() {
+    console.log("SIGN IN PAGE");
     $("#login-form").submit(function(e) {
         e.preventDefault();
     });
 
     $("#login-button").click(function() {
-        let username = $("#username-section").val();
-        let password = $("#password-section").val();
-        if (password.length < 1 && username.length < 1)
-            throwLoginError("Enter a username and a password!");
-        else if (username.length < 1)
-            throwLoginError("Username cannot be blank!");
-        else if (password.length < 1)
-            throwLoginError("Password cannot be blank!");
-        else {
-            // HASH AND SEND INFO
-            alert("NO ERROR")
-        }
+        var username = $("#username-section").val();
+        var password = $("#password-section").val();
+
+        $.ajax({
+            type: "PUT",
+            url: "/account/sign-in",
+            data: {
+                username: username,
+                password: password
+            }
+        }).done(function(data) {
+            if (data.hasOwnProperty('error')){
+                console.log("ERROR");
+                console.log(data.error);
+                throwLoginError(data.error);
+                $("#password-section").val('');
+            }
+            else {
+                console.log("SUCCESS");
+                consele.log(data);
+                sessionStorage.setItem("username", data.username);
+                sessionStorage.setItem("loginCode", data.loginCode);
+            }
+        });
+
     });
 }
 
@@ -51,58 +59,39 @@ function indexPage() {
  * signup page: password length and username length control
  */
 function signUpPage() {
-    let minUserLen = 4;
-    let maxUserLen = 20;
-    let maxPassLen = 128;
-    let minPassLen = 5;
+    console.log("SIGN UP PAGE");
 
     $("#signup-form").submit(function(e) {
         e.preventDefault();
     });
 
     $("#signup-button").click(function() {
-        let username = $("#username-section").val();
-        let password = $("#password-section").val();
-        let confirmPass = $("#password-confirm-section").val();
-
-        if (password.length < 1 && username.length < 1)
-            throwLoginError("Please enter a username and a password!");
-        else if (username.length < minUserLen)
-            throwLoginError("Username should be at least "+minUserLen+" characters!");
-        else if (username.length > maxUserLen )
-            throwLoginError("Username is too long!");
-        else if (username.length > maxUserLen)
-            throwLoginError("Username should not more than "+maxPassLen+" characters!");
-        else if (!isValid(username))
-            throwLoginError("Username cannot contain symbols!");
-        else if (password.length < minPassLen) {
-            $("#password-section").val("");
-            $("#password-confirm-section").val("");
-            throwLoginError("Password should be more than "+minPassLen+" characters!");
-        }
-        else if (password.length > maxPassLen) {
-            $("#password-section").val("");
-            $("#password-confirm-section").val("");
-            throwLoginError("Password is too long!");
-        }
-        else if (password !== confirmPass) {
-            $("#password-section").val("");
-            $("#password-confirm-section").val("");
-            throwLoginError("Passwords do not match!");
-        }
-        else {
-            $.ajax({
-                type: "GET",
-                url: "/account/signup",
-                data: {
-                    username: username,
-                    password: password
-                }
-            }).done(function(data) {
-                console.log("___DATA___");
-                console.log(data);
-            });
-        }
+        var username = $("#username-section").val();
+        var password = $("#password-section").val();
+        var passwordConf = $("#password-confirm-section").val();
+        $.ajax({
+            type: "PUT",
+            url: "/account/sign-up",
+            data: {
+                username: username,
+                password: password,
+                passwordConf: passwordConf
+            }
+        }).done(function(data) {
+            if (data.hasOwnProperty('error')){
+                console.log("ERROR");
+                console.log(data.error)
+                throwLoginError(data.error);
+                $("#password-section").val('');
+                $("#password-confirm-section").val('');
+            }
+            else {
+                console.log("SUCCESS");
+                console.log(data)
+                sessionStorage.setItem("username", data.username);
+                sessionStorage.setItem("loginCode", data.loginCode);
+            }
+        });
   });
 }
 
@@ -115,19 +104,13 @@ function signUpPage() {
  * Used to throw errors on sign up
  */
 function throwLoginError(error) {
-    let width =  $(".sign-in-section").outerWidth();
+    var width =  $("#username-section").outerWidth() - 30;
     $(".client-error").css("width", width+"px");
-    $(".client-error").css("max-width", width+"px")
+    $(".client-error").css("max-width", width+"px");
     $("#error-text").text(error);
     $(".client-error").css("display", "block");
 }
 
-/*
- * Returns true if string has special characters
- */
-function isValid(str){
- return !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(str);
-}
 
 /**
  * Generates a random string containing numbers and letters
@@ -146,7 +129,7 @@ function generateRandomString(length) {
 /* ----------------------------------------------------------------------- */
 /* -------------------------- Playing Songs! ----------------------------- */
 /* ----------------------------------------------------------------------- */
-
+/*
 window.onSpotify = function() {
 
     var player = new Spotify.Player({
@@ -156,13 +139,13 @@ window.onSpotify = function() {
             //Also outdated token, was just temporary one for testing
             callback("your mom");
         }
-    });
+    }); */
 
 /*
  *  THE FOLLOWING CODE IS COPIED OFF OF https://beta.developer.spotify.com/documentation/web-playback-sdk/quick-start/#
  */
 
-
+/*
     // Error handling
     player.addListener('initialization_error', ({ message }) => { console.error(message); });
     player.addListener('authentication_error', ({ message }) => { console.error(message); });
@@ -190,3 +173,4 @@ window.onSpotify = function() {
 
 
 }
+*/

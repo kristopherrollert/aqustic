@@ -109,4 +109,18 @@ input[type="submit"]:hover {
 .sign-in-section {
   margin-left: 25px; }
 
+.client-error {
+  display: none;
+  border: .5px solid #c54200;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 15px;
+  padding-right: 15px; }
+
+#error-text {
+  color: #c54200;
+  margin: 0;
+  font-weight: 100;
+  font-size: 14px; }
+
 /*# sourceMappingURL=style.css.map */
