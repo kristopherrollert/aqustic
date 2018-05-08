@@ -130,7 +130,7 @@ function generateRandomString(length) {
 /* -------------------------- Playing Songs! ----------------------------- */
 /* ----------------------------------------------------------------------- */
 /*
-window.onSpotify = function() {
+window.onSpotifyWebPlaybackSDKReady = function() {
 
     var player = new Spotify.Player({
         name: 'aqustic Spotify Web Player',

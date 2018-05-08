@@ -459,6 +459,11 @@ app.get('/callback', function(req, res) {
     }
 });
 
+app.put('/play-song', function(req, res) {
+   let songURI = req.body.songURI;
+   let authToken = '' //Still need to figure out
+});
+
 /* ------------------------------------------------------------------------- */
 
 app.listen(port, (err) => {
