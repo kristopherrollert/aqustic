@@ -552,8 +552,6 @@ function getLargerSong(song1, song2) {
 function playSong(authToken, songID) {
 
     var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
         "Authorization": "Bearer " + authToken,
     }
 
