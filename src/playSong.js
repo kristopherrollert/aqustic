@@ -12,20 +12,18 @@ var request = require("request");
 function playSong(authToken, songID) {
 
     var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    }
+        "Authorization": 'Bearer ${authToken}'
+    };
 
     var body = {
         "context_uri": songID,
-    }
+    };
 
     var init = {
         method: 'PUT',
         headers: header,
         body: body,
-    }
+    };
 
     //TODO make the query "device_id" equal to the name of the player
     return fetch('https://api.spotify.com/v1/me/player/play', init)

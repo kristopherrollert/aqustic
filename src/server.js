@@ -39,6 +39,8 @@ const request = require('request');
 const bodyParser = require('body-parser');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
+const fetch = require("node-fetch");
+
 
 /* Local Modules */
 const queue = require('./queue');
@@ -54,9 +56,9 @@ const debug = true; // this can be set to false to hide console.logs
 /* ------------------------------------------------------------------------- */
 /* ----------------------------- DATABASE CODE ----------------------------- */
 /* ------------------------------------------------------------------------- */
-
+/*
 var database = {
-    /* General Databse Information */
+    /* General Databse Information */ /*
     name: "aqusticDB",
     url: 'mongodb://localhost:27017/',
     createCollection: function(collectionName, callback = null) {
@@ -103,7 +105,7 @@ var database = {
         });
     },
 
-    /* returns an array of */
+    /* returns an array of */ /*
     findOne: function (collectionName, query = {}, callback = null) {
         return mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
@@ -460,8 +462,11 @@ app.get('/callback', function(req, res) {
 });
 
 app.put('/play-song', function(req, res) {
-   let songURI = req.body.songURI;
-   let authToken = '' //Still need to figure out
+    console.log("I'm here!");
+    let songURI = 'spotify:album:5ht7ItJgpBH7W6vJ5BqpPr';
+    let authToken = 'BQDSLgfRZeVV7l2XzAW144uXYFkLFkLkIk1_kluPXDH7mqcAFXWGnEFq8xjvt-NBCg11XwMYUnNmYRhkLH4Y8DBmYS-1XAytMeqP1sCNi12OeeNwT68APMZiAtCyQTlS7m2-tACD7g4lGHEzR3iyf4mwHRV1-LUSWA' //Still need to figure out
+    playSong(authToken, songURI);
+    console.log("here now");
 });
 
 /* ------------------------------------------------------------------------- */
@@ -542,4 +547,35 @@ function getLargerSong(song1, song2) {
     else if(score2 > score1)
         return song2;
     return null;
+}
+
+function playSong(authToken, songID) {
+
+    var header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + authToken,
+    }
+
+    var body = {
+
+        context_uri: songID,
+    }
+
+    var init = {
+        method: 'PUT',
+        headers: header,
+        body: body,
+    }
+
+    //TODO make the query "device_id" equal to the name of the player
+    return fetch(`https://api.spotify.com/v1/me/player/play`, init)
+        .then(function (res) {
+            if (res.status == 204) {
+                console.log("Playing Song...")
+            }
+            else {
+                console.log(JSON.stringify(res.status));
+            }
+        })
 }
