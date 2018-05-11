@@ -463,8 +463,8 @@ app.get('/callback', function(req, res) {
 
 app.put('/play-song', function(req, res) {
     console.log("I'm here!");
-    let songURI = 'spotify:album:5ht7ItJgpBH7W6vJ5BqpPr';
-    let authToken = 'BQDSLgfRZeVV7l2XzAW144uXYFkLFkLkIk1_kluPXDH7mqcAFXWGnEFq8xjvt-NBCg11XwMYUnNmYRhkLH4Y8DBmYS-1XAytMeqP1sCNi12OeeNwT68APMZiAtCyQTlS7m2-tACD7g4lGHEzR3iyf4mwHRV1-LUSWA' //Still need to figure out
+    let songURI = 'spotify:track:7FFfYM4JE1vj5n4rhHxg8q';
+    let authToken = 'BQAhwtweYh3u9HSKqNwAy-9PJFYnwaXgYgkVhqm-dCyECI38zHQfFYKDYK4zGbW24meA-gdcMOfMV1QLCn6dlFG6X5_zOtRgi4LRZSNHY4YgAmJ30BXsoEkda6xaQcyur51diJWNxERwP3Mtton45Z8nOjkn_mQB9Q' //Still need to figure out
     playSong(authToken, songURI);
     console.log("here now");
 });
@@ -553,23 +553,22 @@ function playSong(authToken, songID) {
 
     var header = {
         "Authorization": "Bearer " + authToken,
-    }
+    };
 
     var body = {
-
-        context_uri: songID,
-    }
+        "uris": [songID],
+    };
 
     var init = {
         method: 'PUT',
         headers: header,
-        body: body,
-    }
+        body: JSON.stringify(body),
+    };
 
     //TODO make the query "device_id" equal to the name of the player
-    return fetch(`https://api.spotify.com/v1/me/player/play`, init)
+    return fetch("https://api.spotify.com/v1/me/player/play", init)
         .then(function (res) {
-            if (res.status == 204) {
+            if (res.status === 204) {
                 console.log("Playing Song...")
             }
             else {
