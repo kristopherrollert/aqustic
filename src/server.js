@@ -56,9 +56,9 @@ const debug = true; // this can be set to false to hide console.logs
 /* ------------------------------------------------------------------------- */
 /* ----------------------------- DATABASE CODE ----------------------------- */
 /* ------------------------------------------------------------------------- */
-/*
+
 var database = {
-    /* General Databse Information */ /*
+    /* General Databse Information */
     name: "aqusticDB",
     url: 'mongodb://localhost:27017/',
     createCollection: function(collectionName, callback = null) {
@@ -105,7 +105,7 @@ var database = {
         });
     },
 
-    /* returns an array of */ /*
+    /* returns an array of */
     findOne: function (collectionName, query = {}, callback = null) {
         return mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
@@ -294,11 +294,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 /* ------------------------------- ENDPOINTS ------------------------------- */
 /* ------------------------------------------------------------------------- */
 app.get('/signin', function(req, res){
-    res.sendFile(__dirname+"\\client\\signin.html");
+    res.sendFile(__dirname+"/client/signin.html");
 });
 
 app.get('/signup', function(req, res){
-    res.sendFile(__dirname+"\\client\\signup.html");
+    res.sendFile(__dirname+"/client/signup.html");
 });
 
 app.put('/account/sign-in', function (req, res) {
@@ -462,11 +462,9 @@ app.get('/callback', function(req, res) {
 });
 
 app.put('/play-song', function(req, res) {
-    console.log("I'm here!");
     let songURI = 'spotify:track:7FFfYM4JE1vj5n4rhHxg8q';
     let authToken = 'BQAhwtweYh3u9HSKqNwAy-9PJFYnwaXgYgkVhqm-dCyECI38zHQfFYKDYK4zGbW24meA-gdcMOfMV1QLCn6dlFG6X5_zOtRgi4LRZSNHY4YgAmJ30BXsoEkda6xaQcyur51diJWNxERwP3Mtton45Z8nOjkn_mQB9Q' //Still need to figure out
     playSong(authToken, songURI);
-    console.log("here now");
 });
 
 /* ------------------------------------------------------------------------- */
