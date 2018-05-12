@@ -221,10 +221,19 @@ function Song (prev = null, next = null) {
     this.prev = prev;
     this.next = next;
 
+    this.songName = null;
     this.songId = null;
     this.likes = 0;
     this.dislikes = 0;
     this.score = 0;
+
+    this.getSongName = function() {
+        return this.songName;
+    }
+
+    this.setSongName = function(songName) {
+        this.songName = songName;
+    }
 
     this.getSongId = function() {
         return this.id;
@@ -573,4 +582,111 @@ function playSong(authToken, songID) {
                 console.log(JSON.stringify(res.status));
             }
         })
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * DESCRIPTION: A way to search for songs on spotify
+ * ARGUMENTS:
+ *  authorization -> authorization to work with spotify api
+ *  query -> what we are searching
+ *  type(optional) -> type of thing to search for. defaults to all. options: track, album, playlist, artist
+ * Returns a dictionary of the names of the top 20 results from spotify, and song objects (still needs work)
+ */
+function search(authToken, query, type = 'all') {
+    if (type == 'all')
+        type = 'track,album,playlist,artist';
+
+    var headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    }
+
+    var init = {
+        method: 'GET',
+        headers: headers
+    }
+
+
+    return fetch(`https://api.spotify.com/v1/search?q=${query}&type=${type}`, init)
+        .then(response => {
+        if (response.status === 200) {
+            return response.json().then(function(data) {
+                var dict = {
+                    tracks: [],
+                    albums: [],
+                    playlists: [],
+                    artists: []
+                };
+                var i;
+                if (type.includes("track")) {
+                    for (i = 0; i < data.tracks.items.length; i++) {
+                        var track = new Song();
+                        track.setSongName(data.tracks.items[i].name);
+                        track.setSongId(data.tracks.items[i].id);
+                        // var track = data.tracks.items[i].name;
+                        dict.tracks.push(track);
+                    }
+                }
+
+                if (type.includes("album")) {
+                    for (i = 0; i < data.albums.items.length; i++) {
+                        // var album = new Album();
+                        // album.setName(data.albums.items[i].name);
+                        // album.setId(data.albums.items[i].id);
+                        var album = data.albums.items[i].name;
+                        dict.albums.push(album);
+                    }
+                }
+
+                if (type.includes("playlist")) {
+                    for (i = 0; i < data.playlists.items.length; i++) {
+                        // var playlist = new Playlist();
+                        // playlist.setName(data.playlists.items[i].name);
+                        // playlist.setId(data.playlists.items[i].id);
+                        // playlist.setOwnerId(data.playlists.items[i].owner.id);
+                        var playlist = data.playlists.items[i].name;
+                        dict.playlists.push(playlist);
+                    }
+                }
+
+                if (type.includes("artist")) {
+                    for (i = 0; i < data.artists.items.length; i++) {
+                        // var artist = new Artist();
+                        // artist.setName(data.artists.items[i].name);
+                        // artist.setId(data.artists.items[i].id);
+                        var artist = data.artists.items[i].name;
+                        dict.artists.push(artist);
+                    }
+                }
+                return dict;
+            });
+            // console.log(dict);
+            // console.log(d);
+            // return dict;
+        } else {
+            throw new Error(`Something went wrong on api server! ${response.status}`);
+        }
+    })
+    .then(response => {
+        console.debug(response);
+        // ...
+    }).catch(error => {
+        console.error(error);
+    });
+}
+
+/*
+ * DESCRIPTION: A way to parse a query from a user into something usable by the spotify API
+ * ARGUMENTS:
+ *  query -> a search query from a user
+ * returns a usable string for the spotify API
+ */
+function parse_search(query) {
+    return query.replace(/ /i, '%20')
 }

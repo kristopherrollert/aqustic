@@ -6,7 +6,7 @@ const Request = require('request');
  * ARGUMENTS:
  *  authorization -> authorization to work with spotify api
  *  query -> what we are searching
- *  type -> type of thing to search for. Optional and will default to all. options: track, album, playlist, artist
+ *  type(optional) -> type of thing to search for. defaults to all. options: track, album, playlist, artist
  * Returns a dictionary of the names of the top 20 results from spotify
  */
  // We will probably want to change how we deal with the response that is returned
@@ -38,10 +38,10 @@ function search(authorization, query, type = "track,album,playlist,artist") {
                 var i;
                 if (type.includes("track")) {
                     for (i = 0; i < data.tracks.items.length; i++) {
-                        // var track = new Song();
-                        // track.setName(data.tracks.items[i].name);
-                        // track.setId(data.tracks.items[i].id);
-                        var track = data.tracks.items[i].name;
+                        var track = new Song();
+                        track.setName(data.tracks.items[i].name);
+                        track.setId(data.tracks.items[i].id);
+                        // var track = data.tracks.items[i].name;
                         dict.tracks.push(track);
                     }
                 }
@@ -249,10 +249,10 @@ function getAlbum(authToken, albumId) {
         "Authorization": `Bearer ${authToken}`
     }
 
-    var init = {
+    var init = JSON.stringify({
         method: 'GET',
         headers: header,
-    }
+    })
 
     var artist = {
         tracks: [],
@@ -365,7 +365,7 @@ function parse_search(query) {
     return query.replace(/ /i, '%20')
 }
 
-var authToken = "BQAQ6VmjbMwYnV5gH_vS1XINzbSN3ex616UsLIWQdCx0Sj0lUdnwbvU71cmQoltbyhieCgeRbDrGROEahEaBEfQ1CMWzMlp9hVV29q2yZc9bW8eIQ_q7Kvhi9bMeJ7IB4m1fLe3W6m_QkGDoi355hoXweCT8zPkNd_-MDFACGhXeldFiLy7bDaa6ExroZ6nDQTj8dgouOhSKiVeOI7PDLVdOWVQNsMWp1vEA5elAI9CWBkqGa7sW6i2--8ARAITkxQ3O9vPk";
+var authToken = 'BQDw_Zi-dC2OE7on58_7Jlt5fVDPPyY75__c53JQttIl2fyQzcZYrFFssfduXOaXaSak2m3TXWkJPru21mXQ-cS6nghBY7jBWqBTwelNbxIypaibQ_mryDr6SgeuxeqrexMHM-FMF3tEy5E7Qnb4dsVH4qXYXzH1e4G0vZ_Jf9kFjGlJUs7tw-juy5qMxWkJKGnbYAW27ISWFKC2W8W2fTfBcHUbpQUWxRs7pEe2pLt3cRM8Urk8xnX4emja4cHEMcvPonvK';
 // var tracks = getAlbum(authToken, "2zcx8cMjC0zHU94PrIZZd0")
 // tracks.then(function(data) {
 //     console.log(data);
@@ -374,4 +374,4 @@ var authToken = "BQAQ6VmjbMwYnV5gH_vS1XINzbSN3ex616UsLIWQdCx0Sj0lUdnwbvU71cmQolt
 // getArtist(authToken, '06HL4z0CvFAxyc27GXpf02');
 
 // getPlaylist(authToken, '37i9dQZF1DX5KpP2LN299J', 'spotify');
-search(authToken, parse_search('taylor swift'));
+search(authToken, parse_search('taylor swift'), 'track');
