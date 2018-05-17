@@ -471,8 +471,12 @@ app.get('/callback', function(req, res) {
 });
 
 app.put('/play-song', function(req, res) {
-    let songURI = 'spotify:track:7FFfYM4JE1vj5n4rhHxg8q';
-    let authToken = 'BQAhwtweYh3u9HSKqNwAy-9PJFYnwaXgYgkVhqm-dCyECI38zHQfFYKDYK4zGbW24meA-gdcMOfMV1QLCn6dlFG6X5_zOtRgi4LRZSNHY4YgAmJ30BXsoEkda6xaQcyur51diJWNxERwP3Mtton45Z8nOjkn_mQB9Q' //Still need to figure out
+    let songURI = 'spotify:track:3ctoHckjyd13eBi2IDw2Ip';
+    let songID = '3ctoHckjyd13eBi2IDw2Ip'
+
+    //let songURI = req.songId;
+    let authToken = 'BQCaMVlYJ-fj1kDePZshSrSckxapp16K48cB86LO2nqlXB4XVgUVxexseLi3ieB9AePt8mNsaC1sPWAOhOZj6M5TilXHHAQTIkNeUq1R9H62Kj1maMR84K05-I7Ct6nqeNy9hLs4imrnWnMHEVwsbLkRvd3xHvL16A'; //Still need to figure out
+    getSongLength(authToken, songID);
     playSong(authToken, songURI);
 });
 
@@ -556,14 +560,14 @@ function getLargerSong(song1, song2) {
     return null;
 }
 
-function playSong(authToken, songID) {
+function playSong(authToken, songURI) {
 
     var header = {
         "Authorization": "Bearer " + authToken,
     };
 
     var body = {
-        "uris": [songID],
+        "uris": [songURI],
     };
 
     var init = {
@@ -580,6 +584,32 @@ function playSong(authToken, songID) {
             }
             else {
                 console.log(JSON.stringify(res.status));
+            }
+        })
+
+
+}
+
+function getSongLength (authToken, songID) {
+    var header = {
+        "Authorization": "Bearer " + authToken,
+    };
+
+    var init = {
+        method: 'GET',
+        headers: header,
+    };
+
+    let songLength = -1;
+    fetch('https://api.spotify.com/v1/tracks/' + songID, init)
+        .then(function (res) {
+            if (res.status === 200) {
+                console.log("got track data");
+                songLength = 0;
+                console.log(JSON.stringify(res));
+            }
+            else {
+                console.log('ERROR: ' + res.status)
             }
         })
 }
