@@ -44,10 +44,12 @@ function signInPage() {
                 $("#password-section").val('');
             }
             else {
+                var url = "/home.html";
                 console.log("SUCCESS");
                 console.log(data);
                 sessionStorage.setItem("username", data.username);
                 sessionStorage.setItem("loginCode", data.loginCode);
+                $(location).attr('href',url);
             }
         });
 
