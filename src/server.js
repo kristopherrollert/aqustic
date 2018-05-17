@@ -347,7 +347,8 @@ app.put('/account/sign-up', function (req, res) {
     let password = req.body.password || '';
     let passwordConf = req.body.passwordConf || '';
 
-    // TODO CHECK IF USERNAME IS TAKEN
+    // CHECK IF USERNAME IS TAKEN
+    // Create account if username not taken
     if (username.length < minUserLen)
         res.send({error : `Username should be at least ${minUserLen} characters!`});
     else if (username.length > maxUserLen )
@@ -363,16 +364,26 @@ app.put('/account/sign-up', function (req, res) {
     else if (password !== passwordConf)
         res.send({error : `Passwords do not match!`});
     else {
-        var passwordData = saltHashPassword(password);
-        var loginCode = generateRandomString(16);
-        var query = {
-            username: username,
-            password: passwordData.hashPassword,
-            salt: passwordData.salt,
-            loginCode: loginCode
-        };
-        database.insertOne("ACCOUNTS", query);
-        res.send({username: username, loginCode: loginCode});
+        var within = {
+            username: username
+        }
+        var nameTaken = database.findOne("ACCOUNTS", within, function (result) {
+            if (result == null) {
+                var passwordData = saltHashPassword(password);
+                var loginCode = generateRandomString(16);
+                var query = {
+                    username: username,
+                    password: passwordData.hashPassword,
+                    salt: passwordData.salt,
+                    loginCode: loginCode
+                };
+                database.insertOne("ACCOUNTS", query);
+                res.send({username: username, loginCode: loginCode});
+            }
+            else {
+                res.send({error : `Username is already taken!`})
+            }
+        });
     }
 });
 
