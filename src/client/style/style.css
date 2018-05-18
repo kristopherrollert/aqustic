@@ -65,8 +65,9 @@ input[type="text"]::placeholder, input[type="password"]::placeholder {
 input[type="text"]:focus, input[type="password"]:focus {
   outline: none; }
 
-input[type="submit"] {
+.button-1 {
   background-color: #f6ca5a;
+  font-family: 'Poppins', sans-serif;
   color: white;
   font-size: 18px;
   border: none;
@@ -78,7 +79,7 @@ input[type="submit"] {
   margin-top: 35px;
   cursor: pointer; }
 
-input[type="submit"]:hover {
+.button-1:hover {
   background-color: #b99844; }
 
 /* Page: Sign in Specific */
@@ -122,5 +123,112 @@ input[type="submit"]:hover {
   margin: 0;
   font-weight: 100;
   font-size: 14px; }
+
+/* Mini Header */
+.small-header {
+  background-color: #222b2f;
+  width: 100%; }
+
+.small-page-header {
+  margin-top: 0;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 30px;
+  font-size: 18px;
+  color: white; }
+
+/* button 2 stylying */
+.button-2 {
+  background-color: transparent;
+  color: #f6ca5a;
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  border: 1px solid #f6ca5a;
+  border-radius: 3px;
+  padding: 5px;
+  padding-left: 12px;
+  padding-right: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-weight: 200; }
+
+/* Search Styling */
+.button-2, .search {
+  margin-left: 10px; }
+
+.search-sections {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 10px; }
+
+.search-curr {
+  padding-bottom: 3px !important;
+  border-bottom: 1px solid #f6ca5a !important; }
+
+.search-tab {
+  font-weight: 200;
+  padding-bottom: 3px;
+  cursor: pointer; }
+
+#song-error, #album-error, #playlist-error, #artists-error {
+  display: none;
+  text-align: center; }
+
+.search-bar {
+  margin-bottom: 10px; }
+
+.song-item {
+  border: 1px solid #f6ca5a;
+  color: white; }
+
+.song-title {
+  font-weight: 400;
+  font-size: 24px;
+  margin-bottom: 0;
+  margin-top: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden; }
+
+.song-artists {
+  font-weight: 400;
+  font-size: 15px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden; }
+
+.song-item {
+  padding-left: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 20px; }
+
+.song-item:hover {
+  background-color: #222b2f;
+  border: 1px solid #222b2f; }
+
+.song-options {
+  padding-right: 15px;
+  font-size: 16px; }
+
+.album-content, .artists-content, .song-content, .playlist-content {
+  display: none; }
+
+.search-section-cur {
+  display: block !important; }
+
+/* FULL PAGE */
+.content-section.full-page {
+  align-items: flex-start !important; }
+
+.secondary-header.full-page {
+  margin-bottom: 20px;
+  font-size: 60px; }
 
 /*# sourceMappingURL=style.css.map */

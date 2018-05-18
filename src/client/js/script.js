@@ -6,6 +6,9 @@ $(document).ready(function() {
         case "/signin":
             signInPage();
             break;
+        case "/searchpage":
+            searchPage();
+            break;
         default:
             alert("Cannot find: " + window.location.pathname);
             break;
@@ -61,11 +64,13 @@ function signInPage() {
  * signup page: password length and username length control
  */
 function signUpPage() {
+
     console.log("SIGN UP PAGE");
 
     $("#signup-form").submit(function(e) {
         e.preventDefault();
     });
+
 
     $("#signup-button").click(function() {
         var username = $("#username-section").val();
@@ -98,6 +103,76 @@ function signUpPage() {
         });
   });
 }
+
+/* Search Page */
+
+function searchPage() {
+    var width =  $(".content-box").outerWidth();
+    $(".search-content").css("width", width+"px");
+    $(".search-content").css("max-width", width+"px");
+    console.log(width);
+    // $(".song-text").css("width", (width - 30) +"px");
+    // $(".song-text").css("max-width", (width - 30) +"px");
+    // $(".song-title").css("width", (width - 30) +"px");
+    // $(".song-title").css("max-width", (width - 30) +"px");
+
+    $("#search-form").submit(function(e) {
+        e.preventDefault();
+    });
+
+    $(".search-tab").click(function(){
+        if (this != $(".search-curr")) {
+            $(".search-curr").removeClass("search-curr");
+            $("#" + this.id).addClass("search-curr");
+            $(".search-section-cur").removeClass("search-section-cur");
+            console.log(this);
+            var section = "." + this.id.split("-")[0] + "-content";
+            console.log(section);
+            $(section).addClass("search-section-cur");
+        }
+    });
+
+    $("#search-button").click(function() {
+        var query = $("#search-query").val();
+        $.ajax({
+            type: "GET",
+            url: "/search",
+            data: {
+                query: query,
+                type: 'all'
+            }
+        }).done(function(data) {
+            //TODO PRECOMPILE
+            var songSource   = document.getElementById("song-item-template").innerHTML;
+            var songTemplate = Handlebars.compile(songSource);
+            var songWidth =  $(".content-box").outerWidth() - 16 - 45;
+
+            console.log(songWidth);
+            if (data.tracks == null)
+                $("#song-error").text("ERROR").css("display", "block");
+            else if (data.tracks.length == 0)
+                $("#song-error").text("NO SONGS FOUND").css("display", "block");
+            else {
+                var currentMaxResults = 5;
+                var moreSongs = currentMaxResults < data.tracks.length;
+                for (var y = 0; y < data.tracks.length; y++) {
+                    var name = data.tracks[y].songName;
+                    var artists = data.tracks[y].songArtists[0].name.toUpperCase();
+                    for (var x = 1; x < data.tracks[y].songArtists.length; x++) {
+                        artists = artists + ', ' +  data.tracks[y].songArtists[x].name.toUpperCase() ;
+                    }
+                    var songContext = {NAME: name, ARTIST: artists, WIDTH: songWidth};
+                    var songHtml    = songTemplate(songContext);
+                    $(".song-content").append(songHtml);
+                }
+                if (moreSongs) {
+                    //TODO write code to display load more songs
+                }
+            }
+        });
+  });
+}
+
 
 
 /* ----------------------------------------------------------------------- */
