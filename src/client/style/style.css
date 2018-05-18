@@ -223,6 +223,21 @@ input[type="text"]:focus, input[type="password"]:focus {
 .search-section-cur {
   display: block !important; }
 
+.show-more-button {
+  border: 0.5px solid #f6ca5a;
+  width: 100%;
+  text-align: center;
+  pointer: cursor;
+  margin-bottom: 25px; }
+
+.show-more-button:hover {
+  background-color: #222b2f;
+  border: 0.5px solid #222b2f; }
+
+.show-more-text {
+  font-size: 15px;
+  font-weight: 100; }
+
 /* FULL PAGE */
 .content-section.full-page {
   align-items: flex-start !important; }

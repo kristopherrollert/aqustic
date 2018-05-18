@@ -324,7 +324,7 @@ app.get('/searchpage', function(req, res){
 });
 
 app.get('/search', function(req,res) {
-    var authToken = 'BQCZvjKQGLK58DEY2lo8kwhdU02NwTbh-X-I7cJHGGBPmsE6EjGqqNtK2KxLFnGTEtpWnBIicziUoZugpEOVvxfPte1ZCLZS49QHJEktXAu9Cysrh7qtrTmJCIxOSTM_aLC4chvzBqVX5aRlvgjAIU5nIx1-fpTZIWYtcwfi';
+    var authToken = 'BQBJTD5A0OtBnS7MNridTVfAroz94StNOOp5mvTsKHA1Q-vheDre80Uc43K0x8fpVDb8YAOURnyY9VhY4FR_iExFfw-aKdC1PHeLfI-V4l34RTfC8-J4MG8tcgnSNyGtq959ZqE3vc-p3m3SYQsvHb_wg9YAN9m5mij0KZ7Z';
     var query = req.query.query || '';
     var type = req.query.type || 'all';
     search(authToken, query, type).then(data => {

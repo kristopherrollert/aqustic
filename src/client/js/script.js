@@ -110,11 +110,6 @@ function searchPage() {
     var width =  $(".content-box").outerWidth();
     $(".search-content").css("width", width+"px");
     $(".search-content").css("max-width", width+"px");
-    console.log(width);
-    // $(".song-text").css("width", (width - 30) +"px");
-    // $(".song-text").css("max-width", (width - 30) +"px");
-    // $(".song-title").css("width", (width - 30) +"px");
-    // $(".song-title").css("max-width", (width - 30) +"px");
 
     $("#search-form").submit(function(e) {
         e.preventDefault();
@@ -125,15 +120,15 @@ function searchPage() {
             $(".search-curr").removeClass("search-curr");
             $("#" + this.id).addClass("search-curr");
             $(".search-section-cur").removeClass("search-section-cur");
-            console.log(this);
             var section = "." + this.id.split("-")[0] + "-content";
-            console.log(section);
             $(section).addClass("search-section-cur");
         }
     });
 
     $("#search-button").click(function() {
         var query = $("#search-query").val();
+        var currentMaxResults = 5;
+
         $.ajax({
             type: "GET",
             url: "/search",
@@ -143,37 +138,56 @@ function searchPage() {
             }
         }).done(function(data) {
             //TODO PRECOMPILE
-            var songSource   = document.getElementById("song-item-template").innerHTML;
-            var songTemplate = Handlebars.compile(songSource);
-            var songWidth =  $(".content-box").outerWidth() - 16 - 45;
-
-            console.log(songWidth);
             if (data.tracks == null)
                 $("#song-error").text("ERROR").css("display", "block");
-            else if (data.tracks.length == 0)
-                $("#song-error").text("NO SONGS FOUND").css("display", "block");
             else {
-                var currentMaxResults = 5;
-                var moreSongs = currentMaxResults < data.tracks.length;
-                for (var y = 0; y < data.tracks.length; y++) {
-                    var name = data.tracks[y].songName;
-                    var artists = data.tracks[y].songArtists[0].name.toUpperCase();
-                    for (var x = 1; x < data.tracks[y].songArtists.length; x++) {
-                        artists = artists + ', ' +  data.tracks[y].songArtists[x].name.toUpperCase() ;
-                    }
-                    var songContext = {NAME: name, ARTIST: artists, WIDTH: songWidth};
-                    var songHtml    = songTemplate(songContext);
-                    $(".song-content").append(songHtml);
-                }
-                if (moreSongs) {
-                    //TODO write code to display load more songs
-                }
+                if ($(".song-item") != null)
+                    $(".song-item").remove();
+
+                if ($("#show-more-song") != null)
+                    $("#show-more-song").remove();
+
+                if (data.tracks.length == 0)
+                    $("#song-error").text("NO SONGS FOUND").css("display", "block");
+                else
+                    generateSongContent(currentMaxResults, data.tracks);
             }
         });
   });
 }
 
 
+
+// ASSUMES songData is not empty!
+function generateSongContent(maxResults, songData){
+    var songSource   = document.getElementById("song-item-template").innerHTML;
+    var songTemplate = Handlebars.compile(songSource);
+    var songWidth =  $(".content-box").outerWidth() - 16 - 45;
+
+    var m = maxResults < songData.length ? maxResults : songData.length;
+
+    for (var y = 0; y < m; y++) {
+        var name = songData[y].songName;
+        var artists = songData[y].songArtists[0].name.toUpperCase();
+        for (var x = 1; x < songData[y].songArtists.length; x++) {
+            artists = artists + ', ' +  songData[y].songArtists[x].name.toUpperCase() ;
+        }
+        var songContent = {NAME: name, ARTIST: artists, WIDTH: songWidth};
+        var songHtml    = songTemplate(songContent);
+        $(".song-content").append(songHtml);
+    }
+
+    if (maxResults < songData.length) {
+        var viewMoreTemp = Handlebars.compile($("#show-more").html());
+        var viewMoreHtml = viewMoreTemp({TEXT: "VIEW MORE SONGS", ID: "song"});
+        $(".song-content").append(viewMoreHtml);
+        $("#show-more-song").click(function() {
+            $(".song-item").remove();
+            $("#show-more-song").remove();
+            generateSongContent(maxResults + 5, songData);
+        });
+    }
+}
 
 /* ----------------------------------------------------------------------- */
 /* -------------------------- GENERAL FUNCTIONS -------------------------- */

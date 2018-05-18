@@ -277,6 +277,25 @@ input[type="text"]:focus, input[type="password"]:focus {
     display: block !important;
 }
 
+.show-more-button {
+    border: .5px solid $highlight-color;
+    width: 100%;
+    text-align: center;
+    pointer: cursor;
+    margin-bottom: 25px;
+
+}
+
+.show-more-button:hover {
+    background-color: $background-color;
+    border: .5px solid $background-color;
+}
+
+.show-more-text {
+    font-size: 15px;
+    font-weight: 100;
+}
+
 /* FULL PAGE */
 .content-section.full-page {
     align-items: flex-start !important;
