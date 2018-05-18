@@ -224,6 +224,7 @@ function Song (prev = null, next = null) {
     this.songName = null;
     this.songId = null;
     this.songArtists = [];
+    this.songLength = 0;
     this.likes = 0;
     this.dislikes = 0;
     this.score = 0;
@@ -251,6 +252,14 @@ function Song (prev = null, next = null) {
     this.setSongId = function(songId) {
         this.songId = songId;
     };
+
+    this.getSongLength = function() {
+        return this.songLength;
+    };
+
+    this.setSongLength = function(songLength) {
+        this.songLength = songLength;
+    }
 
     this.getLikes = function() {
         return this.likes;
@@ -695,17 +704,24 @@ function search(authToken, query, type = 'all') {
                         track.setSongName(data.tracks.items[i].name);
                         track.setSongId(data.tracks.items[i].id);
                         track.setSongArtists(data.tracks.items[i].artists);
+                        track.setSongLength(data.tracks.items[i].duration_ms);
                         // var track = data.tracks.items[i].name;
                         dict.tracks.push(track);
                     }
                 }
 
                 if (type.includes("album")) {
+                    var a;
+                    var artists = [];
                     for (i = 0; i < data.albums.items.length; i++) {
-                        // var album = new Album();
-                        // album.setName(data.albums.items[i].name);
-                        // album.setId(data.albums.items[i].id);
-                        var album = data.albums.items[i].name;
+                        var album = new Album();
+                        album.setName(data.albums.items[i].name);
+                        album.setId(data.albums.items[i].id);
+                        for (a = 0; a < data.albums.items[i].artists.length; a++) {
+                            artists.push(data.albums.items[i].artists[a]);    
+                        }
+                        album.setArtists(artists);
+                        // var album = data.albums.items[i].name;
                         dict.albums.push(album);
                     }
                 }
@@ -755,4 +771,83 @@ function search(authToken, query, type = 'all') {
  */
 function parse_search(query) {
     return query.replace(/ /i, '%20');
+}
+
+function Album () {
+    this.id = null;
+    this.name = null;
+    this.artists = [];
+
+    this.getId = function() {
+        return this.id;
+    };
+    
+    this.setId = function(id) {
+        this.id = id;
+    };
+
+    this.getArtists = function() {
+        return this.artists;
+    };
+
+    this.setArtists = function(artists) {
+        this.artists = artists;
+    }
+
+    this.getName = function() {
+        return this.name;
+    }
+
+    this.setName = function(name) {
+        this.name = name;
+    }
+}
+
+
+/*
+ * DESCRIPTION: A way to get the songs in an album on spotify
+ * ARGUMENTS:
+ *  authToken -> authorization to work with spotify api
+ *  albumId -> album to get tracks from
+ * returns a dictionary of the tracks, made into song objects
+ */
+function getAlbum(authToken, albumId) {
+
+    var header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    }
+
+    var init = {
+        method: 'GET',
+        headers: header,
+    }
+
+    return fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks`, init)
+        .then(function (res) {
+            if (res.status == 200) {
+                var tracks = []
+                return res.json().then(function(data) {
+                    var tracks = [];
+                    for (i = 0; i < data.items.length; i++) {
+                        var track = new Song();
+                        track.setName(data.items[i].name);
+                        track.setId(data.items[i].id);
+                        // var track = data.items[i].name;
+                        tracks.push(track);
+                    }
+                    return tracks;
+                });
+            }
+            else {
+                throw new Error(`Something went wrong on api server! ${res.status}`);
+            }
+        })
+        .then(response => {
+        console.debug(response);
+            // ...
+        }).catch(error => {
+            console.error(error);
+        });
 }
