@@ -715,12 +715,13 @@ function search(authToken, query, type = 'all') {
                     var artists = [];
                     for (i = 0; i < data.albums.items.length; i++) {
                         var album = new Album();
-                        album.setName(data.albums.items[i].name);
-                        album.setId(data.albums.items[i].id);
+                        album.setAlbumName(data.albums.items[i].name);
+                        album.setAlbumId(data.albums.items[i].id);
                         for (a = 0; a < data.albums.items[i].artists.length; a++) {
                             artists.push(data.albums.items[i].artists[a]);    
                         }
-                        album.setArtists(artists);
+                        album.setAlbumArtists(artists);
+                        album.setImages(data.albums.items[i].images);
                         // var album = data.albums.items[i].name;
                         dict.albums.push(album);
                     }
@@ -728,21 +729,21 @@ function search(authToken, query, type = 'all') {
 
                 if (type.includes("playlist")) {
                     for (i = 0; i < data.playlists.items.length; i++) {
-                        // var playlist = new Playlist();
-                        // playlist.setName(data.playlists.items[i].name);
-                        // playlist.setId(data.playlists.items[i].id);
-                        // playlist.setOwnerId(data.playlists.items[i].owner.id);
-                        var playlist = data.playlists.items[i].name;
+                        var playlist = new Playlist();
+                        playlist.setPlaylistName(data.playlists.items[i].name);
+                        playlist.setPlaylistId(data.playlists.items[i].id);
+                        playlist.setOwnerId(data.playlists.items[i].owner.id);
+                        // var playlist = data.playlists.items[i].name;
                         dict.playlists.push(playlist);
                     }
                 }
 
                 if (type.includes("artist")) {
                     for (i = 0; i < data.artists.items.length; i++) {
-                        // var artist = new Artist();
-                        // artist.setName(data.artists.items[i].name);
-                        // artist.setId(data.artists.items[i].id);
-                        var artist = data.artists.items[i].name;
+                        var artist = new Artist();
+                        artist.setArtistName(data.artists.items[i].name);
+                        artist.setArtistId(data.artists.items[i].id);
+                        // var artist = data.artists.items[i].name;
                         dict.artists.push(artist);
                     }
                 }
@@ -777,32 +778,91 @@ function Album () {
     this.id = null;
     this.name = null;
     this.artists = [];
+    this.images = [];
 
-    this.getId = function() {
+    this.getAlbumId = function() {
         return this.id;
     };
     
-    this.setId = function(id) {
+    this.setAlbumId = function(id) {
         this.id = id;
     };
 
-    this.getArtists = function() {
+    this.getAlbumArtists = function() {
         return this.artists;
     };
 
-    this.setArtists = function(artists) {
+    this.setAlbumArtists = function(artists) {
         this.artists = artists;
+    };
+
+    this.getAlbumName = function() {
+        return this.name;
+    };
+
+    this.setAlbumName = function(name) {
+        this.name = name;
+    };
+
+    this.getImages = function() {
+        return this.images;
+    };
+
+    this.setImages = function(images) {
+        this.images = images;
+    };
+}
+
+function Artist () {
+    this.id = null;
+    this.name = null;
+
+    this.getArtistId = function() {
+        return this.id;
+    }
+    
+    this.setArtistId = function(id) {
+        this.id = id;
     }
 
-    this.getName = function() {
+    this.getArtistName = function() {
         return this.name;
     }
 
-    this.setName = function(name) {
+    this.setArtistName = function(name) {
         this.name = name;
     }
 }
 
+function Playlist () {
+    this.id = null;
+    this.name = null;
+    this.ownerId = null;
+
+    this.getPlaylistId = function() {
+        return this.id;
+    }
+    
+    this.setPlaylistId = function(id) {
+        this.id = id;
+    }
+
+    this.getPlaylistName = function() {
+        return this.name;
+    }
+
+    this.setPlaylistName = function(name) {
+        this.name = name;
+    }
+
+    this.getOwnerId = function(){
+        return this.ownerId;
+    }
+
+    this.setOwnerId = function(ownerId){
+        this.ownerId = ownerId;
+    }
+}
 
 /*
  * DESCRIPTION: A way to get the songs in an album on spotify
@@ -832,8 +892,10 @@ function getAlbum(authToken, albumId) {
                     var tracks = [];
                     for (i = 0; i < data.items.length; i++) {
                         var track = new Song();
-                        track.setName(data.items[i].name);
-                        track.setId(data.items[i].id);
+                        track.setSongName(data.items[i].name);
+                        track.setSongId(data.items[i].id);
+                        track.setSongArtists(data.items[i].artists);
+                        track.setSongLength(data.items[i].duration_ms);
                         // var track = data.items[i].name;
                         tracks.push(track);
                     }
@@ -851,3 +913,135 @@ function getAlbum(authToken, albumId) {
             console.error(error);
         });
 }
+
+/*
+ * DESCRIPTION: A way to get the top songs and albums from an artist on spotify
+ * ARGUMENTS:
+ *  authToken -> authorization to work with spotify api
+ *  artistId -> artist to be looked up
+ * Returns a dictionary of the top tracks and albums from the artist
+ */
+ function getArtist(authToken, artistId, country = 'US') {
+
+    var header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    }
+
+    var init = JSON.stringify({
+        method: 'GET',
+        headers: header,
+    })
+
+    var artist = {
+        tracks: [],
+        albums: []
+    };
+
+    artist.tracks = fetch(` https://api.spotify.com/v1/artists/${artistId}/top-tracks?country=${country}`, init)
+        .then(function (res) {
+            if (res.status == 200) {
+                return res.json().then(function(data) {
+                    var tracks = [];
+                    for (i = 0; i < data.tracks.length; i++) {
+                        var track = new Song();
+                        track.setSongName(data.tracks[i].name);
+                        track.setSongId(data.tracks[i].id);
+                        track.setSongArtists(data.tracks[i].artists);
+                        track.setSongLength(data.tracks[i].duration_ms);
+                        // var track = data.items[i].name;
+                        tracks.push(track);
+                    }
+                    return tracks;
+                });
+            }
+            else {
+                throw new Error(`Something went wrong on api server! ${res.status}`);
+            }
+        })
+        .then(response => {
+            console.debug(response);
+            // ...
+        }).catch(error => {
+            console.error(error);
+        });
+
+    artist.albums = fetch(`https://api.spotify.com/v1/artists/${artistId}/albums`, init)
+        .then(function (res) {
+            if (res.status == 200) {
+                return res.json().then(function(data) {
+                    var albums = [];
+                    for (i = 0; i < data.items.length; i++) {
+                        var album = new Album();
+                        album.setAlbumName(data.items[i].name);
+                        album.setAlbumId(data.items[i].id);
+                        // var track = data.items[i].name;
+                        albums.push(album);
+                    }
+                    return albums;
+                });
+            }
+            else {
+                throw new Error(`Something went wrong on api server! ${res.status}`);
+            }
+        })
+    .then(response => {
+        console.debug(response);
+        // ...
+    }).catch(error => {
+        console.error(error);
+    });
+    return artist;
+}
+
+/*
+ * DESCRIPTION: A way to get the songs from a spotify playlist
+ * ARGUMENTS:
+ *  authToken -> authorization to work with spotify api
+ *  playlistId -> id of the playlist
+ *  userId -> userId of the playlist owner
+ * Returns a dictionary of the top tracks and albums from the artist
+ */
+function getPlaylist(authToken, playlistId, userId) {
+
+    var header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    }
+
+    var init = {
+        method: 'GET',
+        headers: header,
+    }
+
+    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`, init)
+        .then(function (res) {
+            if (res.status == 200) {
+                return res.json().then(function(data) {
+                    var tracks = [];
+                    for (i = 0; i < data.items.length; i++) {
+                        var track = new Song();
+                        track.setSongName(data.items[i].track.name);
+                        track.setSongId(data.items[i].track.id);
+                        track.setSongArtists(data.items[i].track.artists);
+                        track.setSongLength(data.items[i].track.duration_ms);
+                        // var track = data.items[i].name;
+                        tracks.push(track);
+                    }
+                    return tracks;
+                });
+            }
+            else {
+                throw new Error(`Something went wrong on api server! ${res.status}`);
+            } 
+        })
+        .then(response => {
+        console.debug(response);
+            // ...
+        }).catch(error => {
+            console.error(error);
+        });
+}
+
