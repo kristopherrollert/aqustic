@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>aqustic | search</title>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link rel="stylesheet" href="style/style.css">
+    <script src="http://code.jquery.com/jquery-3.3.1.js"
+            integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+            crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.js"></script>
+    <script src="js/script.js"></script>
+</head>
+<body>
+    <div class="small-header">
+        <h1 class="small-page-header">aqustic</h1>
+    </div>
+    <div class="content-section full-page">
+        <div class="content-box">
+            <div class="content-header">
+                <h2 class="secondary-header full-page">Search</h2>
+            </div>
+            <div class="search-bar">
+                <form id="search-form">
+                    <input type="text" id="search-query">
+                    <input type="submit" value="SEARCH" class="button-2 search" id="search-button">
+                </form>
+            </div>
+            <div class="search-content-section">
+                <div class="search-sections">
+                    <h3 class="search-tab search-curr" id="song-tab">SONGS</h3>
+                    <h3 class="search-tab" id="album-tab">ALBUMS</h3>
+                    <h3 class="search-tab" id="artists-tab">ARTISTS</h3>
+                    <h3 class="search-tab" id="playlist-tab">PLAYLISTS</h3>
+                </div>
+                <div class="search-content">
+                    <div class="song-content search-section-cur">
+                        <h2 id="song-error">...</h2>
+                        <script id="song-item-template" type="text/x-handlebars-template">
+                            <div class="song-item">
+                                <div class="song-text" style="width:{{WIDTH}}px; max-width:{{WIDTH}}px">
+                                    <h2 class="song-title">{{NAME}}</h2>
+                                    <h2 class="song-artists">{{ARTIST}}</h2>
+                                </div>
+                                <div class="song-options"><i class="fas fa-ellipsis-h"></i></div>
+                            </div>
+                        </script>
+                    </div>
+                    <div class="album-content">
+                        album
+                        <h2 id="album-error">...</h2>
+                    </div>
+                    <div class="artists-content">
+                        artists
+                        <h2 id="artists-error">...</h2>
+                    </div>
+                    <div class="playlist-content">
+                        playlists
+                        <h2 id="playlist-error">...</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

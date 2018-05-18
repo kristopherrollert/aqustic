@@ -223,17 +223,26 @@ function Song (prev = null, next = null) {
 
     this.songName = null;
     this.songId = null;
+    this.songArtists = [];
     this.likes = 0;
     this.dislikes = 0;
     this.score = 0;
 
     this.getSongName = function() {
         return this.songName;
-    }
+    };
+
+    this.getSongArtists = function() {
+        return this.songArtist;
+    };
+
+    this.setSongArtists = function(songArtists) {
+        this.songArtists = songArtists;
+    };
 
     this.setSongName = function(songName) {
         this.songName = songName;
-    }
+    };
 
     this.getSongId = function() {
         return this.id;
@@ -310,6 +319,21 @@ app.get('/signup', function(req, res){
     res.sendFile(__dirname+"/client/signup.html");
 });
 
+app.get('/searchpage', function(req, res){
+    res.sendFile(__dirname+"/client/search.html");
+});
+
+app.get('/search', function(req,res) {
+    var authToken = 'BQCZvjKQGLK58DEY2lo8kwhdU02NwTbh-X-I7cJHGGBPmsE6EjGqqNtK2KxLFnGTEtpWnBIicziUoZugpEOVvxfPte1ZCLZS49QHJEktXAu9Cysrh7qtrTmJCIxOSTM_aLC4chvzBqVX5aRlvgjAIU5nIx1-fpTZIWYtcwfi';
+    var query = req.query.query || '';
+    var type = req.query.type || 'all';
+    search(authToken, query, type).then(data => {
+        res.send(data);
+    });
+
+});
+
+
 app.put('/account/sign-in', function (req, res) {
     let username = req.body.username || '';
     let password = req.body.password || '';
@@ -366,7 +390,7 @@ app.put('/account/sign-up', function (req, res) {
     else {
         var within = {
             username: username
-        }
+        };
         var nameTaken = database.findOne("ACCOUNTS", within, function (result) {
             if (result == null) {
                 var passwordData = saltHashPassword(password);
@@ -381,7 +405,7 @@ app.put('/account/sign-up', function (req, res) {
                 res.send({username: username, loginCode: loginCode});
             }
             else {
-                res.send({error : `Username is already taken!`})
+                res.send({error : `Username is already taken!`});
             }
         });
     }
@@ -483,7 +507,7 @@ app.get('/callback', function(req, res) {
 
 app.put('/play-song', function(req, res) {
     let songURI = 'spotify:track:3ctoHckjyd13eBi2IDw2Ip';
-    let songID = '3ctoHckjyd13eBi2IDw2Ip'
+    let songID = '3ctoHckjyd13eBi2IDw2Ip';
 
     //let songURI = req.songId;
     let authToken = 'BQCaMVlYJ-fj1kDePZshSrSckxapp16K48cB86LO2nqlXB4XVgUVxexseLi3ieB9AePt8mNsaC1sPWAOhOZj6M5TilXHHAQTIkNeUq1R9H62Kj1maMR84K05-I7Ct6nqeNy9hLs4imrnWnMHEVwsbLkRvd3xHvL16A'; //Still need to figure out
@@ -591,12 +615,12 @@ function playSong(authToken, songURI) {
     return fetch("https://api.spotify.com/v1/me/player/play", init)
         .then(function (res) {
             if (res.status === 204) {
-                console.log("Playing Song...")
+                console.log("Playing Song...");
             }
             else {
                 console.log(JSON.stringify(res.status));
             }
-        })
+        });
 
 
 }
@@ -620,9 +644,9 @@ function getSongLength (authToken, songID) {
                 console.log(JSON.stringify(res));
             }
             else {
-                console.log('ERROR: ' + res.status)
+                console.log('ERROR: ' + res.status);
             }
-        })
+        });
 }
 
 
@@ -646,12 +670,12 @@ function search(authToken, query, type = 'all') {
         "Accept": "application/json",
         "Content-Type": "application/json",
         "Authorization": `Bearer ${authToken}`
-    }
+    };
 
     var init = {
         method: 'GET',
         headers: headers
-    }
+    };
 
 
     return fetch(`https://api.spotify.com/v1/search?q=${query}&type=${type}`, init)
@@ -670,6 +694,7 @@ function search(authToken, query, type = 'all') {
                         var track = new Song();
                         track.setSongName(data.tracks.items[i].name);
                         track.setSongId(data.tracks.items[i].id);
+                        track.setSongArtists(data.tracks.items[i].artists);
                         // var track = data.tracks.items[i].name;
                         dict.tracks.push(track);
                     }
@@ -715,10 +740,10 @@ function search(authToken, query, type = 'all') {
         }
     })
     .then(response => {
-        console.debug(response);
+        return response;
         // ...
     }).catch(error => {
-        console.error(error);
+        console.log(error);
     });
 }
 
@@ -729,5 +754,5 @@ function search(authToken, query, type = 'all') {
  * returns a usable string for the spotify API
  */
 function parse_search(query) {
-    return query.replace(/ /i, '%20')
+    return query.replace(/ /i, '%20');
 }
