@@ -94,7 +94,7 @@ var database = {
         mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
             var database = db.db(this.name);
-            database.collection(collectionName).insertOne(item,
+            database.collection(collectionName).insertMany(items,
                 function(err, result) {
                     if (err) throw err;
                     if (debug) console.log("Inserted Elements");
@@ -212,6 +212,7 @@ var database = {
 
 
 database.createCollection("ACCOUNTS");
+database.createCollection("QUEUES");
 
 /* -------------------------------------------------------------------------- */
 /* ---------------------------- SONG OBJECT/INFO ---------------------------- */
@@ -435,7 +436,7 @@ app.get('/spotify-authorization', function(req, res){
  *
  */
 app.get('/settings', function(req, res){
-    res.sendFile(__dirname+"\\client\\auth.html");
+    res.sendFile(__dirname+"/client/auth.html");
 });
 
 app.get('/callback', function(req, res) {
@@ -513,6 +514,35 @@ app.put('/play-song', function(req, res) {
     let authToken = 'BQCaMVlYJ-fj1kDePZshSrSckxapp16K48cB86LO2nqlXB4XVgUVxexseLi3ieB9AePt8mNsaC1sPWAOhOZj6M5TilXHHAQTIkNeUq1R9H62Kj1maMR84K05-I7Ct6nqeNy9hLs4imrnWnMHEVwsbLkRvd3xHvL16A'; //Still need to figure out
     getSongLength(authToken, songID);
     playSong(authToken, songURI);
+});
+
+app.put('/create-queue', function(req, res) {
+    let partyToken = req.query.partyToken;
+    let dbobj = {
+        _id: partyToken,
+        songQueue: [],
+    };
+    database.insertOne("QUEUES", dbobj, function (result) {
+        res.send(result);
+    });
+})
+
+app.put('/add-song', function(req, res) {
+    let songURI = req.query.songURI;
+    let partyToken = req.query.partyToken;
+    let query = {
+        _id: partyToken,
+    }
+    let updates = {
+        //Makes it so that it only adds a song once, multiple cannot exist
+        $addToSet: {songQueue: {
+            songURI: songURI,
+            score: 0,
+        }}
+    };
+    database.updateOne("QUEUES", query, updates, function (result) {
+        res.send(result);
+    })
 });
 
 /* ------------------------------------------------------------------------- */
@@ -625,6 +655,7 @@ function playSong(authToken, songURI) {
 
 }
 
+//Probably unecessary and doesn't work lol
 function getSongLength (authToken, songID) {
     var header = {
         "Authorization": "Bearer " + authToken,
