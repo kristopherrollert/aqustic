@@ -1,13 +1,17 @@
 $(document).ready(function() {
-    switch (window.location.pathname) {
-        case "/signup":
+    var urlArray = (window.location.pathname).split("/");
+    switch (urlArray[1]) {
+        case "signup":
             signUpPage();
             break;
-        case "/signin":
+        case "signin":
             signInPage();
             break;
-        case "/searchpage":
+        case "searchpage":
             searchPage();
+            break;
+        case "party":
+            partyHomePage(urlArray[2]);
             break;
         default:
             alert("Cannot find: " + window.location.pathname);
@@ -18,6 +22,13 @@ $(document).ready(function() {
 /* ------------------------------------------------------------------------ */
 /* -------------------------- PAGE SPECIFIC CODE -------------------------- */
 /* ------------------------------------------------------------------------ */
+
+function partyHomePage(partyToken) {
+    var socket = io.connect('http://localhost:80');
+
+}
+
+
 
 /*
  * signup page: password length and username length control
@@ -159,21 +170,22 @@ function searchPage() {
 
 
 // ASSUMES songData is not empty!
-function generateSongContent(maxResults, songData){
-    var songSource   = document.getElementById("song-item-template").innerHTML;
-    var songTemplate = Handlebars.compile(songSource);
+function generateSongContent(maxResults, songData) {
+    var songTemplate = Handlebars.compile($("song-item-template").html());
     var songWidth =  $(".content-box").outerWidth() - 16 - 45;
 
     var m = maxResults < songData.length ? maxResults : songData.length;
 
     for (var y = 0; y < m; y++) {
         var name = songData[y].songName;
-        var artists = songData[y].songArtists[0].name.toUpperCase();
-        for (var x = 1; x < songData[y].songArtists.length; x++) {
-            artists = artists + ', ' +  songData[y].songArtists[x].name.toUpperCase() ;
-        }
-        var songContent = {NAME: name, ARTIST: artists, WIDTH: songWidth};
-        var songHtml    = songTemplate(songContent);
+        var artists = artistsToText(songData[y]);
+        var songInfo = {
+            NAME: name,
+            ARTIST: artists,
+            WIDTH: songWidth,
+            SONG_ID: songData[y].songId
+        };
+        var songHtml = songTemplate(songData[y]);
         $(".song-content").append(songHtml);
     }
 
@@ -187,6 +199,24 @@ function generateSongContent(maxResults, songData){
             generateSongContent(maxResults + 5, songData);
         });
     }
+}
+
+function artistsToText(songData) {
+    var artists = songData.songArtists[0].name.toUpperCase();
+    for (var x = 1; x < songData.songArtists.length; x++) {
+        artists = artists + ', ' +  songData.songArtists[x].name.toUpperCase() ;
+    }
+    return artists;
+}
+
+// SERVER JS SONG OBJECT NEEDS TO HAVE ALBUM ID, AND ARTISTS ID
+function addSongClick(songInfo) {
+    var viewMoreTemp = Handlebars.compile($("#song-" + songInfo.songId).html());
+    var popUpInfo = {
+        NAME: songInfo.songName,
+        ARTIST: artistsToText(songInfo),
+    };
+    var viewMoreHtml = viewMoreTemp({TEXT: "VIEW MORE SONGS", ID: "song"});
 }
 
 /* ----------------------------------------------------------------------- */

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="http://code.jquery.com/jquery-3.3.1.js"
+            integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+            crossorigin="anonymous">
+    </script>
+</head>
+<body>
+    <h1 id="create-party">CREATE PARTY</h1>
+    <h1 id="add-song">ADD SONG</h1>
+</body>
+</html>
+
+<script>
+    var partyToken = $("")
+    $("#create-party").click(function() {
+        console.log("CLICK");
+        $.ajax({
+            type: "PUT",
+            url: "/party/create-party",
+            data: {
+                // should contain user id
+                user: null
+            }
+        }).done(function(data){
+            $(location).attr('href', data.redirect);
+        });
+    });
+
+    $("#add-song").click(function() {
+        console.log("CLICK");
+        $.ajax({
+            type: "PUT",
+            url: "/party/s2YowP66/queue-song",
+            data: {
+                // should contain user id
+                songURI : 'TEST2',
+                user: null,
+            }
+        }).done(function(data){
+            console.log("ADDED SONG");
+            console.log(data);
+        });
+    });
+</script>

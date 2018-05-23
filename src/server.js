@@ -36,17 +36,21 @@ const events = require('events');
 const mongo = require('mongodb');
 const express = require('express');
 const request = require('request');
+const fetch = require("node-fetch");
 const bodyParser = require('body-parser');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
-const fetch = require("node-fetch");
 
 
 /* Local Modules */
 const queue = require('./queue');
 
-const mongoClient = mongo.MongoClient;
 const app = express();
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
+const mongoClient = mongo.MongoClient;
+
+server.listen(80);
 
 /* TODO : I am unsure what this does, but I feel like it shouldn't be a global
  *        varible. -kris */
@@ -212,7 +216,7 @@ var database = {
 
 
 database.createCollection("ACCOUNTS");
-database.createCollection("QUEUES");
+database.createCollection("PARTIES");
 
 /* -------------------------------------------------------------------------- */
 /* ---------------------------- SONG OBJECT/INFO ---------------------------- */
@@ -317,6 +321,13 @@ app.use(express.static(__dirname + '/client')).use(cookieParser());
 // these allow us to support JSON-encoded bodies and URL-encoded bodies
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+
+
+/* ------------------------------------------------------------------------- */
+/* ------------------------------- TESTING ------------------------------- */
+/* ------------------------------------------------------------------------- */
+
+
 
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- ENDPOINTS ------------------------------- */
@@ -525,36 +536,92 @@ app.put('/play-song', function(req, res) {
     playSong(authToken, songURI);
 });
 
-app.put('/create-queue', function(req, res) {
-    let partyToken = req.query.partyToken;
+app.put('/party/create-party', function(req, res) {
+    let partyToken = generateRandomString(8);
+    let admin = req.body.user || null; //TODO add acount checking
+
     let dbobj = {
-        _id: partyToken,
+        partyToken: partyToken,
+        admin: admin,
+        currentlyPlaying: null,
+        partyGoers: [],
         songQueue: [],
     };
-    database.insertOne("QUEUES", dbobj, function (result) {
-        res.send(result);
+    database.insertOne("PARTIES", dbobj, function (result) {
+        res.send({
+            redirect : `/party/${partyToken}`,
+        });
     });
-})
+});
 
-app.put('/add-song', function(req, res) {
-    let songURI = req.query.songURI;
-    let partyToken = req.query.partyToken;
+app.put('/party/*/queue-song', function(req, res) {
+    let partyToken = (req.path).split("/")[2];
+    let songInfo = req.body.songInfo;
+    let user = req.body.user;
     let query = {
-        _id: partyToken,
-    }
+        partyToken: partyToken,
+    };
+
+    var queue;
+    database.findOne("PARTIES", query, function (result) {
+        // could not find pary
+        if(result == null) {
+            res.send({
+                error: 'Party not found'
+            });
+        }
+    });
+
+    //TODO CHECK IF SONG IS REAL
+
     let updates = {
         //Makes it so that it only adds a song once, multiple cannot exist
         $addToSet: {songQueue: {
-            songURI: songURI,
+            songInfo: songInfo,
             score: 0,
+            user: user
         }}
     };
-    database.updateOne("QUEUES", query, updates, function (result) {
+
+    database.updateOne("PARTIES", query, updates, function (result) {
         res.send(result);
-    })
+    });
 });
 
+app.get('/party/*/queue', function(req, res){
+    let partyToken = (req.path).split("/")[2];
+
+    let query = {
+        partyToken: partyToken
+    };
+
+    database.findOne("PARTIES", query, function (result) {
+        // could not find pary
+        if(result == null) {
+            res.send({
+                error: 'Party not found'
+            });
+        }
+        else {
+            res.send(result.songQueue);
+        }
+    });
+});
+
+app.get('/party/*', function(req, res){
+    res.sendFile(__dirname+"/client/home.html");
+});
+
+
+
 /* ------------------------------------------------------------------------- */
+
+io.on('connection', function(socket){
+    console.log('a user connected');
+    socket.on('disconnect', function(){
+        console.log('user disconnected');
+    });
+});
 
 app.listen(port, (err) => {
     if (err) {
@@ -562,6 +629,7 @@ app.listen(port, (err) => {
     }
     console.log(`server is listening on ${port}`);
 });
+
 
 
 /* ------------------------------------------------------------------------- */
@@ -749,7 +817,7 @@ function search(authToken, query, type = 'all') {
                         album.setAlbumName(data.albums.items[i].name);
                         album.setAlbumId(data.albums.items[i].id);
                         for (a = 0; a < data.albums.items[i].artists.length; a++) {
-                            artists.push(data.albums.items[i].artists[a]);    
+                            artists.push(data.albums.items[i].artists[a]);
                         }
                         album.setAlbumArtists(artists);
                         album.setImages(data.albums.items[i].images);
@@ -814,7 +882,7 @@ function Album () {
     this.getAlbumId = function() {
         return this.id;
     };
-    
+
     this.setAlbumId = function(id) {
         this.id = id;
     };
@@ -851,7 +919,7 @@ function Artist () {
     this.getArtistId = function() {
         return this.id;
     }
-    
+
     this.setArtistId = function(id) {
         this.id = id;
     }
@@ -873,7 +941,7 @@ function Playlist () {
     this.getPlaylistId = function() {
         return this.id;
     }
-    
+
     this.setPlaylistId = function(id) {
         this.id = id;
     }
@@ -1066,7 +1134,7 @@ function getPlaylist(authToken, playlistId, userId) {
             }
             else {
                 throw new Error(`Something went wrong on api server! ${res.status}`);
-            } 
+            }
         })
         .then(response => {
         console.debug(response);
@@ -1075,4 +1143,3 @@ function getPlaylist(authToken, playlistId, userId) {
             console.error(error);
         });
 }
-

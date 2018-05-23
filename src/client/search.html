@@ -15,7 +15,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.js"></script>
     <script src="js/script.js"></script>
 </head>
-<body>
+<body class="body-cover">
+    <script id="song-cover-temp" type="text/x-handlebars-template">
+        <div class="song-cover">
+            <div class="song-cover-content">
+                <img class="song-cover-album-cover" src="{{COVER_URL}}" alt="album-cover">
+                <div class="song-cover-info">
+                    <h1 class="song-cover-title">{{NAME}}</h1>
+                    <h2 class="song-cover-artists">{{ARTIST}}</h2>
+                    <h2 class="song-cover-album">{{ALBUM}}</h2>
+                </div>
+                <div class="song-cover-options">
+                    <h2 id="sc-queue">ADD TO QUEUE</h2>
+                    <br>
+                    <h2 id="sc-album">VIEW ALBUM</h2>
+                    <br>
+                    <h2 id="sc-artists">VIEW ARTISTS</h2>
+                    <br>
+                    <h2 id="sc-close">CLOSE</h2>
+                </div>
+            </div>
+        </div>
+    </script>
     <div class="small-header">
         <h1 class="small-page-header">aqustic</h1>
     </div>
@@ -41,7 +62,7 @@
                     <div class="song-content search-section-cur">
                         <h2 id="song-error">...</h2>
                         <script id="song-item-template" type="text/x-handlebars-template">
-                            <div class="song-item">
+                            <div class="song-item" id="song-{{SONGID}}">
                                 <div class="song-text" style="width:{{WIDTH}}px; max-width:{{WIDTH}}px">
                                     <h2 class="song-title">{{NAME}}</h2>
                                     <h2 class="song-artists">{{ARTIST}}</h2>
@@ -56,8 +77,20 @@
                         </script >
                     </div>
                     <div class="album-content">
-                        album
                         <h2 id="album-error">...</h2>
+                        <div class="album-item">
+                            <div class="album-cover-section">
+
+                            </div>
+                            <div class="album-content-section">
+                                <div class="album-text">
+                                    <h2 class="album-title">Late Registraton</h2>
+                                    <h2 class="album-artists">KANYE WEST</h2>
+                                    <h3 class="album-year">2013</h3>
+                                </div>
+                                <div class="album-options"><i class="fas fa-ellipsis-h"></i></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="artists-content">
                         artists

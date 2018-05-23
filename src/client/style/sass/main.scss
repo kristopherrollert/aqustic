@@ -98,6 +98,21 @@ input[type="text"]:focus, input[type="password"]:focus {
     cursor: pointer;
 }
 
+.button-2 {
+    background-color: transparent;
+    color: $highlight-color;
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    border: 1px solid $highlight-color;
+    border-radius: 3px;
+    padding: 5px;
+    padding-left: 12px;
+    padding-right: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-weight: 200;
+}
+
 
 .button-1:hover {
     background-color: #b99844;
@@ -170,27 +185,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     color:white;
 }
 
-
-
-/* button 2 stylying */
-
-.button-2 {
-    background-color: transparent;
-    color: $highlight-color;
-    font-family: 'Poppins', sans-serif;
-    font-size: 18px;
-    border: 1px solid $highlight-color;
-    border-radius: 3px;
-    padding: 5px;
-    padding-left: 12px;
-    padding-right: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    font-weight: 200;
-}
-
-
-/* Search Styling */
+/* _____ Search Styling ______*/
 
 .button-2,.search {
     margin-left: 10px;
@@ -224,51 +219,6 @@ input[type="text"]:focus, input[type="password"]:focus {
     margin-bottom: 10px;
 }
 
-.song-item {
-    border: 1px solid $highlight-color;
-    color:white;
-}
-
-
-.song-title {
-    font-weight: 400;
-    font-size: 24px;
-    margin-bottom: 0;
-    margin-top: 10px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.song-artists {
-    font-weight: 400;
-    font-size: 15px;
-    margin-top: 0;
-    margin-bottom: 10px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.song-item {
-    padding-left: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    margin-bottom: 20px;
-}
-
-.song-item:hover {
-    background-color: $background-color;
-    border: 1px solid $background-color;
-}
-
-.song-options {
-    padding-right: 15px;
-    font-size: 16px;
-}
-
 .album-content, .artists-content, .song-content, .playlist-content {
     display: none;
 }
@@ -283,7 +233,6 @@ input[type="text"]:focus, input[type="password"]:focus {
     text-align: center;
     pointer: cursor;
     margin-bottom: 25px;
-
 }
 
 .show-more-button:hover {
@@ -296,6 +245,56 @@ input[type="text"]:focus, input[type="password"]:focus {
     font-weight: 100;
 }
 
+.song-title, .album-title {
+    font-weight: 600;
+    font-size: 24px;
+    margin-bottom: 0;
+    margin-top: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.song-artists, .album-artists {
+    font-weight: 400;
+    font-size: 15px;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* SONG SPECIFIC */
+
+
+.song-item, .album-text {
+    border: 1px solid $highlight-color;
+    color:white;
+    padding-left: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.album-test:hover {
+    background-color: $background-color;
+    border: 1px solid $background-color;
+}
+
+.song-item:hover {
+    background-color: $background-color;
+    border: 1px solid $background-color;
+}
+
+.song-options {
+    padding-right: 15px;
+    font-size: 16px;
+}
+
+
 /* FULL PAGE */
 .content-section.full-page {
     align-items: flex-start !important;
@@ -304,4 +303,71 @@ input[type="text"]:focus, input[type="password"]:focus {
 .secondary-header.full-page {
     margin-bottom: 20px;
     font-size: 60px;
+}
+
+
+/* SONG POP UP */
+.song-cover {
+    position: absolute;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,.9);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.body-cover {
+    width:100vw;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+.song-cover-album-cover {
+    text-align: center;
+    border: .5px solid $highlight-color;
+    width: 200px;
+    height: 200px;
+    padding: 0;
+    margin: 0;
+}
+
+.song-cover-info{
+    margin-bottom: 40px;
+}
+
+.song-cover-title{
+    font-weight: 500;
+    font-size: 40px;
+    margin-bottom: 0;
+}
+
+.song-cover-artists {
+    font-weight: 400;
+    font-size: 16px;
+}
+
+.song-cover-album {
+    font-weight: 300;
+    font-style: italic;
+    font-size: 16px;
+}
+
+.song-cover-options > h2{
+    color:white;
+    font-weight: 300;
+    font-size: 20px;
+    padding-bottom: 3px;
+    margin: 5px;
+    display:inline-block;
+    cursor: pointer;
+}
+
+.song-cover-options > h2:hover{
+    border-bottom: 1px solid white;
+    padding-bottom: 2px;
 }
