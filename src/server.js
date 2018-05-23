@@ -40,7 +40,9 @@ const fetch = require("node-fetch");
 const bodyParser = require('body-parser');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
-
+const session = require("express-session");
+const passport = require("passport");
+const sessionSecret = "aqusticServer"; //TODO: should be hidden
 
 /* Local Modules */
 const queue = require('./queue');
@@ -50,7 +52,7 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const mongoClient = mongo.MongoClient;
 
-server.listen(80);
+server.listen(8080);
 
 /* TODO : I am unsure what this does, but I feel like it shouldn't be a global
  *        varible. -kris */
@@ -219,82 +221,6 @@ database.createCollection("ACCOUNTS");
 database.createCollection("PARTIES");
 
 /* -------------------------------------------------------------------------- */
-/* ---------------------------- SONG OBJECT/INFO ---------------------------- */
-/* -------------------------------------------------------------------------- */
-
-function Song (prev = null, next = null) {
-    this.prev = prev;
-    this.next = next;
-
-    this.songName = null;
-    this.songId = null;
-    this.songArtists = [];
-    this.songLength = 0;
-    this.likes = 0;
-    this.dislikes = 0;
-    this.score = 0;
-
-    this.getSongName = function() {
-        return this.songName;
-    };
-
-    this.getSongArtists = function() {
-        return this.songArtist;
-    };
-
-    this.setSongArtists = function(songArtists) {
-        this.songArtists = songArtists;
-    };
-
-    this.setSongName = function(songName) {
-        this.songName = songName;
-    };
-
-    this.getSongId = function() {
-        return this.id;
-    };
-
-    this.setSongId = function(songId) {
-        this.songId = songId;
-    };
-
-    this.getSongLength = function() {
-        return this.songLength;
-    };
-
-    this.setSongLength = function(songLength) {
-        this.songLength = songLength;
-    }
-
-    this.getLikes = function() {
-        return this.likes;
-    };
-
-    this.getDislikes = function() {
-        return this.dislikes;
-    };
-
-    this.getScore = function() {
-        return this.score;
-    };
-
-    this.addLike = function() {
-        this.likes++;
-        this.updateScore();
-    };
-
-    this.addDislike = function() {
-        this.dislikes++;
-        this.updateScore();
-    };
-
-    this.updateScore = function() {
-        //TODO Better voting score algorithm goes here
-        this.score = this.likes - this.dislikes;
-    };
-}
-
-/* -------------------------------------------------------------------------- */
 /* ------------------------------- MIDDLEWARE ------------------------------- */
 /* -------------------------------------------------------------------------- */
 
@@ -307,7 +233,7 @@ function Song (prev = null, next = null) {
  */
 app.use(function(req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+//    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
@@ -321,6 +247,16 @@ app.use(express.static(__dirname + '/client')).use(cookieParser());
 // these allow us to support JSON-encoded bodies and URL-encoded bodies
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+
+/* Save login cookies */
+app.use(session({
+    secret: "asdf",
+    resave: false,
+    saveUninitialized: false
+    //cookie: {secure: true}
+        }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 /* ------------------------------------------------------------------------- */
@@ -344,6 +280,12 @@ app.get('/searchpage', function(req, res){
     res.sendFile(__dirname+"/client/search.html");
 });
 
+app.get('/home', authenticationMiddleware(), function(req, res){
+    console.log(req.user); //check logged in user's username
+    console.log(req.isAuthenticated()); //check if user is authenticated
+    res.sendFile(__dirname+"/client/home.html");
+});
+
 app.get('/search', function(req,res) {
     var authToken = 'BQBJTD5A0OtBnS7MNridTVfAroz94StNOOp5mvTsKHA1Q-vheDre80Uc43K0x8fpVDb8YAOURnyY9VhY4FR_iExFfw-aKdC1PHeLfI-V4l34RTfC8-J4MG8tcgnSNyGtq959ZqE3vc-p3m3SYQsvHb_wg9YAN9m5mij0KZ7Z';
     var query = req.query.query || '';
@@ -354,6 +296,7 @@ app.get('/search', function(req,res) {
 
 });
 
+/* ------------------------------------------------------------------------- */
 
 app.put('/account/sign-in', function (req, res) {
     let username = req.body.username || '';
@@ -374,7 +317,12 @@ app.put('/account/sign-in', function (req, res) {
                     if (result.password != hashPass)
                         res.send({error: "Password is not correct!"});
                     else {
-                        res.send({loginCode: result.loginCode });
+                        /* Login + Session Authentication */
+                        const userID = username;
+                        req.login(userID, function(err){
+                            console.log("Logged In!");
+                            res.send({loginCode: result.loginCode });
+                        });
                     }
                 }
             });
@@ -423,7 +371,11 @@ app.put('/account/sign-up', function (req, res) {
                     loginCode: loginCode
                 };
                 database.insertOne("ACCOUNTS", query);
-                res.send({username: username, loginCode: loginCode});
+                const userID = username;
+                req.login(userID, function(err){
+                    console.log("Logged In!");
+                    res.send({username: username, loginCode: loginCode});
+                });
             }
             else {
                 res.send({error : `Username is already taken!`});
@@ -432,6 +384,26 @@ app.put('/account/sign-up', function (req, res) {
     }
 });
 
+
+/*----Store Sessions----*/
+passport.serializeUser(function(userID, done) {
+    done(null, userID);
+});
+
+passport.deserializeUser(function(userID, done) {
+    done(null, userID);
+});
+
+function authenticationMiddleware () {
+    return (req, res, next) => {
+  	     console.log(`req.session.passport.user: ${JSON.stringify(req.session.passport)}`);
+  	     if (req.isAuthenticated()) return next();
+  	     res.redirect('/signin');
+  	}
+}
+
+
+/* ------------------------------------------------------------------------- */
 
 app.get('/spotify-authorization', function(req, res){
     console.log("GOT SPOTIFY AUTH");
@@ -1142,4 +1114,80 @@ function getPlaylist(authToken, playlistId, userId) {
         }).catch(error => {
             console.error(error);
         });
+}
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------- SONG OBJECT/INFO ---------------------------- */
+/* -------------------------------------------------------------------------- */
+
+function Song (prev = null, next = null) {
+    this.prev = prev;
+    this.next = next;
+
+    this.songName = null;
+    this.songId = null;
+    this.songArtists = [];
+    this.songLength = 0;
+    this.likes = 0;
+    this.dislikes = 0;
+    this.score = 0;
+
+    this.getSongName = function() {
+        return this.songName;
+    };
+
+    this.getSongArtists = function() {
+        return this.songArtist;
+    };
+
+    this.setSongArtists = function(songArtists) {
+        this.songArtists = songArtists;
+    };
+
+    this.setSongName = function(songName) {
+        this.songName = songName;
+    };
+
+    this.getSongId = function() {
+        return this.id;
+    };
+
+    this.setSongId = function(songId) {
+        this.songId = songId;
+    };
+
+    this.getSongLength = function() {
+        return this.songLength;
+    };
+
+    this.setSongLength = function(songLength) {
+        this.songLength = songLength;
+    }
+
+    this.getLikes = function() {
+        return this.likes;
+    };
+
+    this.getDislikes = function() {
+        return this.dislikes;
+    };
+
+    this.getScore = function() {
+        return this.score;
+    };
+
+    this.addLike = function() {
+        this.likes++;
+        this.updateScore();
+    };
+
+    this.addDislike = function() {
+        this.dislikes++;
+        this.updateScore();
+    };
+
+    this.updateScore = function() {
+        //TODO Better voting score algorithm goes here
+        this.score = this.likes - this.dislikes;
+    };
 }
