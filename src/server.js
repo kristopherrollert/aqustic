@@ -283,7 +283,7 @@ app.get('/home', authenticationMiddleware(), function(req, res){
 });
 
 app.get('/search', function(req,res) {
-    var authToken = 'BQBbL463J9V-W6mjNfkmok2WewvKKpzitzG89aGr8qi6imxMQhTFLEBhqhV58l47IYIxTonY2yDX53dmyE5algw4IJY-mP5iBm10LF0qqDe7kwvZCmQtbJKAsvtktSBlw5nzQA823O10Qd_BFqYiX51Cq_5ndqS1-3JriBn1';
+    var authToken = 'BQAMOmYtvoJHlxv01pOboB5HkzKNvf5MROYzpnvirx2qMNkxoeLhNfY9RWA5nCwxdDl2qtfXTFDMqRtrjbiIIuGEElOhBGzbE0M4gffhdfg_mUCE99JI0c3tMGRmZKw0KbpS_NDKkokK0pnBvlkjXAWT6dMkZiaU-v39E3IL';
     var query = req.query.query || '';
     var type = req.query.type || 'all';
     search(authToken, query, type).then(data => {
@@ -772,65 +772,57 @@ function search(authToken, query, type = 'all') {
                     playlists: [],
                     artists: []
                 };
-                var i;
                 if (type.includes("track")) {
-                    for (i = 0; i < data.tracks.items.length; i++) {
+                    for (let i = 0; i < data.tracks.items.length; i++) {
                         var track = new Song();
                         track.setSongName(data.tracks.items[i].name);
                         track.setSongId(data.tracks.items[i].id);
                         track.setSongArtists(data.tracks.items[i].artists);
                         track.setSongLength(data.tracks.items[i].duration_ms);
-                        let album = new Album();
-
-                        track.setAlbum();
-                        );
-                        // var track = data.tracks.items[i].name;
+                        track.setAlbumName(data.tracks.items[i].album.name);
+                        track.setAlbumId(data.tracks.items[i].album.id);
+                        track.setAlbumImage(data.tracks.items[i].album.images[0]);
                         dict.tracks.push(track);
                     }
                 }
 
                 if (type.includes("album")) {
-                    var a;
                     var artists = [];
-                    for (i = 0; i < data.albums.items.length; i++) {
+                    for (let i = 0; i < data.albums.items.length; i++) {
                         var album = new Album();
                         album.setAlbumName(data.albums.items[i].name);
                         album.setAlbumId(data.albums.items[i].id);
-                        for (a = 0; a < data.albums.items[i].artists.length; a++) {
+                        for (var a = 0; a < data.albums.items[i].artists.length; a++) {
                             artists.push(data.albums.items[i].artists[a]);
                         }
                         album.setAlbumArtists(artists);
-                        album.setImages(data.albums.items[i].images);
-                        // var album = data.albums.items[i].name;
+                        album.setAlbumImage(data.albums.items[i].images[0]);
+                        album.setAlbumReleaseDate(data.albums.items[i].release_date);
                         dict.albums.push(album);
                     }
                 }
 
                 if (type.includes("playlist")) {
-                    for (i = 0; i < data.playlists.items.length; i++) {
+                    for (let i = 0; i < data.playlists.items.length; i++) {
                         var playlist = new Playlist();
                         playlist.setPlaylistName(data.playlists.items[i].name);
                         playlist.setPlaylistId(data.playlists.items[i].id);
                         playlist.setOwnerId(data.playlists.items[i].owner.id);
-                        // var playlist = data.playlists.items[i].name;
                         dict.playlists.push(playlist);
                     }
                 }
 
                 if (type.includes("artist")) {
-                    for (i = 0; i < data.artists.items.length; i++) {
+                    for (let i = 0; i < data.artists.items.length; i++) {
                         var artist = new Artist();
                         artist.setArtistName(data.artists.items[i].name);
                         artist.setArtistId(data.artists.items[i].id);
-                        // var artist = data.artists.items[i].name;
+                        artist.setArtistImage(data.artists.items[i].images[0]);
                         dict.artists.push(artist);
                     }
                 }
                 return dict;
             });
-            // console.log(dict);
-            // console.log(d);
-            // return dict;
         } else {
             console.log(response);
             throw new Error(`Something went wrong on api server! ${response.status}`);
@@ -1016,7 +1008,9 @@ function Song (prev = null, next = null) {
     this.next = next;
 
     this.songName = null;
-    this.album = null;
+    this.albumName = null;
+    this.albumId = null;
+    this.albumImage = null;
     this.songId = null;
     this.songArtists = [];
     this.songLength = 0;
@@ -1028,13 +1022,33 @@ function Song (prev = null, next = null) {
         return this.songName;
     };
 
-    this.getAlbum = function() {
-        return this.album;
+    this.setSongName = function(songName) {
+        this.songName = songName;
     };
 
-    this.setAlbum = function(songAlbum) {
-        this.album = songAlbum;
-    }
+    this.getAlbumId = function() {
+        return this.albumId;
+    };
+
+    this.setAlbumId = function(songAlbumId) {
+        this.album = songAlbumId;
+    };
+
+    this.getAlbumName = function() {
+        return this.albumName;
+    };
+
+    this.setAlbumName = function(songAlbumName) {
+        this.albumName = songAlbumName;
+    };
+
+    this.getAlbumImage = function() {
+        return this.albumImage;
+    };
+
+    this.setAlbumImage = function(songAlbumImage) {
+        this.albumImage = songAlbumImage;
+    };
 
     this.getSongArtists = function() {
         return this.songArtist;
@@ -1042,10 +1056,6 @@ function Song (prev = null, next = null) {
 
     this.setSongArtists = function(songArtists) {
         this.songArtists = songArtists;
-    };
-
-    this.setSongName = function(songName) {
-        this.songName = songName;
     };
 
     this.getSongId = function() {
@@ -1089,6 +1099,131 @@ function Song (prev = null, next = null) {
     this.updateScore = function() {
         //TODO Better voting score algorithm goes here
         this.score = this.likes - this.dislikes;
+    };
+}
+
+function Album () {
+    this.id = null;
+    this.name = null;
+    this.artists = [];
+    this.image = null;
+    this.songs = [];
+    this.releaseDate = null;
+
+    this.getAlbumReleaseDate = function() {
+        return this.releaseDate;
+    };
+
+    this.setAlbumReleaseDate = function(releaseDate) {
+        this.releaseDate = releaseDate;
+    };
+
+    this.getAlbumSongs = function() {
+        return this.songs;
+    };
+
+    this.setAlbumSongs = function(songList) {
+        this.songs = songList;
+    };
+
+    this.getAlbumId = function() {
+        return this.id;
+    };
+
+    this.setAlbumId = function(id) {
+        this.id = id;
+    };
+
+    this.getAlbumArtists = function() {
+        return this.artists;
+    };
+
+    this.setAlbumArtists = function(artists) {
+        this.artists = artists;
+    };
+
+    this.getAlbumName = function() {
+        return this.name;
+    };
+
+    this.setAlbumName = function(name) {
+        this.name = name;
+    };
+
+    this.getAlbumImage = function() {
+        return this.image;
+    };
+
+    this.setAlbumImage = function(image) {
+        this.image = image;
+    };
+}
+
+function Artist () {
+    this.id = null;
+    this.name = null;
+    this.image = null;
+
+    this.getArtistImage = function() {
+        return this.image;
+    };
+
+    this.setArtistImage = function(image) {
+        this.image = image;
+    };
+
+    this.getArtistId = function() {
+        return this.id;
+    };
+
+    this.setArtistId = function(id) {
+        this.id = id;
+    };
+
+    this.getArtistId = function() {
+        return this.id;
+    };
+
+    this.setArtistId = function(id) {
+        this.id = id;
+    };
+
+    this.getArtistName = function() {
+        return this.name;
+    };
+
+    this.setArtistName = function(name) {
+        this.name = name;
+    };
+}
+
+function Playlist () {
+    this.id = null;
+    this.name = null;
+    this.ownerId = null;
+
+    this.getPlaylistId = function() {
+        return this.id;
+    };
+
+    this.setPlaylistId = function(id) {
+        this.id = id;
+    };
+
+    this.getPlaylistName = function() {
+        return this.name;
+    };
+
+    this.setPlaylistName = function(name) {
+        this.name = name;
+    };
+
+    this.getOwnerId = function(){
+        return this.ownerId;
+    };
+
+    this.setOwnerId = function(ownerId){
+        this.ownerId = ownerId;
     };
 }
 
@@ -1255,104 +1390,5 @@ function Queue () {
         song.prev.next = song;
         song.next.prev = song;
         song.prev.prev.next = song.prev;
-    };
-}
-
-function Album () {
-    this.id = null;
-    this.name = null;
-    this.artists = [];
-    this.images = [];
-    this.songs = [];
-
-    this.getSongs = function() {
-        return this.songs;
-    };
-
-    this.setSongs = function(songList) {
-        this.songs = songList;
-    };
-
-    this.getAlbumId = function() {
-        return this.id;
-    };
-
-    this.setAlbumId = function(id) {
-        this.id = id;
-    };
-
-    this.getAlbumArtists = function() {
-        return this.artists;
-    };
-
-    this.setAlbumArtists = function(artists) {
-        this.artists = artists;
-    };
-
-    this.getAlbumName = function() {
-        return this.name;
-    };
-
-    this.setAlbumName = function(name) {
-        this.name = name;
-    };
-
-    this.getImages = function() {
-        return this.images;
-    };
-
-    this.setImages = function(images) {
-        this.images = images;
-    };
-}
-
-function Artist () {
-    this.id = null;
-    this.name = null;
-
-    this.getArtistId = function() {
-        return this.id;
-    };
-
-    this.setArtistId = function(id) {
-        this.id = id;
-    };
-
-    this.getArtistName = function() {
-        return this.name;
-    };
-
-    this.setArtistName = function(name) {
-        this.name = name;
-    };
-}
-
-function Playlist () {
-    this.id = null;
-    this.name = null;
-    this.ownerId = null;
-
-    this.getPlaylistId = function() {
-        return this.id;
-    };
-
-    this.setPlaylistId = function(id) {
-        this.id = id;
-    };
-
-    this.getPlaylistName = function() {
-        return this.name;
-    };
-
-    this.setPlaylistName = function(name) {
-        this.name = name;
-    };
-
-    this.getOwnerId = function(){
-        return this.ownerId;
-    };
-
-    this.setOwnerId = function(ownerId){
-        this.ownerId = ownerId;
     };
 }

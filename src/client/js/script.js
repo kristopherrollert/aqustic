@@ -211,8 +211,9 @@ function generateSongContent(maxResults, songData) {
         };
         var songHtml = songTemplate(songInfo);
         $(".song-content").append(songHtml);
-        $("#song-" + songInfo.SONG_ID).click(function(){
+        $("#song-" + songInfo.SONG_ID).click(function () {
             var songCoverTemp = Handlebars.compile($("#song-cover-temp").html());
+
             var songInfo = {
 
             };
