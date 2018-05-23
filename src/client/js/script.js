@@ -7,6 +7,9 @@ $(document).ready(function() {
         case "signin":
             signInPage();
             break;
+        case "home":
+            homePage();
+            break;
         case "searchpage":
             searchPage();
             break;
@@ -57,12 +60,14 @@ function signInPage() {
                 throwLoginError(data.error);
                 $("#password-section").val('');
             }
-            else {
-                var url = "/home.html";
+            else if(data.hasOwnProperty ('loginCode')) {
+                var url = "/home";
                 console.log("SUCCESS");
                 console.log(data);
-                sessionStorage.setItem("username", data.username);
-                sessionStorage.setItem("loginCode", data.loginCode);
+                $(location).attr('href',url);
+            }
+            else{
+                var url = "/signin";
                 $(location).attr('href',url);
             }
         });
@@ -103,20 +108,26 @@ function signUpPage() {
                 $("#password-section").val('');
                 $("#password-confirm-section").val('');
             }
-            else {
-                var url = "/home.html";
+            else if(data.hasOwnProperty ('loginCode')){
+                var url = "/home";
                 console.log("SUCCESS");
                 console.log(data);
-                sessionStorage.setItem("username", data.username);
-                sessionStorage.setItem("loginCode", data.loginCode);
+                $(location).attr('href',url);
+            }
+            else{
+                var url = "/signin";
                 $(location).attr('href',url);
             }
         });
   });
 }
 
-/* Search Page */
+/* Home Page */
+function homePage() {
+    console.log("HOME PAGE");
+}
 
+/* Search Page */
 function searchPage() {
     var width =  $(".content-box").outerWidth();
     $(".search-content").css("width", width+"px");
