@@ -45,7 +45,7 @@ const passport = require("passport");
 const sessionSecret = "aqusticServer"; //TODO: should be hidden
 
 /* Local Modules */
-const queue = require('./queue');
+const queueMod = require('./queue');
 
 const app = express();
 const server = require('http').Server(app);
@@ -276,10 +276,6 @@ app.get('/signup', function(req, res){
     res.sendFile(__dirname+"/client/signup.html");
 });
 
-app.get('/searchpage', function(req, res){
-    res.sendFile(__dirname+"/client/search.html");
-});
-
 app.get('/home', authenticationMiddleware(), function(req, res){
     console.log(req.user); //check logged in user's username
     console.log(req.isAuthenticated()); //check if user is authenticated
@@ -287,7 +283,7 @@ app.get('/home', authenticationMiddleware(), function(req, res){
 });
 
 app.get('/search', function(req,res) {
-    var authToken = 'BQBJTD5A0OtBnS7MNridTVfAroz94StNOOp5mvTsKHA1Q-vheDre80Uc43K0x8fpVDb8YAOURnyY9VhY4FR_iExFfw-aKdC1PHeLfI-V4l34RTfC8-J4MG8tcgnSNyGtq959ZqE3vc-p3m3SYQsvHb_wg9YAN9m5mij0KZ7Z';
+    var authToken = 'BQBbL463J9V-W6mjNfkmok2WewvKKpzitzG89aGr8qi6imxMQhTFLEBhqhV58l47IYIxTonY2yDX53dmyE5algw4IJY-mP5iBm10LF0qqDe7kwvZCmQtbJKAsvtktSBlw5nzQA823O10Qd_BFqYiX51Cq_5ndqS1-3JriBn1';
     var query = req.query.query || '';
     var type = req.query.type || 'all';
     search(authToken, query, type).then(data => {
@@ -503,7 +499,7 @@ app.put('/play-song', function(req, res) {
     let songID = '3ctoHckjyd13eBi2IDw2Ip';
 
     //let songURI = req.songId;
-    let authToken = 'BQCaMVlYJ-fj1kDePZshSrSckxapp16K48cB86LO2nqlXB4XVgUVxexseLi3ieB9AePt8mNsaC1sPWAOhOZj6M5TilXHHAQTIkNeUq1R9H62Kj1maMR84K05-I7Ct6nqeNy9hLs4imrnWnMHEVwsbLkRvd3xHvL16A'; //Still need to figure out
+    let authToken = 'BQBbL463J9V-W6mjNfkmok2WewvKKpzitzG89aGr8qi6imxMQhTFLEBhqhV58l47IYIxTonY2yDX53dmyE5algw4IJY-mP5iBm10LF0qqDe7kwvZCmQtbJKAsvtktSBlw5nzQA823O10Qd_BFqYiX51Cq_5ndqS1-3JriBn1'; //Still need to figure out
     getSongLength(authToken, songID);
     playSong(authToken, songURI);
 });
@@ -517,13 +513,21 @@ app.put('/party/create-party', function(req, res) {
         admin: admin,
         currentlyPlaying: null,
         partyGoers: [],
-        songQueue: [],
+        songQueue: new Queue()
     };
     database.insertOne("PARTIES", dbobj, function (result) {
         res.send({
             redirect : `/party/${partyToken}`,
         });
     });
+});
+
+app.get('/party/*/search', function(req, res){
+    res.sendFile(__dirname+"/client/search.html");
+});
+
+app.get('/test/party', function(req, res){
+    res.sendFile(__dirname+"/testing/testCreateParty.html");
 });
 
 app.put('/party/*/queue-song', function(req, res) {
@@ -534,29 +538,29 @@ app.put('/party/*/queue-song', function(req, res) {
         partyToken: partyToken,
     };
 
-    var queue;
-    database.findOne("PARTIES", query, function (result) {
+    database.findOne("PARTIES", query, function (partyResult) {
         // could not find pary
-        if(result == null) {
-            res.send({
-                error: 'Party not found'
+        if(partyResult == null)
+            res.send({ error: 'Party not found' });
+        else {
+            // TODO GET INFO FROM SPOTIFY
+            let newSong = new Song();
+            newSong.setSongId(songInfo.id);
+            newSong.setSongName(songInfo.name);
+            newSong.setSongArtists(songInfo.artists);
+            newSong.setSongLength(songInfo.songLength);
+            partyResult.songQueue.push(new Song());
+
+            let updates = {
+                $set: {
+                    songQueue: partyResult.queue
+                }
+            };
+
+            database.updateOne("PARTIES", query, updates, function (result) {
+                socket.emit('queue-update', {queue: partyResult.songQueue});
             });
         }
-    });
-
-    //TODO CHECK IF SONG IS REAL
-
-    let updates = {
-        //Makes it so that it only adds a song once, multiple cannot exist
-        $addToSet: {songQueue: {
-            songInfo: songInfo,
-            score: 0,
-            user: user
-        }}
-    };
-
-    database.updateOne("PARTIES", query, updates, function (result) {
-        res.send(result);
     });
 });
 
@@ -776,6 +780,10 @@ function search(authToken, query, type = 'all') {
                         track.setSongId(data.tracks.items[i].id);
                         track.setSongArtists(data.tracks.items[i].artists);
                         track.setSongLength(data.tracks.items[i].duration_ms);
+                        let album = new Album();
+
+                        track.setAlbum();
+                        );
                         // var track = data.tracks.items[i].name;
                         dict.tracks.push(track);
                     }
@@ -824,6 +832,7 @@ function search(authToken, query, type = 'all') {
             // console.log(d);
             // return dict;
         } else {
+            console.log(response);
             throw new Error(`Something went wrong on api server! ${response.status}`);
         }
     })
@@ -845,11 +854,424 @@ function parse_search(query) {
     return query.replace(/ /i, '%20');
 }
 
+/*
+ * DESCRIPTION: A way to get the songs in an album on spotify
+ * ARGUMENTS:
+ *  authToken -> authorization to work with spotify api
+ *  albumId -> album to get tracks from
+ * returns a dictionary of the tracks, made into song objects
+ */
+function getAlbum(authToken, albumId) {
+
+    var header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    }
+
+    var init = {
+        method: 'GET',
+        headers: header,
+    }
+
+    return fetch(`https://api.spotify.com/v1/albums/${albumId}`, init)
+        .then(function (res) {
+            if (res.status == 200) {
+                var album = new Album();
+                return res.json().then(function(data) {
+                    var tracks = [];
+                    for (i = 0; i < data.tracks.items.length; i++) {
+                        var track = new Song();
+                        track.setSongName(data.tracks.items[i].name);
+                        track.setSongId(data.tracks.items[i].id);
+                        track.setSongArtists(data.tracks.items[i].artists);
+                        track.setSongLength(data.tracks.items[i].duration_ms);
+                        tracks.push(track);
+                    }
+                    album.setSongs(tracks);
+                    album.setAlbumId(data.id);
+                    var artists = [];
+                    for(j = 0; j < data.artists.length; j++) {
+                        var artist = new Artist();
+                        artist.setArtistId(data.artists[j].id);
+                        artist.setArtistName(data.artists[j].name);
+                        artists.push(artist);
+                    }
+                    album.setAlbumArtists(artists);
+                    return album;
+                });
+            }
+            else {
+                throw new Error(`Something went wrong on api server! ${res.status}`);
+            }
+        })
+        .then(response => {
+        console.debug(response);
+            // ...
+        }).catch(error => {
+            console.error(error);
+        });
+}
+
+
+/*
+ * DESCRIPTION: A way to get the top songs and albums from an artist on spotify
+ * ARGUMENTS:
+ *  authToken -> authorization to work with spotify api
+ *  artistId -> artist to be looked up
+ * Returns a dictionary of the top tracks and albums from the artist
+ */
+ function getArtist(authToken, artistId) {
+
+    var header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var init = JSON.stringify({
+        method: 'GET',
+        headers: header,
+    });
+
+    var artist = fetch(` https://api.spotify.com/v1/artists/${artistId}`, init)
+        .then(function (res) {
+            if (res.status == 200) {
+                return res.json().then(function(data) {
+                    var artist = new Artist();
+                    artist.setArtistId(data.id);
+                    artist.setArtistName(data.name);
+                    return artist;
+                });
+            }
+            else {
+                throw new Error(`Something went wrong on api server! ${res.status}`);
+            }
+        })
+        .then(response => {
+            console.debug(response);
+            // ...
+        }).catch(error => {
+            console.error(error);
+        });
+
+    return artist;
+}
+
+/*
+ * DESCRIPTION: A way to get the songs from a spotify playlist
+ * ARGUMENTS:
+ *  authToken -> authorization to work with spotify api
+ *  playlistId -> id of the playlist
+ *  userId -> userId of the playlist owner
+ * Returns a dictionary of the top tracks and albums from the artist
+ */
+function getPlaylist(authToken, playlistId, userId) {
+
+    var header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var init = {
+        method: 'GET',
+        headers: header,
+    };
+
+    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`, init)
+        .then(function (res) {
+            if (res.status == 200) {
+                return res.json().then(function(data) {
+                    var tracks = [];
+                    for (i = 0; i < data.items.length; i++) {
+                        var track = new Song();
+                        track.setSongName(data.items[i].track.name);
+                        track.setSongId(data.items[i].track.id);
+                        track.setSongArtists(data.items[i].track.artists);
+                        track.setSongLength(data.items[i].track.duration_ms);
+                        tracks.push(track);
+                    }
+                    return tracks;
+                });
+            }
+            else {
+                throw new Error(`Something went wrong on api server! ${res.status}`);
+            }
+        })
+        .then(response => {
+        console.debug(response);
+            // ...
+        }).catch(error => {
+            console.error(error);
+        });
+}
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------- SONG OBJECT/INFO ---------------------------- */
+/* -------------------------------------------------------------------------- */
+
+function Song (prev = null, next = null) {
+    this.prev = prev;
+    this.next = next;
+
+    this.songName = null;
+    this.album = null;
+    this.songId = null;
+    this.songArtists = [];
+    this.songLength = 0;
+    this.likes = 0;
+    this.dislikes = 0;
+    this.score = 0;
+
+    this.getSongName = function() {
+        return this.songName;
+    };
+
+    this.getAlbum = function() {
+        return this.album;
+    };
+
+    this.setAlbum = function(songAlbum) {
+        this.album = songAlbum;
+    }
+
+    this.getSongArtists = function() {
+        return this.songArtist;
+    };
+
+    this.setSongArtists = function(songArtists) {
+        this.songArtists = songArtists;
+    };
+
+    this.setSongName = function(songName) {
+        this.songName = songName;
+    };
+
+    this.getSongId = function() {
+        return this.id;
+    };
+
+    this.setSongId = function(songId) {
+        this.songId = songId;
+    };
+
+    this.getSongLength = function() {
+        return this.songLength;
+    };
+
+    this.setSongLength = function(songLength) {
+        this.songLength = songLength;
+    };
+
+    this.getLikes = function() {
+        return this.likes;
+    };
+
+    this.getDislikes = function() {
+        return this.dislikes;
+    };
+
+    this.getScore = function() {
+        return this.score;
+    };
+
+    this.addLike = function() {
+        this.likes++;
+        this.updateScore();
+    };
+
+    this.addDislike = function() {
+        this.dislikes++;
+        this.updateScore();
+    };
+
+    this.updateScore = function() {
+        //TODO Better voting score algorithm goes here
+        this.score = this.likes - this.dislikes;
+    };
+}
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------- QUEUE ---------------------------- */
+/* -------------------------------------------------------------------------- */
+
+function Queue () {
+    head = null;
+    tail = null;
+    size = 0;
+
+    /*
+     * DESCRIPTION: adds the given songInfo object to the tail of the queue
+     * ARGUEMENTS: takes a songInfo object
+     * RETURN: none
+     */
+    push = function(song) {
+        if (this.tail) {
+            this.tail.next = song;
+        }
+        this.tail = song;
+        if (this.size === 0) {
+            this.head = song;
+        }
+        this.size++;
+    };
+
+    /*
+     * DESCRIPTION: removes and returns an item from the head of the queue
+     * ARGUEMENTS: none
+     * RETURN: returns the songObject at the head of the queue
+     */
+    pop = function() {
+        let song = this.head;
+        if (this.size === 0){
+            this.head = null;
+            this.tail = null;
+            this.size--;
+            return song;
+        }
+        this.head = song.next;
+        this.head.prev = null;
+        this.size--;
+        return song;
+    };
+
+    /*
+     * DESCRIPTION: inserts an element into the queue between two elements
+     * ARGUEMENTS: takes two songObjects to insert between
+     * RETURN: none
+     */
+    insertAndAmend = function(insertSong, prevSong, nextSong) {
+
+        // nothing in queue, just add it to queue
+        if(prevSong == null && nextSong == null) {
+            this.tail = insertSong;
+            this.head = insertSong;
+            this.size = 1;
+        }
+        // previous song is null, meaning it is being added to head of queue
+        else if(prevSong == null) {
+            this.head = insertSong;
+            insertSong.next = nextSong;
+            insertSong.prev = null;
+            nextSong.prev = insertSong;
+            this.size++;
+        }
+        // next Song is null, meaining it is being added to tail of queue
+        else if(nextSong == null) {
+            this.tail = insertSong;
+            insertSong.next = null;
+            insertSong.prev = prevSong;
+            prevSong.next = insertSong;
+            this.size++;
+        }
+        // adding to middle of queue
+        else {
+            insertSong.prev = prevSong;
+            insertSong.next = nextSong;
+            prevSong.next = insertSong;
+            nextSong.prev = insertSong;
+            this.size++;
+        }
+    };
+
+    /*
+     * DESCRIPTION: removes a songObject from the queue
+     * ARGUEMENTS: takes a songInfo object to remove
+     * RETURN: none
+     */
+    removeAndAmend = function(songToRemove) {
+        //If the song is by itself
+        if (songToRemove.prev == null && songToRemove.next == null){
+            this.pop();
+        }
+        //If the song is the head
+        if (songToRemove.prev == null) {
+            this.pop();
+        }
+        //If the song is the tail
+        if (songToRemove.next == null) {
+            songToRemove.prev.next = null;
+        }
+        //If both sides are not null
+        else {
+            songToRemove.next.prev = songToRemove.prev;
+            songToRemove.prev.next = songToRemove.next;
+        }
+
+        this.size--;
+    };
+
+    /*
+     * DESCRIPTION: Takes a song and checks if that song needs to be moved to a
+     * new spot. Assumes that it is only possible for this song to be moved up
+     * in the queue.
+     * ARGUEMENTS: takes a songInfo object to adjust
+     * RETURN: false if the object isn't moved, true if it is
+     */
+    adjustSongUp = function(songToAdjust) {
+        curr = songToAdjust.prev;
+        while(curr != null) {
+            // set to largerSong to the larger song, but if both are equal, then
+            // getLargerSong returns null, so set it to curr.prev.
+            let largerSong = getLargerSong(songToAdjust, curr) || curr;
+            if(largerSong == curr)
+                break;
+            curr = curr.prev;
+        }
+        // curr represents the songObject that is larger than songToAdjust
+        if (curr == songToAdjust.prev)
+            return false; // this means that the songObject shouldn't move
+        this.removeAndAmend(songToAdjust);
+        this.insertAndAmend(songToAdjust, curr, curr.next);
+        return true;
+    };
+
+    //moves a song up the queue by 1
+    //I think the swapping is correct but I haven't tested it
+    moveUp = function (id) {
+        let song = this.head;
+        while(song.id !== id) {
+            song = song.next;
+        }
+
+        song.prev.next = song.next;
+        song.prev = song.prev.prev;
+        song.next = song.prev;
+        song.next.prev = song;
+        song.next.next.prev = song.next;
+        song.prev.next = song;
+    };
+
+    //moves a song down the queue by 1
+    moveDown = function (id) {
+        let song = this.head;
+        while(song.id !== id) {
+            song = song.next;
+        }
+        song.next.prev = song.prev;
+        song.prev = song.next;
+        song.next = song.prev.next;
+        song.prev.next = song;
+        song.next.prev = song;
+        song.prev.prev.next = song.prev;
+    };
+}
+
 function Album () {
     this.id = null;
     this.name = null;
     this.artists = [];
     this.images = [];
+    this.songs = [];
+
+    this.getSongs = function() {
+        return this.songs;
+    };
+
+    this.setSongs = function(songList) {
+        this.songs = songList;
+    };
 
     this.getAlbumId = function() {
         return this.id;
@@ -890,19 +1312,19 @@ function Artist () {
 
     this.getArtistId = function() {
         return this.id;
-    }
+    };
 
     this.setArtistId = function(id) {
         this.id = id;
-    }
+    };
 
     this.getArtistName = function() {
         return this.name;
-    }
+    };
 
     this.setArtistName = function(name) {
         this.name = name;
-    }
+    };
 }
 
 function Playlist () {
@@ -912,282 +1334,25 @@ function Playlist () {
 
     this.getPlaylistId = function() {
         return this.id;
-    }
+    };
 
     this.setPlaylistId = function(id) {
         this.id = id;
-    }
+    };
 
     this.getPlaylistName = function() {
         return this.name;
-    }
+    };
 
     this.setPlaylistName = function(name) {
         this.name = name;
-    }
+    };
 
     this.getOwnerId = function(){
         return this.ownerId;
-    }
+    };
 
     this.setOwnerId = function(ownerId){
         this.ownerId = ownerId;
-    }
-}
-
-/*
- * DESCRIPTION: A way to get the songs in an album on spotify
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  albumId -> album to get tracks from
- * returns a dictionary of the tracks, made into song objects
- */
-function getAlbum(authToken, albumId) {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    }
-
-    var init = {
-        method: 'GET',
-        headers: header,
-    }
-
-    return fetch(`https://api.spotify.com/v1/albums/${albumId}/tracks`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                var tracks = []
-                return res.json().then(function(data) {
-                    var tracks = [];
-                    for (i = 0; i < data.items.length; i++) {
-                        var track = new Song();
-                        track.setSongName(data.items[i].name);
-                        track.setSongId(data.items[i].id);
-                        track.setSongArtists(data.items[i].artists);
-                        track.setSongLength(data.items[i].duration_ms);
-                        // var track = data.items[i].name;
-                        tracks.push(track);
-                    }
-                    return tracks;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-        console.debug(response);
-            // ...
-        }).catch(error => {
-            console.error(error);
-        });
-}
-
-/*
- * DESCRIPTION: A way to get the top songs and albums from an artist on spotify
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  artistId -> artist to be looked up
- * Returns a dictionary of the top tracks and albums from the artist
- */
- function getArtist(authToken, artistId, country = 'US') {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    }
-
-    var init = JSON.stringify({
-        method: 'GET',
-        headers: header,
-    })
-
-    var artist = {
-        tracks: [],
-        albums: []
-    };
-
-    artist.tracks = fetch(` https://api.spotify.com/v1/artists/${artistId}/top-tracks?country=${country}`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                return res.json().then(function(data) {
-                    var tracks = [];
-                    for (i = 0; i < data.tracks.length; i++) {
-                        var track = new Song();
-                        track.setSongName(data.tracks[i].name);
-                        track.setSongId(data.tracks[i].id);
-                        track.setSongArtists(data.tracks[i].artists);
-                        track.setSongLength(data.tracks[i].duration_ms);
-                        // var track = data.items[i].name;
-                        tracks.push(track);
-                    }
-                    return tracks;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-            console.debug(response);
-            // ...
-        }).catch(error => {
-            console.error(error);
-        });
-
-    artist.albums = fetch(`https://api.spotify.com/v1/artists/${artistId}/albums`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                return res.json().then(function(data) {
-                    var albums = [];
-                    for (i = 0; i < data.items.length; i++) {
-                        var album = new Album();
-                        album.setAlbumName(data.items[i].name);
-                        album.setAlbumId(data.items[i].id);
-                        // var track = data.items[i].name;
-                        albums.push(album);
-                    }
-                    return albums;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-    .then(response => {
-        console.debug(response);
-        // ...
-    }).catch(error => {
-        console.error(error);
-    });
-    return artist;
-}
-
-/*
- * DESCRIPTION: A way to get the songs from a spotify playlist
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  playlistId -> id of the playlist
- *  userId -> userId of the playlist owner
- * Returns a dictionary of the top tracks and albums from the artist
- */
-function getPlaylist(authToken, playlistId, userId) {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    }
-
-    var init = {
-        method: 'GET',
-        headers: header,
-    }
-
-    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                return res.json().then(function(data) {
-                    var tracks = [];
-                    for (i = 0; i < data.items.length; i++) {
-                        var track = new Song();
-                        track.setSongName(data.items[i].track.name);
-                        track.setSongId(data.items[i].track.id);
-                        track.setSongArtists(data.items[i].track.artists);
-                        track.setSongLength(data.items[i].track.duration_ms);
-                        // var track = data.items[i].name;
-                        tracks.push(track);
-                    }
-                    return tracks;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-        console.debug(response);
-            // ...
-        }).catch(error => {
-            console.error(error);
-        });
-}
-
-/* -------------------------------------------------------------------------- */
-/* ---------------------------- SONG OBJECT/INFO ---------------------------- */
-/* -------------------------------------------------------------------------- */
-
-function Song (prev = null, next = null) {
-    this.prev = prev;
-    this.next = next;
-
-    this.songName = null;
-    this.songId = null;
-    this.songArtists = [];
-    this.songLength = 0;
-    this.likes = 0;
-    this.dislikes = 0;
-    this.score = 0;
-
-    this.getSongName = function() {
-        return this.songName;
-    };
-
-    this.getSongArtists = function() {
-        return this.songArtist;
-    };
-
-    this.setSongArtists = function(songArtists) {
-        this.songArtists = songArtists;
-    };
-
-    this.setSongName = function(songName) {
-        this.songName = songName;
-    };
-
-    this.getSongId = function() {
-        return this.id;
-    };
-
-    this.setSongId = function(songId) {
-        this.songId = songId;
-    };
-
-    this.getSongLength = function() {
-        return this.songLength;
-    };
-
-    this.setSongLength = function(songLength) {
-        this.songLength = songLength;
-    }
-
-    this.getLikes = function() {
-        return this.likes;
-    };
-
-    this.getDislikes = function() {
-        return this.dislikes;
-    };
-
-    this.getScore = function() {
-        return this.score;
-    };
-
-    this.addLike = function() {
-        this.likes++;
-        this.updateScore();
-    };
-
-    this.addDislike = function() {
-        this.dislikes++;
-        this.updateScore();
-    };
-
-    this.updateScore = function() {
-        //TODO Better voting score algorithm goes here
-        this.score = this.likes - this.dislikes;
     };
 }

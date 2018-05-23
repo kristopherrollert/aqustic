@@ -1,3 +1,7 @@
+/*
+ * Connect song object to have album and artist objects
+ */
+
 $(document).ready(function() {
     var urlArray = (window.location.pathname).split("/");
     switch (urlArray[1]) {
@@ -10,11 +14,19 @@ $(document).ready(function() {
         case "home":
             homePage();
             break;
-        case "searchpage":
-            searchPage();
-            break;
         case "party":
-            partyHomePage(urlArray[2]);
+            var partyToken = urlArray[2];
+            switch (urlArray[3]) {
+                case undefined:
+                    partyHomePage(partyToken);
+                    break;
+                case "search":
+                    searchPage(partyToken);
+                    break;
+                default:
+                    alert("cannot find this page!");
+                    break;
+            }
             break;
         default:
             alert("Cannot find: " + window.location.pathname);
@@ -27,7 +39,7 @@ $(document).ready(function() {
 /* ------------------------------------------------------------------------ */
 
 function partyHomePage(partyToken) {
-    var socket = io.connect('http://localhost:80');
+    var socket = io.connect('http://localhost:8080');
 
 }
 
@@ -128,7 +140,7 @@ function homePage() {
 }
 
 /* Search Page */
-function searchPage() {
+function searchPage(partyToken) {
     var width =  $(".content-box").outerWidth();
     $(".search-content").css("width", width+"px");
     $(".search-content").css("max-width", width+"px");
@@ -182,12 +194,13 @@ function searchPage() {
 
 // ASSUMES songData is not empty!
 function generateSongContent(maxResults, songData) {
-    var songTemplate = Handlebars.compile($("song-item-template").html());
+    var songTemplate = Handlebars.compile($("#song-item-template").html());
     var songWidth =  $(".content-box").outerWidth() - 16 - 45;
 
     var m = maxResults < songData.length ? maxResults : songData.length;
 
     for (var y = 0; y < m; y++) {
+        console.log(songData[y]);
         var name = songData[y].songName;
         var artists = artistsToText(songData[y]);
         var songInfo = {
@@ -196,8 +209,15 @@ function generateSongContent(maxResults, songData) {
             WIDTH: songWidth,
             SONG_ID: songData[y].songId
         };
-        var songHtml = songTemplate(songData[y]);
+        var songHtml = songTemplate(songInfo);
         $(".song-content").append(songHtml);
+        $("#song-" + songInfo.SONG_ID).click(function(){
+            var songCoverTemp = Handlebars.compile($("#song-cover-temp").html());
+            var songInfo = {
+
+            };
+            var songCoverHtml = songCoverTemp();
+        });
     }
 
     if (maxResults < songData.length) {
@@ -211,6 +231,8 @@ function generateSongContent(maxResults, songData) {
         });
     }
 }
+
+
 
 function artistsToText(songData) {
     var artists = songData.songArtists[0].name.toUpperCase();
