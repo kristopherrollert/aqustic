@@ -38,9 +38,87 @@ $(document).ready(function() {
 /* -------------------------- PAGE SPECIFIC CODE -------------------------- */
 /* ------------------------------------------------------------------------ */
 
+// PLAN !!!!!
+// 1. move queue stuff to its own module
+// 2. create endpoint to get currentlyPlaying song
+// 3. write queue template stuff for home page
+
 function partyHomePage(partyToken) {
     var socket = io.connect('http://localhost:8080');
+    var songWidth =  $(".content-party-connect").outerWidth();
 
+    $.ajax({
+        type: "GET",
+        url: "/party/" + partyToken + "/queue"
+    }).done(function(data) {
+        generateQueueContent(data);
+    });
+
+
+/*
+
+    // -- GENERATE QUEUE --
+    var songTemplate = Handlebars.compile($("#song-template").html());
+    var boxSize = (78.22 - 10) / 2;
+    //              = boxSize + song default padding + padding between + border
+    var discrepancy = boxSize + 15 + 10 + 2;
+    var songInfoWidth = songWidth - discrepancy;
+    var songInfo = {
+        NAME: "Ye vs. the People",
+        ARTIST: "Kanye West",
+        WIDTH_SONG: songInfoWidth,
+        BOX_SIZE: boxSize
+    };
+
+    var songHtml = songTemplate(songInfo);
+    $(".song-queue-list").append(songHtml);
+    $(".song-queue-list").append(songHtml);
+
+    // -- GENERATE NOW PLAYING --
+    var nowPlayingTemplate = Handlebars.compile($("#now-playing-template").html());
+    var nowPlayingInfo = {
+        NAME: "Ye vs. the People",
+        ARTIST: "Kanye West",
+        WIDTH: songWidth
+    };
+
+    var nowPlayingHtml = nowPlayingTemplate(nowPlayingInfo);
+    $(".now-playing-section").append(nowPlayingHtml);
+
+    // -- GENREATE PARTY INFO --
+    var partyInfoTemplate = Handlebars.compile($("#party-info-template").html());
+    var partyInfo = {
+        PARTY_NAME : "Slug Rager",
+        PARTY_OWNER : "Ryan Glenn",
+    };
+    var partyInfogHtml = partyInfoTemplate(partyInfo);
+    $(".party-info-section").append(partyInfogHtml);
+    */
+}
+
+function generateQueueContent(queueInfo) {
+    // // -- GENERATE QUEUE --
+    // var songTemplate = Handlebars.compile($("#song-template").html());
+    // var boxSize = (78.22 - 10) / 2;
+    // //              = boxSize + song default padding + padding between + border
+    // var discrepancy = boxSize + 15 + 10 + 2;
+    // var songInfoWidth = songWidth - discrepancy;
+    // var songInfo = {
+    //     NAME: "Ye vs. the People",
+    //     ARTIST: "Kanye West",
+    //     WIDTH_SONG: songInfoWidth,
+    //     BOX_SIZE: boxSize
+    // };
+    //
+    // var songHtml = songTemplate(songInfo);
+    // $(".song-queue-list").append(songHtml);
+    // $(".song-queue-list").append(songHtml);
+    console.log(queueInfo);
+    var currSong = queueInfo.head;
+    while(currSong != null) {
+        console.log(currSong.songName);
+        currSong = currSong.next;
+    }
 }
 
 
@@ -198,11 +276,10 @@ function generateSongContent(maxResults, songData) {
     var songWidth =  $(".content-box").outerWidth() - 16 - 45;
 
     var m = maxResults < songData.length ? maxResults : songData.length;
-
     for (var y = 0; y < m; y++) {
-        console.log(songData[y]);
         var name = songData[y].songName;
         var artists = artistsToText(songData[y]);
+
         var songInfo = {
             NAME: name,
             ARTIST: artists,
@@ -211,14 +288,7 @@ function generateSongContent(maxResults, songData) {
         };
         var songHtml = songTemplate(songInfo);
         $(".song-content").append(songHtml);
-        $("#song-" + songInfo.SONG_ID).click(function () {
-            var songCoverTemp = Handlebars.compile($("#song-cover-temp").html());
-
-            var songInfo = {
-
-            };
-            var songCoverHtml = songCoverTemp();
-        });
+        $("#song-" + songInfo.SONG_ID).bind('click', {songInfo: songData[y]}, onSongClick);
     }
 
     if (maxResults < songData.length) {
@@ -233,6 +303,53 @@ function generateSongContent(maxResults, songData) {
     }
 }
 
+
+ var onSongClick = function(event) {
+     var songInfo = event.data.songInfo;
+     var songCoverTemp = Handlebars.compile($("#song-cover-temp").html());
+     var artists = artistsToText(songInfo);
+     var popUpInfo = {
+        NAME: songInfo.songName,
+        ARTIST: artists,
+        ARTIST_ID: songInfo.artistId,
+        ALBUM_NAME: songInfo.albumName,
+        ALBUM_ID: songInfo.albumId,
+        COVER_URL: songInfo.albumImage
+    };
+    var songCoverHtml = songCoverTemp(popUpInfo);
+    $("body").addClass("body-cover");
+    $("body").append(songCoverHtml);
+    $(".song-cover").click(closeSongCover);
+    $("#sc-queue").bind("click", {songInfo : songInfo}, queueSong);
+
+    function closeSongCover(event) {
+        if (event.target.className == "song-cover" ||
+            event.target.id == "sc-close") {
+                $("body").removeClass("body-cover");
+                $(".song-cover").remove();
+        }
+    }
+
+    function queueSong(event) {
+        console.log("PATH");
+        var path = event.view.window.location.pathname;
+        path = path.split("/");
+        var partyToken = path[2];
+        console.log(event.data.songInfo);
+        $.ajax({
+            type: "PUT",
+            url: "/party/" + partyToken + "/queue-song",
+            data: {
+                songInfo: JSON.stringify(event.data.songInfo),
+                user: null,
+            }
+        }).done(function(data) {
+            console.log("DONE");
+            console.log(data);
+        });
+    }
+
+};
 
 
 function artistsToText(songData) {

@@ -22,15 +22,15 @@
                 <img class="song-cover-album-cover" src="{{COVER_URL}}" alt="album-cover">
                 <div class="song-cover-info">
                     <h1 class="song-cover-title">{{NAME}}</h1>
-                    <h2 class="song-cover-artists">{{ARTIST}}</h2>
-                    <h2 class="song-cover-album">{{ALBUM}}</h2>
+                    <h2 class="song-cover-artists" href="/artist/{{ARTIST_ID}}">{{ARTIST}}</h2>
+                    <h2 class="song-cover-album" href="/album/{{ALBUM_ID}}">{{ALBUM_NAME}}</h2>
                 </div>
                 <div class="song-cover-options">
                     <h2 id="sc-queue">ADD TO QUEUE</h2>
                     <br>
                     <h2 id="sc-album">VIEW ALBUM</h2>
                     <br>
-                    <h2 id="sc-artists">VIEW ARTISTS</h2>
+                    <h2 id="sc-artists" href="/tes/">VIEW ARTISTS</h2>
                     <br>
                     <h2 id="sc-close">CLOSE</h2>
                 </div>
@@ -62,7 +62,7 @@
                     <div class="song-content search-section-cur">
                         <h2 id="song-error">...</h2>
                         <script id="song-item-template" type="text/x-handlebars-template">
-                            <div class="song-item" id="song-{{SONGID}}">
+                            <div class="song-item" id="song-{{SONG_ID}}">
                                 <div class="song-text" style="width:{{WIDTH}}px; max-width:{{WIDTH}}px">
                                     <h2 class="song-title">{{NAME}}</h2>
                                     <h2 class="song-artists">{{ARTIST}}</h2>
