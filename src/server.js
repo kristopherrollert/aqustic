@@ -76,14 +76,10 @@ class Queue {
     }
 }
 
-<<<<<<< HEAD
-=======
-
 // [funcName].call([QUEUE], para1, para2 ...);
 // queuePop.call(queue)
 
 //If anyone is reading this, queuepop does not remove songs be
->>>>>>> 67e7ae163e3094c2c27cad37a3e7bc39b2e10ac2
 function queuePop () {
     return this.shift();
 }
@@ -316,7 +312,6 @@ app.get('/home', authenticationMiddleware(), function(req, res){
 });
 
 app.get('/search', function(req,res) {
-<<<<<<< HEAD
     var user = req.user;
     let userID = {
         username: user,
@@ -344,13 +339,6 @@ app.get('/search', function(req,res) {
         else{
             console.log("ERROR GET OUT");
         }
-=======
-    var authToken = TEMP_AUTH_TOKEN;
-    var query = req.query.query || '';
-    var type = req.query.type || 'all';
-    search(authToken, query, type).then(data => {
-        res.send(data);
->>>>>>> 67e7ae163e3094c2c27cad37a3e7bc39b2e10ac2
     });
 
 });
