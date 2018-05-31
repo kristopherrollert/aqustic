@@ -1,5 +1,5 @@
 console.log("using temp token");
-let TEMP_AUTH_TOKEN = 'BQBgEdJJW58fkDzF4fRvb5AYbxjaf80h3gjmXsdLcHNcaIw6LuLYVLuaOP_2nWFPXT0jW-n96OsFpZQMf2xwRAoYICGktFDUoT9Az7pgeF_cL5PM6SbR-H9MiuhbGl8nsZPDDITpj9ijbe70hl7vk6Tv6OPfEhwpww';
+let TEMP_AUTH_TOKEN = 'BQBr4Xu9TLT4Nt_B7QEyAOenp5abjjeh1nM8I1FXYIor1XIStIkotdTsgnkcxpJ2mmN6RAmYspLI3gNGx3_3Q1P57VwJjYqy2qUOq7DnAmovrSKrrdUU4tOKZJAyUGY8xpIVfQJ6JFS8A2gmiSKdA8VPCEeQg9x7fw';
 
 /* jshint esversion: 6 */
 // ^ this is just for kris, please don't delete
@@ -77,6 +77,8 @@ class Queue {
 
 // [funcName].call([QUEUE], para1, para2 ...);
 // queuePop.call(queue)
+
+//If anyone is reading this, queuepop does not remove songs be
 function queuePop () {
     return this.shift();
 }
@@ -650,8 +652,8 @@ app.get('/party/*/now-playing', function(req, res){
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
 
-    playLoop(partyToken);
-})
+    playLoop(partyToken, res);
+});
 
 app.get('/party/*', function(req, res){
     res.sendFile(__dirname+"/client/home.html");
@@ -756,7 +758,7 @@ function getLargerSong(song1, song2) {
 /* ----------------------------- PLAY FUNCTIONS ----------------------------- */
 /* -------------------------------------------------------------------------- */
 
-function playLoop(partyToken) {
+function playLoop(partyToken, res) {
 
     let query = {
         partyToken: partyToken
@@ -800,11 +802,13 @@ function playLoop(partyToken) {
                     playTimeoutId: timeoutId
                 }, $set: {
                     currentlyPlaying: nextSong
+                }, $set: {
+                    songQueue: queue
                 }
             };
 
             database.updateOne("PARTIES", query, newVals, function (result) {
-                console.log("updated currentsong and timeoutId (hopefully)")
+                console.log(result)
             });
 
 
