@@ -71,6 +71,9 @@ class Queue {
     }
 }
 
+
+// [funcName].call([QUEUE], para1, para2 ...);
+// queuePop.call(queue)
 function queuePop () {
     return this.shift;
 }
@@ -303,7 +306,7 @@ app.get('/home', authenticationMiddleware(), function(req, res){
 });
 
 app.get('/search', function(req,res) {
-    var authToken = 'BQC1HcrE20_HT2PaGZLaoI8nKwN5pt0eznW9SCpoaUZlHuJnlvQni1uHm5kn-LcyuT8_ew-SW31wnurc6Gsq4F_HdrbklUXO6MszNLPrOzsUWKHmXheYOO1w5Gz8guw0hQffWNNz1ftVG6U6lstaDHmuOgjMEl7tt93iJUqX';
+    var authToken = 'BQBlOOAnsEcz3aKsQjwLqpGJ5UltgVXcQXqt0rzzJr73L-UmsStEb5EOYXnzdCZsB14FHJaz0CM0Yq_lvC0dIle44K1UTKQhQPig-GTCWoWr_3ulWPTzTyvQqHFlg3-TXIH0aZzd8qZyM0XwtG5wbF_jyuswAGyEIelgbtBi';
     var query = req.query.query || '';
     var type = req.query.type || 'all';
     search(authToken, query, type).then(data => {
@@ -533,6 +536,8 @@ app.put('/party/create-party', function(req, res) {
         admin: admin,
         currentlyPlaying: null,
         partyGoers: [],
+        spotifyToken: "",
+        playTimeout : null,
         songQueue: {
             size : 0,
             list : []
@@ -551,6 +556,10 @@ app.get('/party/*/search', function(req, res){
 
 app.get('/test/party', function(req, res){
     res.sendFile(__dirname+"/testing/testCreateParty.html");
+});
+
+app.get('/test/play', function(req, res){
+    res.sendFile(__dirname+"/testing/playSong.html");
 });
 
 app.put('/party/*/queue-song', function(req, res) {
@@ -620,12 +629,32 @@ app.get('/party/*/queue', function(req, res){
             });
         }
         else {
-            console.log("DATABASE QUEUE");
-            console.log(result.songQueue.list);
             res.send(result.songQueue.list);
         }
     });
 });
+
+app.get('/party/*/now-playing', function(req, res){
+    let partyToken = (req.path).split("/")[2];
+
+    let query = {
+        partyToken: partyToken
+    };
+
+    database.findOne("PARTIES", query, function (result) {
+        // could not find pary
+        if(result == null) {
+            res.send({
+                error: 'Party not found'
+            });
+        }
+        else {
+            console.log(result.currentlyPlaying);
+            res.send(result.currentlyPlaying);
+        }
+    });
+});
+
 
 app.get('/party/*', function(req, res){
     res.sendFile(__dirname+"/client/home.html");

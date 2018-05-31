@@ -45,6 +45,9 @@ $(document).ready(function() {
 
 function partyHomePage(partyToken) {
     var socket = io.connect('http://localhost:8080');
+    $(".show-more-button").click(function () {
+        $(location).attr('href', "/party/" + partyToken + "/search");
+    });
 
     $.ajax({
         type: "GET",
@@ -53,37 +56,22 @@ function partyHomePage(partyToken) {
         generateQueueContent(data);
     });
 
+    $.ajax({
+        type: "GET",
+        url: "/party/" + partyToken + "/now-playing"
+    }).done(function (data) {
+        generateNowPlayingContent(data);
+    });
 
-/*
+    // $.ajax({
+    //     type: "GET",
+    //     url: "/party/" + partyToken + "/party-info"
+    // }).done(function (data) {
+    //     generatePartyInfoContent(data);
+    // });
+}
 
-    // -- GENERATE QUEUE --
-    var songTemplate = Handlebars.compile($("#song-template").html());
-    var boxSize = (78.22 - 10) / 2;
-    //              = boxSize + song default padding + padding between + border
-    var discrepancy = boxSize + 15 + 10 + 2;
-    var songInfoWidth = songWidth - discrepancy;
-    var songInfo = {
-        NAME: "Ye vs. the People",
-        ARTIST: "Kanye West",
-        WIDTH_SONG: songInfoWidth,
-        BOX_SIZE: boxSize
-    };
-
-    var songHtml = songTemplate(songInfo);
-    $(".song-queue-list").append(songHtml);
-    $(".song-queue-list").append(songHtml);
-
-    // -- GENERATE NOW PLAYING --
-    var nowPlayingTemplate = Handlebars.compile($("#now-playing-template").html());
-    var nowPlayingInfo = {
-        NAME: "Ye vs. the People",
-        ARTIST: "Kanye West",
-        WIDTH: songWidth
-    };
-
-    var nowPlayingHtml = nowPlayingTemplate(nowPlayingInfo);
-    $(".now-playing-section").append(nowPlayingHtml);
-
+function generatePartyInfoContent(data) {
     // -- GENREATE PARTY INFO --
     var partyInfoTemplate = Handlebars.compile($("#party-info-template").html());
     var partyInfo = {
@@ -92,7 +80,20 @@ function partyHomePage(partyToken) {
     };
     var partyInfogHtml = partyInfoTemplate(partyInfo);
     $(".party-info-section").append(partyInfogHtml);
-    */
+}
+
+function generateNowPlayingContent(data) {
+    var songWidth =  $(".content-party-connect").outerWidth();
+    var nowPlayingTemplate = Handlebars.compile($("#now-playing-template").html());
+    var artists = artistsToText(data);
+    var nowPlayingInfo = {
+        NAME: data.songName,
+        ARTIST: artists,
+        WIDTH: songWidth
+    };
+
+    var nowPlayingHtml = nowPlayingTemplate(nowPlayingInfo);
+    $(".now-playing-section").append(nowPlayingHtml);
 }
 
 function generateQueueContent(queueInfo) {
@@ -102,7 +103,6 @@ function generateQueueContent(queueInfo) {
     //              = boxSize + song default padding + padding between + border
     var discrepancy = boxSize + 15 + 10 + 2;
     var songInfoWidth = songWidth - discrepancy;
-    console.log(queueInfo);
 
     for (var i = 0; i < queueInfo.length; i++ ) {
         var artists = artistsToText(queueInfo[i]);

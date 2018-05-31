@@ -24,20 +24,20 @@
                 <h2 class="secondary-header full-page">Home</h2>
             </div>
             <div class="content-party-connect">
-                <div class="party-info-section">
+                <!-- <div class="party-info-section">
                     <h3 class="section-header">PARTY SETTINGS</h3>
                     <script id="party-info-template" type="text/x-handlebars-template">
                         <p class="contected-to-text">Connected to: {{PARTY_NAME}}</p>
                         <p class="party-owner-text">The party owner is {{PARTY_OWNER}}</p>
                     </script>
-                </div>
+                </div> -->
                 <div class="now-playing-section">
                     <h3 class="section-header">NOW PLAYING</h3>
                     <script id="now-playing-template" type="text/x-handlebars-template">
                         <div class="song-item" id="now-playing-item">
                             <div class="song-text" style="width:{{WIDTH}}px; max-width:{{WIDTH}}px">
-                                <h2 class="song-title">{{NAME}}</h2>
-                                <h2 class="song-artists">{{ARTIST}}</h2>
+                                <h2 class="song-title" style="margin-right:30px;">{{NAME}}</h2>
+                                <h2 class="song-artists" style="margin-right:30px;">{{ARTIST}}</h2>
                             </div>
                         </div>
                     </script>
@@ -48,10 +48,10 @@
                     <div class="song-queue-list">
                         <script id="song-template" type="text/x-handlebars-template">
                             <div class="song-queue-item" >
-                                <div class="song-item" style="width:{{WIDTH_SONG}}px; max-width:{{WIDTH_SONG}}px">
-                                    <div class="song-text" >
-                                        <h2 class="song-title">{{NAME}}</h2>
-                                        <h2 class="song-artists">{{ARTIST}}</h2>
+                                <div class="song-item" >
+                                    <div class="song-text" style="width:{{WIDTH_SONG}}px; max-width:{{WIDTH_SONG}}px;" >
+                                        <h2 class="song-title" style="margin-right:15px;">{{NAME}}</h2>
+                                        <h2 class="song-artists" style="margin-right:15px;">{{ARTIST}}</h2>
                                     </div>
                                 </div>
                                 <div class="vote-sidebar" style="width:{{BOX_SIZE}}px; max-width:{{BOX_SIZE}}px">

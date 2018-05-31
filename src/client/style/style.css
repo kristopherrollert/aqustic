@@ -349,10 +349,6 @@ input[type="text"]:focus, input[type="password"]:focus {
 .song-queue-item > .song-item {
   float: left; }
 
-.underline {
-  border-bottom: 1px solid white;
-  padding-bottom: 3px; }
-
 .party-info-section, .now-playing-section, .song-queue-section {
   margin-bottom: 25px; }
 
