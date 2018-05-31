@@ -1,3 +1,5 @@
+let TEMP_AUTH_TOKEN = 'BQCrlXO2Pc0VrokYotu3whxu1rlg-p2chpPZCls8S0Q0MjwU6rISWEo1QmXAajSsfTzHLlCW9pe8JiHXMud0uqoauU1whGvpyHbWudcBopUZvVjFmUKi-K_8SYzHdtSSgtTYdoVjRT2ktMaJv9PQkmHPqaHAWVXlIQ';
+
 /* jshint esversion: 6 */
 // ^ this is just for kris, please don't delete
 /*
@@ -303,7 +305,7 @@ app.get('/home', authenticationMiddleware(), function(req, res){
 });
 
 app.get('/search', function(req,res) {
-    var authToken = 'BQC1HcrE20_HT2PaGZLaoI8nKwN5pt0eznW9SCpoaUZlHuJnlvQni1uHm5kn-LcyuT8_ew-SW31wnurc6Gsq4F_HdrbklUXO6MszNLPrOzsUWKHmXheYOO1w5Gz8guw0hQffWNNz1ftVG6U6lstaDHmuOgjMEl7tt93iJUqX';
+    var authToken = TEMP_AUTH_TOKEN;
     var query = req.query.query || '';
     var type = req.query.type || 'all';
     search(authToken, query, type).then(data => {
@@ -447,6 +449,13 @@ app.get('/settings', function(req, res){
     res.sendFile(__dirname+"/client/auth.html");
 });
 
+app.get('/kaitest', function(req, res) {
+    let songLength = getSongLength(TEMP_AUTH_TOKEN, '5CGS4UovzA7ftCJkLVXQju');
+    console.log("song length: " + songLength);
+    res.send(songLength);
+});
+
+
 app.get('/callback', function(req, res) {
 
   // your application requests refresh and access tokens
@@ -512,16 +521,6 @@ app.get('/callback', function(req, res) {
             }
         });
     }
-});
-
-app.put('/play-song', function(req, res) {
-    let songURI = 'spotify:track:3ctoHckjyd13eBi2IDw2Ip';
-    let songID = '3ctoHckjyd13eBi2IDw2Ip';
-
-    //let songURI = req.songId;
-    let authToken = 'BQBmb9dXNl-RwS2XRliJetSEGfy_ij65l8CxZE0xGdibjJ3VCDja_DHERn4fF7R3pXoW5rrJjebHY9Xkrkyo24UaOCZRc2RGuuuxN1tv0sGBjOeq7zaONRweEUS_kv16-CxNgtEQHdEYI8MMGQtoK89aQG_OnwhDZZ_2NX-X'; //Still need to figure out
-    getSongLength(authToken, songID);
-    playSong(authToken, songURI);
 });
 
 app.put('/party/create-party', function(req, res) {
@@ -627,6 +626,12 @@ app.get('/party/*/queue', function(req, res){
     });
 });
 
+app.get('/party/*/play', function(req, res) {
+    let partyToken = (req.path).split("/")[2];
+
+    playLoop(partyToken);
+})
+
 app.get('/party/*', function(req, res){
     res.sendFile(__dirname+"/client/home.html");
 });
@@ -720,6 +725,75 @@ function getLargerSong(song1, song2) {
         return song2;
     return null;
 }
+
+/* -------------------------------------------------------------------------- */
+/* ----------------------------- PLAY FUNCTIONS ----------------------------- */
+/* -------------------------------------------------------------------------- */
+
+function playLoop(partyToken) {
+
+    let nextSong = null;
+
+    let query = {
+        partyToken: partyToken
+    };
+
+    database.findOne("PARTIES", query, function (result) {
+        /*
+        if (result == null) {
+            res.send({
+                error: 'Party not found'
+            })
+        }
+        else {
+            let queue = result.songQueue;
+            if (queue.size <= 0) {
+                res.send({
+                    error: 'No songs in queue'
+                })
+            }
+            else {
+                nextSong = queuePop.call(queue);
+                spotifyAuthToken = result.spotifyToken
+            }
+        }
+        */
+
+        let queue = result.songQueue;
+        if (queue.length() <= 0) {
+            console.log('No songs in queue!');
+            return;
+        } else {
+            nextSong = queuePop.call(queue);
+//            spotifyAuthToken = result.spotifyToken
+        }
+    });
+
+    //TODO remove!!
+    console.log("temp auth token being used");
+    let spotifyAuthToken = TEMP_AUTH_TOKEN
+    let songId = nextSong.songId;
+    let songLength = nextSong.songLength;
+    //Still need to make sure timings are alright
+    let timoutId = setTimeout(playLoop(partyToken), songLength);
+    playSong(spotifyAuthToken, "spotify:track:" + songId);
+
+
+    query = {
+        partyToken: partyToken,
+    };
+
+    let newVals = {
+        currentlyPlaying: songId,
+        playTimeoutId: timoutId,
+    };
+
+    database.updateOne("PARTIES", query, newVals, function(result) {
+        console.log("updated current song and timeout id")
+    });
+}
+
+
 
 function playSong(authToken, songURI) {
 
