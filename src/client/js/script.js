@@ -45,7 +45,14 @@ $(document).ready(function() {
 
 function partyHomePage(partyToken) {
     var socket = io.connect('http://localhost:8080');
-    var songWidth =  $(".content-party-connect").outerWidth();
+    socket.on('update-queue', function (data) {
+        $(".song-queue-item").remove();
+        $(".now-playing-item").remove();
+    });
+
+    $(".show-more-button").click(function () {
+        $(location).attr('href', "/party/" + partyToken + "/search");
+    });
 
     $.ajax({
         type: "GET",
@@ -54,70 +61,68 @@ function partyHomePage(partyToken) {
         generateQueueContent(data);
     });
 
+    $.ajax({
+        type: "GET",
+        url: "/party/" + partyToken + "/now-playing"
+    }).done(function (data) {
+        generateNowPlayingContent(data);
+    });
 
-/*
+    // $.ajax({
+    //     type: "GET",
+    //     url: "/party/" + partyToken + "/party-info"
+    // }).done(function (data) {
+    //     generatePartyInfoContent(data);
+    // });
+}
 
-    // -- GENERATE QUEUE --
-    var songTemplate = Handlebars.compile($("#song-template").html());
-    var boxSize = (78.22 - 10) / 2;
-    //              = boxSize + song default padding + padding between + border
-    var discrepancy = boxSize + 15 + 10 + 2;
-    var songInfoWidth = songWidth - discrepancy;
-    var songInfo = {
-        NAME: "Ye vs. the People",
-        ARTIST: "Kanye West",
-        WIDTH_SONG: songInfoWidth,
-        BOX_SIZE: boxSize
-    };
-
-    var songHtml = songTemplate(songInfo);
-    $(".song-queue-list").append(songHtml);
-    $(".song-queue-list").append(songHtml);
-
-    // -- GENERATE NOW PLAYING --
-    var nowPlayingTemplate = Handlebars.compile($("#now-playing-template").html());
-    var nowPlayingInfo = {
-        NAME: "Ye vs. the People",
-        ARTIST: "Kanye West",
-        WIDTH: songWidth
-    };
-
-    var nowPlayingHtml = nowPlayingTemplate(nowPlayingInfo);
-    $(".now-playing-section").append(nowPlayingHtml);
-
+function generatePartyInfoContent(data) {
+    if (data == undefined || data == null) return;
     // -- GENREATE PARTY INFO --
     var partyInfoTemplate = Handlebars.compile($("#party-info-template").html());
     var partyInfo = {
         PARTY_NAME : "Slug Rager",
         PARTY_OWNER : "Ryan Glenn",
     };
-    var partyInfogHtml = partyInfoTemplate(partyInfo);
-    $(".party-info-section").append(partyInfogHtml);
-    */
+    var partyInfoHtml = partyInfoTemplate(partyInfo);
+    $(".party-info-section").append(partyInfoHtml);
+}
+
+function generateNowPlayingContent(data) {
+    if (data == undefined || data == null || data == "") return;
+    var songWidth =  $(".content-party-connect").outerWidth();
+    var nowPlayingTemplate = Handlebars.compile($("#now-playing-template").html());
+    var artists = artistsToText(data);
+    var nowPlayingInfo = {
+        NAME: data.songName,
+        ARTIST: artists,
+        WIDTH: songWidth
+    };
+
+    var nowPlayingHtml = nowPlayingTemplate(nowPlayingInfo);
+    $(".now-playing-section").append(nowPlayingHtml);
 }
 
 function generateQueueContent(queueInfo) {
-    // // -- GENERATE QUEUE --
-    // var songTemplate = Handlebars.compile($("#song-template").html());
-    // var boxSize = (78.22 - 10) / 2;
-    // //              = boxSize + song default padding + padding between + border
-    // var discrepancy = boxSize + 15 + 10 + 2;
-    // var songInfoWidth = songWidth - discrepancy;
-    // var songInfo = {
-    //     NAME: "Ye vs. the People",
-    //     ARTIST: "Kanye West",
-    //     WIDTH_SONG: songInfoWidth,
-    //     BOX_SIZE: boxSize
-    // };
-    //
-    // var songHtml = songTemplate(songInfo);
-    // $(".song-queue-list").append(songHtml);
-    // $(".song-queue-list").append(songHtml);
-    console.log(queueInfo);
-    var currSong = queueInfo.head;
-    while(currSong != null) {
-        console.log(currSong.songName);
-        currSong = currSong.next;
+    if (queueInfo == undefined || queueInfo == null || queueInfo.length == 0) return;
+    var songTemplate = Handlebars.compile($("#song-template").html());
+    var songWidth =  $(".content-party-connect").outerWidth();
+    var boxSize = (78.22 - 10) / 2;
+    //              = boxSize + song default padding + padding between + border
+    var discrepancy = boxSize + 15 + 10 + 2;
+    var songInfoWidth = songWidth - discrepancy;
+
+    for (var i = 0; i < queueInfo.length; i++ ) {
+        var artists = artistsToText(queueInfo[i]);
+        var songInfo = {
+            NAME: queueInfo[i].songName,
+            ARTIST: artists,
+            WIDTH_SONG: songInfoWidth,
+            BOX_SIZE: boxSize
+        };
+
+        var songHtml = songTemplate(songInfo);
+        $(".song-queue-list").append(songHtml);
     }
 }
 
