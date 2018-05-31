@@ -71,9 +71,6 @@ class Queue {
     }
 }
 
-
-// [funcName].call([QUEUE], para1, para2 ...);
-// queuePop.call(queue)
 function queuePop () {
     return this.shift;
 }
@@ -306,11 +303,33 @@ app.get('/home', authenticationMiddleware(), function(req, res){
 });
 
 app.get('/search', function(req,res) {
-    var authToken = 'BQBlOOAnsEcz3aKsQjwLqpGJ5UltgVXcQXqt0rzzJr73L-UmsStEb5EOYXnzdCZsB14FHJaz0CM0Yq_lvC0dIle44K1UTKQhQPig-GTCWoWr_3ulWPTzTyvQqHFlg3-TXIH0aZzd8qZyM0XwtG5wbF_jyuswAGyEIelgbtBi';
-    var query = req.query.query || '';
-    var type = req.query.type || 'all';
-    search(authToken, query, type).then(data => {
-        res.send(data);
+    var user = req.user;
+    let userID = {
+        username: user,
+    }
+    console.log(user);
+    var authToken;
+    //TODO: THIS ALL HAS TO BE SAVED TO THE PARTY NOT SPECIFIC USERS
+    database.findOne("ACCOUNTS", userID, function (result) {
+        if (result != null){
+            console.log('--------');
+            console.log("result:" + result);
+            console.log(result.authenticateID);
+            console.log('--------');
+            authToken = result.authenticateID;
+
+            console.log('******');
+            console.log(authToken);
+            console.log('******');
+            var query = req.query.query || '';
+            var type = req.query.type || 'all';
+            search(authToken, query, type).then(data => {
+                res.send(data);
+            });
+        }
+        else{
+            console.log("ERROR GET OUT");
+        }
     });
 
 });
@@ -387,7 +406,8 @@ app.put('/account/sign-up', function (req, res) {
                     username: username,
                     password: passwordData.hashPassword,
                     salt: passwordData.salt,
-                    loginCode: loginCode
+                    loginCode: loginCode,
+                    authenticateID: null
                 };
                 database.insertOne("ACCOUNTS", query);
                 const userID = username;
@@ -404,7 +424,7 @@ app.put('/account/sign-up', function (req, res) {
 });
 
 
-/*----Store Sessions----*/
+/*------------Store Sessions------------*/
 passport.serializeUser(function(userID, done) {
     done(null, userID);
 });
@@ -426,9 +446,8 @@ function authenticationMiddleware () {
 
 app.get('/spotify-authorization', function(req, res){
     console.log("GOT SPOTIFY AUTH");
-
     // cookie to ensure browser/server connection is secure
-    let state = servFunc.generateRandomString(16);
+    let state = generateRandomString(16);
     res.cookie(authStateKey, state);
 
     // redirects to spotify authorization page, returns to the redirect_uri
@@ -451,13 +470,16 @@ app.get('/settings', function(req, res){
 });
 
 app.get('/callback', function(req, res) {
-
   // your application requests refresh and access tokens
   // after checking the state parameter
 
     var code = req.query.code || null;
     var state = req.query.state || null;
     var storedState = req.cookies ? req.cookies[authStateKey] : null;
+    var user = req.user;
+    let userID = {
+        username: user,
+    }
 
     if (state === null || state !== storedState) {
         //TODO: make a better error report
@@ -482,9 +504,12 @@ app.get('/callback', function(req, res) {
         };
 
         request.post(authOptions, function(error, response, body) {
+            let access_token;
+            let refresh_token;
+
             if (!error && response.statusCode === 200) {
-                var access_token = body.access_token;
-                var refresh_token = body.refresh_token;
+                access_token = body.access_token;
+                refresh_token = body.refresh_token;
 
                 var options = {
                     url: 'https://api.spotify.com/v1/me',
@@ -492,18 +517,35 @@ app.get('/callback', function(req, res) {
                     json: true
                 };
 
+                /*
+                 *  Save authentication token and update token to the database
+                 */
+                let updateAuth = {
+                    $set: {
+                        authenticateID: access_token
+                    }
+                }
+
+                database.updateOne("ACCOUNTS", userID, updateAuth, function (result) {
+                    if (result != null){
+                        console.log("Found Account");
+                    }
+                });
+                let refreshInterval = 2400000;
+                // database.findOne("ACCOUNTS", userID, function (result) {
+                //     if (result != null){
+                //         console.log("HERERE");
+                //         console.log(result.username);
+                //         console.log(result.authenticateID);
+                //         console.log("-----");
+                //     }
+                // });
+                //let intervalId = setInterval(refreshToken(refresh_token), refreshInterval);
+
                 // use the access token to access the Spotify Web API
                 request.get(options, function(error, response, body) {
                     console.log(body);
                 });
-
-                // we can also pass the token to the browser to make requests from there
-                res.redirect('/#' +
-                    querystring.stringify({
-                        access_token: access_token,
-                        refresh_token: refresh_token
-                    })
-                );
             }
             else {
                 // TODO better error handleing
@@ -515,6 +557,7 @@ app.get('/callback', function(req, res) {
             }
         });
     }
+    res.redirect("/home");
 });
 
 app.put('/play-song', function(req, res) {
@@ -536,8 +579,6 @@ app.put('/party/create-party', function(req, res) {
         admin: admin,
         currentlyPlaying: null,
         partyGoers: [],
-        spotifyToken: "",
-        playTimeout : null,
         songQueue: {
             size : 0,
             list : []
@@ -556,10 +597,6 @@ app.get('/party/*/search', function(req, res){
 
 app.get('/test/party', function(req, res){
     res.sendFile(__dirname+"/testing/testCreateParty.html");
-});
-
-app.get('/test/play', function(req, res){
-    res.sendFile(__dirname+"/testing/playSong.html");
 });
 
 app.put('/party/*/queue-song', function(req, res) {
@@ -629,32 +666,12 @@ app.get('/party/*/queue', function(req, res){
             });
         }
         else {
+            console.log("DATABASE QUEUE");
+            console.log(result.songQueue.list);
             res.send(result.songQueue.list);
         }
     });
 });
-
-app.get('/party/*/now-playing', function(req, res){
-    let partyToken = (req.path).split("/")[2];
-
-    let query = {
-        partyToken: partyToken
-    };
-
-    database.findOne("PARTIES", query, function (result) {
-        // could not find pary
-        if(result == null) {
-            res.send({
-                error: 'Party not found'
-            });
-        }
-        else {
-            console.log(result.currentlyPlaying);
-            res.send(result.currentlyPlaying);
-        }
-    });
-});
-
 
 app.get('/party/*', function(req, res){
     res.sendFile(__dirname+"/client/home.html");
