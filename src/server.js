@@ -98,6 +98,7 @@ var database = {
     /* General Databse Information */
     name: "aqusticDB",
     url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+//    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
@@ -657,6 +658,58 @@ app.get('/party/*/play', function(req, res) {
     playLoop(partyToken, res);
 });
 
+app.put('/party/*/vote', function (req, res) {
+    let partyToken = (req.path).split("/")[2];
+    let songToUpdate = JSON.parse(req.body.songToUpdate);
+    //should be true if a like is being added, false if dislike
+    let isLike = JSON.parse(req.body.isLike);
+
+    console.log("testing vote stuff");
+    console.log(songToUpdate);
+    console.log(isLike);
+
+    let query = {
+        partyToken: partyToken
+    };
+
+    database.findOne("PARTIES", query, function(result) {
+        let queue = result.songQueue;
+        for (let i = 0; i < queue.length; i++) {
+            let currSong = queue[i];
+            let currSongId = currSong.songId;
+
+            if (currSongId == songToUpdate) {
+                //If isLike is true (like)
+                if (isLike) {
+                    currSong.likes += 1;
+                    currSong.score += 1;
+                }
+                //If isLike is false (dislike)
+                else {
+                    currSong.dislikes += 1;
+                    currSong.score -= 1;
+                }
+                console.log("voting success");
+            }
+        }
+
+        query = {
+            partyToken: partyToken
+        };
+
+        let newVals = {
+            $set: {
+                songQueue: queue
+            }
+        };
+
+        database.updateOne('PARTIES', query, newVals, function(result) {
+            console.log("updated score in database");
+        })
+    });
+
+});
+
 app.get('/party/*', function(req, res){
     res.sendFile(__dirname+"/client/home.html");
 });
@@ -768,7 +821,7 @@ function playLoop(partyToken, res) {
 
     database.findOne("PARTIES", query, function (result) {
 
-        if (result == null) {
+        if (result === null) {
             res.send({
                 error: 'Party not found'
             })
@@ -776,6 +829,13 @@ function playLoop(partyToken, res) {
         else {
 
             let queue = result.songQueue;
+
+            if (queue.length <= 0) {
+                res.send({
+                    error: 'Queue is empty!'
+                });
+                return;
+            }
 
             let nextSong = queuePop.call(queue);
 
@@ -850,7 +910,8 @@ function playSong(authToken, songURI) {
 
 }
 
-//Probably unecessary and doesn't work lol
+//Unecessary and doesn't work
+/*
 function getSongLength (authToken, songID) {
     var header = {
         "Authorization": "Bearer " + authToken,
@@ -874,6 +935,7 @@ function getSongLength (authToken, songID) {
             }
         });
 }
+*/
 
 
 /* -------------------------------------------------------------------------- */
