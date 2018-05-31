@@ -1,0 +1,6 @@
+{
+  "GCLOUD_PROJECT": "aqustic-205720",
+  "DATA_BACKEND": "mongodb",
+  "MONGO_URL": "mongodb://admin:aqustic115@ds241570.mlab.com:41570/aqustic",
+  "MONGO_COLLECTION": "aqustic"
+}

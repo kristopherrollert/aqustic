@@ -51,6 +51,8 @@ const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const mongoClient = mongo.MongoClient;
+const mongoUser = 'admin';
+const mongoPass = 'aqustic115';
 
 server.listen(8080);
 
@@ -95,7 +97,7 @@ function queuePush (song) {
 var database = {
     /* General Databse Information */
     name: "aqusticDB",
-    url: 'mongodb://localhost:27017/',
+    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
