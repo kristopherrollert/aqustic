@@ -1,4 +1,5 @@
-let TEMP_AUTH_TOKEN = 'BQCrlXO2Pc0VrokYotu3whxu1rlg-p2chpPZCls8S0Q0MjwU6rISWEo1QmXAajSsfTzHLlCW9pe8JiHXMud0uqoauU1whGvpyHbWudcBopUZvVjFmUKi-K_8SYzHdtSSgtTYdoVjRT2ktMaJv9PQkmHPqaHAWVXlIQ';
+console.log("using temp token");
+let TEMP_AUTH_TOKEN = 'BQBgEdJJW58fkDzF4fRvb5AYbxjaf80h3gjmXsdLcHNcaIw6LuLYVLuaOP_2nWFPXT0jW-n96OsFpZQMf2xwRAoYICGktFDUoT9Az7pgeF_cL5PM6SbR-H9MiuhbGl8nsZPDDITpj9ijbe70hl7vk6Tv6OPfEhwpww';
 
 /* jshint esversion: 6 */
 // ^ this is just for kris, please don't delete
@@ -77,7 +78,7 @@ class Queue {
 // [funcName].call([QUEUE], para1, para2 ...);
 // queuePop.call(queue)
 function queuePop () {
-    return this.shift;
+    return this.shift();
 }
 
 function queuePush (song) {
@@ -532,7 +533,7 @@ app.put('/party/create-party', function(req, res) {
         currentlyPlaying: null,
         partyGoers: [],
         spotifyToken: "",
-        playTimeout : null,
+        playTimeoutId : null,
         songQueue: []
     };
     database.insertOne("PARTIES", dbObject, function (result) {
@@ -757,65 +758,57 @@ function getLargerSong(song1, song2) {
 
 function playLoop(partyToken) {
 
-    let nextSong = null;
-
     let query = {
         partyToken: partyToken
     };
 
     database.findOne("PARTIES", query, function (result) {
-        /*
+
         if (result == null) {
             res.send({
                 error: 'Party not found'
             })
         }
         else {
+
             let queue = result.songQueue;
-            if (queue.size <= 0) {
-                res.send({
-                    error: 'No songs in queue'
-                })
-            }
-            else {
-                nextSong = queuePop.call(queue);
-                spotifyAuthToken = result.spotifyToken
-            }
+
+            let nextSong = queuePop.call(queue);
+
+            let songLength = nextSong.songLength;
+            let songId = nextSong.songId;
+
+            //Using temp spotify auth token
+            let spotifyAuthToken = TEMP_AUTH_TOKEN;
+
+            //second arg is the spotify uri, not the spotify song ID
+            playSong(spotifyAuthToken, "spotify:track:" + songId);
+
+
+            //callback function must be surrounded by function(){}
+            let timeoutId = setTimeout(function () {
+                playLoop(partyToken)
+            }                                       ,songLength);
+
+            query = {
+                partyToken: partyToken,
+            };
+
+            //Only seperately putting the $sets worked, change it at your own risk
+            let newVals = {
+                $set: {
+                    playTimeoutId: timeoutId
+                }, $set: {
+                    currentlyPlaying: nextSong
+                }
+            };
+
+            database.updateOne("PARTIES", query, newVals, function (result) {
+                console.log("updated currentsong and timeoutId (hopefully)")
+            });
+
+
         }
-        */
-
-        let queue = result.songQueue;
-        if (queue.length() <= 0) {
-            console.log('No songs in queue!');
-            return;
-        } else {
-            nextSong = queuePop.call(queue);
-//            spotifyAuthToken = result.spotifyToken
-        }
-    });
-
-    //TODO remove!!
-    console.log("temp auth token being used");
-    let spotifyAuthToken = TEMP_AUTH_TOKEN
-
-    let songId = nextSong.songId;
-    let songLength = nextSong.songLength;
-    //Still need to make sure timings are alright
-    let timoutId = setTimeout(playLoop(partyToken), songLength);
-    playSong(spotifyAuthToken, "spotify:track:" + songId);
-
-
-    query = {
-        partyToken: partyToken,
-    };
-
-    let newVals = {
-        currentlyPlaying: songId,
-        playTimeoutId: timoutId,
-    };
-
-    database.updateOne("PARTIES", query, newVals, function(result) {
-        console.log("updated current song and timeout id")
     });
 }
 
