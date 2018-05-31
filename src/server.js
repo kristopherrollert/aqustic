@@ -797,6 +797,7 @@ function playLoop(partyToken) {
     //TODO remove!!
     console.log("temp auth token being used");
     let spotifyAuthToken = TEMP_AUTH_TOKEN
+
     let songId = nextSong.songId;
     let songLength = nextSong.songLength;
     //Still need to make sure timings are alright
