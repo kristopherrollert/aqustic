@@ -1,3 +1,6 @@
+console.log("using temp token");
+let TEMP_AUTH_TOKEN = 'BQBr4Xu9TLT4Nt_B7QEyAOenp5abjjeh1nM8I1FXYIor1XIStIkotdTsgnkcxpJ2mmN6RAmYspLI3gNGx3_3Q1P57VwJjYqy2qUOq7DnAmovrSKrrdUU4tOKZJAyUGY8xpIVfQJ6JFS8A2gmiSKdA8VPCEeQg9x7fw';
+
 /* jshint esversion: 6 */
 // ^ this is just for kris, please don't delete
 /*
@@ -48,6 +51,8 @@ const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const mongoClient = mongo.MongoClient;
+const mongoUser = 'admin';
+const mongoPass = 'aqustic115';
 
 server.listen(8080);
 
@@ -71,8 +76,16 @@ class Queue {
     }
 }
 
+<<<<<<< HEAD
+=======
+
+// [funcName].call([QUEUE], para1, para2 ...);
+// queuePop.call(queue)
+
+//If anyone is reading this, queuepop does not remove songs be
+>>>>>>> 67e7ae163e3094c2c27cad37a3e7bc39b2e10ac2
 function queuePop () {
-    return this.shift;
+    return this.shift();
 }
 
 function queuePush (song) {
@@ -87,7 +100,7 @@ function queuePush (song) {
 var database = {
     /* General Databse Information */
     name: "aqusticDB",
-    url: 'mongodb://localhost:27017/',
+    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
@@ -303,6 +316,7 @@ app.get('/home', authenticationMiddleware(), function(req, res){
 });
 
 app.get('/search', function(req,res) {
+<<<<<<< HEAD
     var user = req.user;
     let userID = {
         username: user,
@@ -330,6 +344,13 @@ app.get('/search', function(req,res) {
         else{
             console.log("ERROR GET OUT");
         }
+=======
+    var authToken = TEMP_AUTH_TOKEN;
+    var query = req.query.query || '';
+    var type = req.query.type || 'all';
+    search(authToken, query, type).then(data => {
+        res.send(data);
+>>>>>>> 67e7ae163e3094c2c27cad37a3e7bc39b2e10ac2
     });
 
 });
@@ -469,6 +490,9 @@ app.get('/settings', function(req, res){
     res.sendFile(__dirname+"/client/auth.html");
 });
 
+
+
+
 app.get('/callback', function(req, res) {
   // your application requests refresh and access tokens
   // after checking the state parameter
@@ -560,16 +584,6 @@ app.get('/callback', function(req, res) {
     res.redirect("/home");
 });
 
-app.put('/play-song', function(req, res) {
-    let songURI = 'spotify:track:3ctoHckjyd13eBi2IDw2Ip';
-    let songID = '3ctoHckjyd13eBi2IDw2Ip';
-
-    //let songURI = req.songId;
-    let authToken = 'BQBmb9dXNl-RwS2XRliJetSEGfy_ij65l8CxZE0xGdibjJ3VCDja_DHERn4fF7R3pXoW5rrJjebHY9Xkrkyo24UaOCZRc2RGuuuxN1tv0sGBjOeq7zaONRweEUS_kv16-CxNgtEQHdEYI8MMGQtoK89aQG_OnwhDZZ_2NX-X'; //Still need to figure out
-    getSongLength(authToken, songID);
-    playSong(authToken, songURI);
-});
-
 app.put('/party/create-party', function(req, res) {
     let partyToken = generateRandomString(8);
     let admin = req.body.user || null; //TODO add acount checking
@@ -579,10 +593,9 @@ app.put('/party/create-party', function(req, res) {
         admin: admin,
         currentlyPlaying: null,
         partyGoers: [],
-        songQueue: {
-            size : 0,
-            list : []
-        }
+        spotifyToken: "",
+        playTimeoutId : null,
+        songQueue: []
     };
     database.insertOne("PARTIES", dbObject, function (result) {
         res.send({
@@ -620,9 +633,6 @@ app.put('/party/*/queue-song', function(req, res) {
             newSong.setSongName(songInfo.songName);
             newSong.setSongArtists(songInfo.songArtists);
             newSong.setSongLength(songInfo.songLength);
-            console.log(partyResult);
-            console.log("---");
-            console.log(partyResult.currentlyPlaying);
             if (partyResult.currentlyPlaying == null) {
                 console.log("PLAYING SONG");
                 let updates = {
@@ -632,11 +642,12 @@ app.put('/party/*/queue-song', function(req, res) {
                 };
                 database.updateOne("PARTIES", query, updates, function (result) {
                     //TODO START PLAYING SONG
+                    // socket.emit('updateQueue', partyResult);
                 });
             }
             else {
                 console.log("SONG QUEUED");
-                queuePush.call(partyResult.songQueue.list, newSong);
+                queuePush.call(partyResult.songQueue, newSong);
                 let updates = {
                     $set: {
                         songQueue: partyResult.songQueue
@@ -644,7 +655,7 @@ app.put('/party/*/queue-song', function(req, res) {
                 };
 
                 database.updateOne("PARTIES", query, updates, function (result) {
-                     // socket.emit('queue-update', {queue: tempQueue});
+                    // socket.emit('updateQueue', partyResult);
                 });
             }
         }
@@ -666,11 +677,37 @@ app.get('/party/*/queue', function(req, res){
             });
         }
         else {
-            console.log("DATABASE QUEUE");
-            console.log(result.songQueue.list);
-            res.send(result.songQueue.list);
+            res.send(result.songQueue);
         }
     });
+});
+
+app.get('/party/*/now-playing', function(req, res){
+    let partyToken = (req.path).split("/")[2];
+
+    let query = {
+        partyToken: partyToken
+    };
+
+    database.findOne("PARTIES", query, function (result) {
+        // could not find pary
+        if(result == null) {
+            res.send({
+                error: 'Party not found'
+            });
+        }
+        else {
+            console.log(result.currentlyPlaying);
+            res.send(result.currentlyPlaying);
+        }
+    });
+});
+
+
+app.get('/party/*/play', function(req, res) {
+    let partyToken = (req.path).split("/")[2];
+
+    playLoop(partyToken, res);
 });
 
 app.get('/party/*', function(req, res){
@@ -685,6 +722,11 @@ io.on('connection', function(socket){
     console.log('a user connected');
     socket.on('disconnect', function(){
         console.log('user disconnected');
+    });
+
+    socket.on('updateQueue', function (partyInfo) {
+        console.log("UPDATING QUEUE");
+
     });
 });
 
@@ -766,6 +808,70 @@ function getLargerSong(song1, song2) {
         return song2;
     return null;
 }
+
+/* -------------------------------------------------------------------------- */
+/* ----------------------------- PLAY FUNCTIONS ----------------------------- */
+/* -------------------------------------------------------------------------- */
+
+function playLoop(partyToken, res) {
+
+    let query = {
+        partyToken: partyToken
+    };
+
+    database.findOne("PARTIES", query, function (result) {
+
+        if (result == null) {
+            res.send({
+                error: 'Party not found'
+            })
+        }
+        else {
+
+            let queue = result.songQueue;
+
+            let nextSong = queuePop.call(queue);
+
+            let songLength = nextSong.songLength;
+            let songId = nextSong.songId;
+
+            //Using temp spotify auth token
+            let spotifyAuthToken = TEMP_AUTH_TOKEN;
+
+            //second arg is the spotify uri, not the spotify song ID
+            playSong(spotifyAuthToken, "spotify:track:" + songId);
+
+
+            //callback function must be surrounded by function(){}
+            let timeoutId = setTimeout(function () {
+                playLoop(partyToken)
+            }                                       ,songLength);
+
+            query = {
+                partyToken: partyToken,
+            };
+
+            //Only seperately putting the $sets worked, change it at your own risk
+            let newVals = {
+                $set: {
+                    playTimeoutId: timeoutId
+                }, $set: {
+                    currentlyPlaying: nextSong
+                }, $set: {
+                    songQueue: queue
+                }
+            };
+
+            database.updateOne("PARTIES", query, newVals, function (result) {
+                console.log(result)
+            });
+
+
+        }
+    });
+}
+
+
 
 function playSong(authToken, songURI) {
 
