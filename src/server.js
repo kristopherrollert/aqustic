@@ -73,6 +73,9 @@ class Queue {
     }
 }
 
+
+// [funcName].call([QUEUE], para1, para2 ...);
+// queuePop.call(queue)
 function queuePop () {
     return this.shift;
 }
@@ -449,11 +452,7 @@ app.get('/settings', function(req, res){
     res.sendFile(__dirname+"/client/auth.html");
 });
 
-app.get('/kaitest', function(req, res) {
-    let songLength = getSongLength(TEMP_AUTH_TOKEN, '5CGS4UovzA7ftCJkLVXQju');
-    console.log("song length: " + songLength);
-    res.send(songLength);
-});
+
 
 
 app.get('/callback', function(req, res) {
@@ -532,6 +531,8 @@ app.put('/party/create-party', function(req, res) {
         admin: admin,
         currentlyPlaying: null,
         partyGoers: [],
+        spotifyToken: "",
+        playTimeout : null,
         songQueue: {
             size : 0,
             list : []
@@ -550,6 +551,10 @@ app.get('/party/*/search', function(req, res){
 
 app.get('/test/party', function(req, res){
     res.sendFile(__dirname+"/testing/testCreateParty.html");
+});
+
+app.get('/test/play', function(req, res){
+    res.sendFile(__dirname+"/testing/playSong.html");
 });
 
 app.put('/party/*/queue-song', function(req, res) {
@@ -619,12 +624,32 @@ app.get('/party/*/queue', function(req, res){
             });
         }
         else {
-            console.log("DATABASE QUEUE");
-            console.log(result.songQueue.list);
             res.send(result.songQueue.list);
         }
     });
 });
+
+app.get('/party/*/now-playing', function(req, res){
+    let partyToken = (req.path).split("/")[2];
+
+    let query = {
+        partyToken: partyToken
+    };
+
+    database.findOne("PARTIES", query, function (result) {
+        // could not find pary
+        if(result == null) {
+            res.send({
+                error: 'Party not found'
+            });
+        }
+        else {
+            console.log(result.currentlyPlaying);
+            res.send(result.currentlyPlaying);
+        }
+    });
+});
+
 
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
