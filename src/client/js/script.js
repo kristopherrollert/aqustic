@@ -45,6 +45,11 @@ $(document).ready(function() {
 
 function partyHomePage(partyToken) {
     var socket = io.connect('http://localhost:8080');
+    socket.on('update-queue', function (data) {
+        $(".song-queue-item").remove();
+        $(".now-playing-item").remove();
+    });
+
     $(".show-more-button").click(function () {
         $(location).attr('href', "/party/" + partyToken + "/search");
     });
@@ -72,17 +77,19 @@ function partyHomePage(partyToken) {
 }
 
 function generatePartyInfoContent(data) {
+    if (data == undefined || data == null) return;
     // -- GENREATE PARTY INFO --
     var partyInfoTemplate = Handlebars.compile($("#party-info-template").html());
     var partyInfo = {
         PARTY_NAME : "Slug Rager",
         PARTY_OWNER : "Ryan Glenn",
     };
-    var partyInfogHtml = partyInfoTemplate(partyInfo);
-    $(".party-info-section").append(partyInfogHtml);
+    var partyInfoHtml = partyInfoTemplate(partyInfo);
+    $(".party-info-section").append(partyInfoHtml);
 }
 
 function generateNowPlayingContent(data) {
+    if (data == undefined || data == null || data == "") return;
     var songWidth =  $(".content-party-connect").outerWidth();
     var nowPlayingTemplate = Handlebars.compile($("#now-playing-template").html());
     var artists = artistsToText(data);
@@ -97,6 +104,7 @@ function generateNowPlayingContent(data) {
 }
 
 function generateQueueContent(queueInfo) {
+    if (queueInfo == undefined || queueInfo == null || queueInfo.length == 0) return;
     var songTemplate = Handlebars.compile($("#song-template").html());
     var songWidth =  $(".content-party-connect").outerWidth();
     var boxSize = (78.22 - 10) / 2;

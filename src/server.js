@@ -533,10 +533,7 @@ app.put('/party/create-party', function(req, res) {
         partyGoers: [],
         spotifyToken: "",
         playTimeout : null,
-        songQueue: {
-            size : 0,
-            list : []
-        }
+        songQueue: []
     };
     database.insertOne("PARTIES", dbObject, function (result) {
         res.send({
@@ -578,9 +575,6 @@ app.put('/party/*/queue-song', function(req, res) {
             newSong.setSongName(songInfo.songName);
             newSong.setSongArtists(songInfo.songArtists);
             newSong.setSongLength(songInfo.songLength);
-            console.log(partyResult);
-            console.log("---");
-            console.log(partyResult.currentlyPlaying);
             if (partyResult.currentlyPlaying == null) {
                 console.log("PLAYING SONG");
                 let updates = {
@@ -590,11 +584,12 @@ app.put('/party/*/queue-song', function(req, res) {
                 };
                 database.updateOne("PARTIES", query, updates, function (result) {
                     //TODO START PLAYING SONG
+                    // socket.emit('updateQueue', partyResult);
                 });
             }
             else {
                 console.log("SONG QUEUED");
-                queuePush.call(partyResult.songQueue.list, newSong);
+                queuePush.call(partyResult.songQueue, newSong);
                 let updates = {
                     $set: {
                         songQueue: partyResult.songQueue
@@ -602,7 +597,7 @@ app.put('/party/*/queue-song', function(req, res) {
                 };
 
                 database.updateOne("PARTIES", query, updates, function (result) {
-                     // socket.emit('queue-update', {queue: tempQueue});
+                    // socket.emit('updateQueue', partyResult);
                 });
             }
         }
@@ -624,7 +619,7 @@ app.get('/party/*/queue', function(req, res){
             });
         }
         else {
-            res.send(result.songQueue.list);
+            res.send(result.songQueue);
         }
     });
 });
@@ -669,6 +664,11 @@ io.on('connection', function(socket){
     console.log('a user connected');
     socket.on('disconnect', function(){
         console.log('user disconnected');
+    });
+
+    socket.on('updateQueue', function (partyInfo) {
+        console.log("UPDATING QUEUE");
+
     });
 });
 
