@@ -20,25 +20,14 @@
  *
  */
 
-
-/*
- * DESCRIPTION: A queue system for songObjects
- * ARGUMENTS:
- *  head -> the first element in the queue
- *  tail -> last element in the queue
- *  size -> size of the queue
- */
 module.exports = {
-    head : null,
-    tail : null,
-    size : 0,
 
     /*
      * DESCRIPTION: adds the given songInfo object to the tail of the queue
      * ARGUEMENTS: takes a songInfo object
      * RETURN: none
      */
-    push : function(song) {
+    function q_push (song) {
         if (this.tail) {
             this.tail.next = song;
         }
@@ -47,14 +36,14 @@ module.exports = {
             this.head = song;
         }
         this.size++;
-    },
+    }
 
     /*
      * DESCRIPTION: removes and returns an item from the head of the queue
      * ARGUEMENTS: none
      * RETURN: returns the songObject at the head of the queue
      */
-    pop : function() {
+    function pop () {
         let song = this.head;
         if (this.size === 0){
             this.head = null;
@@ -66,14 +55,14 @@ module.exports = {
         this.head.prev = null;
         this.size--;
         return song;
-    },
+    }
 
     /*
      * DESCRIPTION: inserts an element into the queue between two elements
      * ARGUEMENTS: takes two songObjects to insert between
      * RETURN: none
      */
-    insertAndAmend : function(insertSong, prevSong, nextSong) {
+    function insertAndAmend (insertSong, prevSong, nextSong) {
 
         // nothing in queue, just add it to queue
         if(prevSong == null && nextSong == null) {
@@ -105,14 +94,14 @@ module.exports = {
             nextSong.prev = insertSong;
             this.size++;
         }
-    },
+    }
 
     /*
      * DESCRIPTION: removes a songObject from the queue
      * ARGUEMENTS: takes a songInfo object to remove
      * RETURN: none
      */
-    removeAndAmend : function(songToRemove) {
+    function removeAndAmend (songToRemove) {
         //If the song is by itself
         if (songToRemove.prev == null && songToRemove.next == null){
             this.pop();
@@ -132,7 +121,7 @@ module.exports = {
         }
 
         this.size--;
-    },
+    }
 
     /*
      * DESCRIPTION: Takes a song and checks if that song needs to be moved to a
@@ -140,8 +129,8 @@ module.exports = {
      * in the queue.
      * ARGUEMENTS: takes a songInfo object to adjust
      * RETURN: false if the object isn't moved, true if it is
-     */
-    adjustSongUp : function(songToAdjust) {
+    */
+    function adjustSongUp (songToAdjust) {
         curr = songToAdjust.prev;
         while(curr != null) {
             // set to largerSong to the larger song, but if both are equal, then
@@ -157,11 +146,11 @@ module.exports = {
         this.removeAndAmend(songToAdjust);
         this.insertAndAmend(songToAdjust, curr, curr.next);
         return true;
-    },
+    }
 
     //moves a song up the queue by 1
     //I think the swapping is correct but I haven't tested it
-    moveUp : function (id) {
+    function moveUp (id) {
         let song = this.head;
         while(song.id !== id) {
             song = song.next;
@@ -173,10 +162,10 @@ module.exports = {
         song.next.prev = song;
         song.next.next.prev = song.next;
         song.prev.next = song;
-    },
+    }
 
     //moves a song down the queue by 1
-    moveDown: function (id) {
+    function moveDown (id) {
         let song = this.head;
         while(song.id !== id) {
             song = song.next;

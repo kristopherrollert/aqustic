@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/* jshint esversion: 6 */
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -44,9 +44,6 @@ const session = require("express-session");
 const passport = require("passport");
 const sessionSecret = "aqusticServer"; //TODO: should be hidden
 
-/* Local Modules */
-const queueMod = require('./queue');
-
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
@@ -57,7 +54,7 @@ server.listen(8080);
 /* TODO : I am unsure what this does, but I feel like it shouldn't be a global
  *        varible. -kris */
 var authStateKey = 'spotify_auth_state';
-const debug = true; // this can be set to false to hide console.logs
+const debug = false; // this can be set to false to hide console.logs
 
 
 /* -------------------------------------------------------------------------- */
@@ -70,163 +67,16 @@ class Queue {
         this.head = null;
         this.tail = null;
         this.size = 0;
+        this.list = [];
     }
 }
 
-/*
- * DESCRIPTION: adds the given songInfo object to the tail of the queue
- * ARGUEMENTS: takes a songInfo object
- * RETURN: none
- */
-function q_push (song) {
-    if (this.tail) {
-        this.tail.next = song;
-    }
-    this.tail = song;
-    if (this.size === 0) {
-        this.head = song;
-    }
-    this.size++;
+function queuePop () {
+    return this.shift;
 }
 
-/*
- * DESCRIPTION: removes and returns an item from the head of the queue
- * ARGUEMENTS: none
- * RETURN: returns the songObject at the head of the queue
- */
-function pop () {
-    let song = this.head;
-    if (this.size === 0){
-        this.head = null;
-        this.tail = null;
-        this.size--;
-        return song;
-    }
-    this.head = song.next;
-    this.head.prev = null;
-    this.size--;
-    return song;
-}
-
-/*
- * DESCRIPTION: inserts an element into the queue between two elements
- * ARGUEMENTS: takes two songObjects to insert between
- * RETURN: none
- */
-function insertAndAmend (insertSong, prevSong, nextSong) {
-
-    // nothing in queue, just add it to queue
-    if(prevSong == null && nextSong == null) {
-        this.tail = insertSong;
-        this.head = insertSong;
-        this.size = 1;
-    }
-    // previous song is null, meaning it is being added to head of queue
-    else if(prevSong == null) {
-        this.head = insertSong;
-        insertSong.next = nextSong;
-        insertSong.prev = null;
-        nextSong.prev = insertSong;
-        this.size++;
-    }
-    // next Song is null, meaining it is being added to tail of queue
-    else if(nextSong == null) {
-        this.tail = insertSong;
-        insertSong.next = null;
-        insertSong.prev = prevSong;
-        prevSong.next = insertSong;
-        this.size++;
-    }
-    // adding to middle of queue
-    else {
-        insertSong.prev = prevSong;
-        insertSong.next = nextSong;
-        prevSong.next = insertSong;
-        nextSong.prev = insertSong;
-        this.size++;
-    }
-}
-
-/*
- * DESCRIPTION: removes a songObject from the queue
- * ARGUEMENTS: takes a songInfo object to remove
- * RETURN: none
- */
-function removeAndAmend (songToRemove) {
-    //If the song is by itself
-    if (songToRemove.prev == null && songToRemove.next == null){
-        this.pop();
-    }
-    //If the song is the head
-    if (songToRemove.prev == null) {
-        this.pop();
-    }
-    //If the song is the tail
-    if (songToRemove.next == null) {
-        songToRemove.prev.next = null;
-    }
-    //If both sides are not null
-    else {
-        songToRemove.next.prev = songToRemove.prev;
-        songToRemove.prev.next = songToRemove.next;
-    }
-
-    this.size--;
-}
-
-/*
- * DESCRIPTION: Takes a song and checks if that song needs to be moved to a
- * new spot. Assumes that it is only possible for this song to be moved up
- * in the queue.
- * ARGUEMENTS: takes a songInfo object to adjust
- * RETURN: false if the object isn't moved, true if it is
-*/
-function adjustSongUp (songToAdjust) {
-    curr = songToAdjust.prev;
-    while(curr != null) {
-        // set to largerSong to the larger song, but if both are equal, then
-        // getLargerSong returns null, so set it to curr.prev.
-        let largerSong = getLargerSong(songToAdjust, curr) || curr;
-        if(largerSong == curr)
-            break;
-        curr = curr.prev;
-    }
-    // curr represents the songObject that is larger than songToAdjust
-    if (curr == songToAdjust.prev)
-        return false; // this means that the songObject shouldn't move
-    this.removeAndAmend(songToAdjust);
-    this.insertAndAmend(songToAdjust, curr, curr.next);
-    return true;
-}
-
-//moves a song up the queue by 1
-//I think the swapping is correct but I haven't tested it
-function moveUp (id) {
-    let song = this.head;
-    while(song.id !== id) {
-        song = song.next;
-    }
-
-    song.prev.next = song.next;
-    song.prev = song.prev.prev;
-    song.next = song.prev;
-    song.next.prev = song;
-    song.next.next.prev = song.next;
-    song.prev.next = song;
-}
-
-//moves a song down the queue by 1
-function moveDown (id) {
-    let song = this.head;
-    while(song.id !== id) {
-        song = song.next;
-    }
-    song.next.prev = song.prev;
-    song.prev = song.next;
-    song.next = song.prev.next;
-    song.prev.next = song;
-    song.next.prev = song;
-    song.prev.prev.next = song.prev;
+function queuePush (song) {
+    this.push(song);
 }
 
 
@@ -453,7 +303,7 @@ app.get('/home', authenticationMiddleware(), function(req, res){
 });
 
 app.get('/search', function(req,res) {
-    var authToken = 'BQAfdlpcelMhDGTBwvRRO0N0Vhb4CTRl-cFoaOCjm6BigpZI6YK1_FJlnX9o21riGwbutD4-mTk0ezgX2lDV9sM3PrELzWcQZ9_znvL2GiYNMQOce7U2L3FFzwYwja8KliLTjzdE0C4_IsR3kwAfZCd0TcCBNJt2cMHpgBXy';
+    var authToken = 'BQC1HcrE20_HT2PaGZLaoI8nKwN5pt0eznW9SCpoaUZlHuJnlvQni1uHm5kn-LcyuT8_ew-SW31wnurc6Gsq4F_HdrbklUXO6MszNLPrOzsUWKHmXheYOO1w5Gz8guw0hQffWNNz1ftVG6U6lstaDHmuOgjMEl7tt93iJUqX';
     var query = req.query.query || '';
     var type = req.query.type || 'all';
     search(authToken, query, type).then(data => {
@@ -678,18 +528,17 @@ app.put('/party/create-party', function(req, res) {
     let partyToken = generateRandomString(8);
     let admin = req.body.user || null; //TODO add acount checking
 
-    let dbobj = {
+    let dbObject = {
         partyToken: partyToken,
         admin: admin,
         currentlyPlaying: null,
         partyGoers: [],
         songQueue: {
-            head : null,
-            tail : null,
-            size : 0
+            size : 0,
+            list : []
         }
     };
-    database.insertOne("PARTIES", dbobj, function (result) {
+    database.insertOne("PARTIES", dbObject, function (result) {
         res.send({
             redirect : `/party/${partyToken}`,
         });
@@ -725,16 +574,33 @@ app.put('/party/*/queue-song', function(req, res) {
             newSong.setSongName(songInfo.songName);
             newSong.setSongArtists(songInfo.songArtists);
             newSong.setSongLength(songInfo.songLength);
-            q_push.call(partyResult.songQueue, newSong);
-            let updates = {
-                $set: {
-                    songQueue: partyResult.songQueue
-                }
-            };
+            console.log(partyResult);
+            console.log("---");
+            console.log(partyResult.currentlyPlaying);
+            if (partyResult.currentlyPlaying == null) {
+                console.log("PLAYING SONG");
+                let updates = {
+                    $set: {
+                        currentlyPlaying: newSong
+                    }
+                };
+                database.updateOne("PARTIES", query, updates, function (result) {
+                    //TODO START PLAYING SONG
+                });
+            }
+            else {
+                console.log("SONG QUEUED");
+                queuePush.call(partyResult.songQueue.list, newSong);
+                let updates = {
+                    $set: {
+                        songQueue: partyResult.songQueue
+                    }
+                };
 
-            database.updateOne("PARTIES", query, updates, function (result) {
-                 // socket.emit('queue-update', {queue: tempQueue});
-            });
+                database.updateOne("PARTIES", query, updates, function (result) {
+                     // socket.emit('queue-update', {queue: tempQueue});
+                });
+            }
         }
     });
 });
@@ -755,8 +621,8 @@ app.get('/party/*/queue', function(req, res){
         }
         else {
             console.log("DATABASE QUEUE");
-            console.log(result.songQueue);
-            res.send(result.songQueue);
+            console.log(result.songQueue.list);
+            res.send(result.songQueue.list);
         }
     });
 });
@@ -1180,10 +1046,7 @@ function getPlaylist(authToken, playlistId, userId) {
 /* ---------------------------- SONG OBJECT/INFO ---------------------------- */
 /* -------------------------------------------------------------------------- */
 
-function Song (prev = null, next = null) {
-    this.prev = prev;
-    this.next = next;
-
+function Song () {
     this.songName = null;
     this.albumName = null;
     this.albumId = null;
