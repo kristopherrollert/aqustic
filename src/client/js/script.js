@@ -44,6 +44,9 @@ $(document).ready(function() {
 // 3. write queue template stuff for home page
 
 function partyHomePage(partyToken) {
+
+    console.log("testeroonie")
+
     var socket = io.connect('http://localhost:8080');
     socket.on('update-queue', function (data) {
         $(".song-queue-item").remove();
@@ -52,6 +55,11 @@ function partyHomePage(partyToken) {
 
     $(".show-more-button").click(function () {
         $(location).attr('href', "/party/" + partyToken + "/search");
+    });
+
+
+    $(".like-button").click(function() {
+        console.log("yahoo")
     });
 
     $.ajax({
@@ -118,11 +126,46 @@ function generateQueueContent(queueInfo) {
             NAME: queueInfo[i].songName,
             ARTIST: artists,
             WIDTH_SONG: songInfoWidth,
-            BOX_SIZE: boxSize
+            BOX_SIZE: boxSize,
+            ID: queueInfo[i].songId
         };
 
         var songHtml = songTemplate(songInfo);
         $(".song-queue-list").append(songHtml);
+        $("#song-" + songInfo.ID+" > div > .like-button").click(function(event){
+            var path = event.view.window.location.pathname;
+            path = path.split("/");
+            var partyToken = path[2];
+            var songId = songInfo.ID;
+            $.ajax({
+                type: "PUT",
+                url: "/party/" + partyToken + "/vote",
+                data: {
+                    queueIndex: i-1,
+                    isLike: true,
+                }
+            }).done(function(data) {
+                //Here you kris
+            });
+        });
+
+        $("#song-" + songInfo.ID+" > div > .dislike-button").click(function(event){
+            var path = event.view.window.location.pathname;
+            path = path.split("/");
+            var partyToken = path[2];
+            var songId = songInfo.ID;
+            $.ajax({
+                type: "PUT",
+                url: "/party/" + partyToken + "/vote",
+                data: {
+                    songToUpdate: songId,
+                    isLike: false,
+                }
+            }).done(function(data) {
+                //Also for you kris
+            });
+        });
+
     }
 }
 
@@ -220,6 +263,8 @@ function signUpPage() {
 /* Home Page */
 function homePage() {
     console.log("HOME PAGE");
+
+
 }
 
 /* Search Page */
