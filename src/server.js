@@ -49,6 +49,8 @@ const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const mongoClient = mongo.MongoClient;
+const mongoUser = 'admin';
+const mongoPass = 'aqustic115';
 
 server.listen(8080);
 
@@ -72,11 +74,12 @@ class Queue {
     }
 }
 
-
 // [funcName].call([QUEUE], para1, para2 ...);
 // queuePop.call(queue)
+
+//If anyone is reading this, queuepop does not remove songs be
 function queuePop () {
-    return this.shift;
+    return this.shift();
 }
 
 function queuePush (song) {
@@ -91,7 +94,8 @@ function queuePush (song) {
 var database = {
     /* General Databse Information */
     name: "aqusticDB",
-    url: 'mongodb://localhost:27017/',
+    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+//    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
@@ -307,11 +311,33 @@ app.get('/home', authenticationMiddleware(), function(req, res){
 });
 
 app.get('/search', function(req,res) {
-    var authToken = TEMP_AUTH_TOKEN;
-    var query = req.query.query || '';
-    var type = req.query.type || 'all';
-    search(authToken, query, type).then(data => {
-        res.send(data);
+    var user = req.user;
+    let userID = {
+        username: user,
+    }
+    console.log(user);
+    var authToken;
+    //TODO: THIS ALL HAS TO BE SAVED TO THE PARTY NOT SPECIFIC USERS
+    database.findOne("ACCOUNTS", userID, function (result) {
+        if (result != null){
+            console.log('--------');
+            console.log("result:" + result);
+            console.log(result.authenticateID);
+            console.log('--------');
+            authToken = result.authenticateID;
+
+            console.log('******');
+            console.log(authToken);
+            console.log('******');
+            var query = req.query.query || '';
+            var type = req.query.type || 'all';
+            search(authToken, query, type).then(data => {
+                res.send(data);
+            });
+        }
+        else{
+            console.log("ERROR GET OUT");
+        }
     });
 
 });
@@ -388,7 +414,8 @@ app.put('/account/sign-up', function (req, res) {
                     username: username,
                     password: passwordData.hashPassword,
                     salt: passwordData.salt,
-                    loginCode: loginCode
+                    loginCode: loginCode,
+                    authenticateID: null
                 };
                 database.insertOne("ACCOUNTS", query);
                 const userID = username;
@@ -405,7 +432,7 @@ app.put('/account/sign-up', function (req, res) {
 });
 
 
-/*----Store Sessions----*/
+/*------------Store Sessions------------*/
 passport.serializeUser(function(userID, done) {
     done(null, userID);
 });
@@ -427,9 +454,8 @@ function authenticationMiddleware () {
 
 app.get('/spotify-authorization', function(req, res){
     console.log("GOT SPOTIFY AUTH");
-
     // cookie to ensure browser/server connection is secure
-    let state = servFunc.generateRandomString(16);
+    let state = generateRandomString(16);
     res.cookie(authStateKey, state);
 
     // redirects to spotify authorization page, returns to the redirect_uri
@@ -455,13 +481,16 @@ app.get('/settings', function(req, res){
 
 
 app.get('/callback', function(req, res) {
-
   // your application requests refresh and access tokens
   // after checking the state parameter
 
     var code = req.query.code || null;
     var state = req.query.state || null;
     var storedState = req.cookies ? req.cookies[authStateKey] : null;
+    var user = req.user;
+    let userID = {
+        username: user,
+    }
 
     if (state === null || state !== storedState) {
         //TODO: make a better error report
@@ -486,9 +515,12 @@ app.get('/callback', function(req, res) {
         };
 
         request.post(authOptions, function(error, response, body) {
+            let access_token;
+            let refresh_token;
+
             if (!error && response.statusCode === 200) {
-                var access_token = body.access_token;
-                var refresh_token = body.refresh_token;
+                access_token = body.access_token;
+                refresh_token = body.refresh_token;
 
                 var options = {
                     url: 'https://api.spotify.com/v1/me',
@@ -496,18 +528,35 @@ app.get('/callback', function(req, res) {
                     json: true
                 };
 
+                /*
+                 *  Save authentication token and update token to the database
+                 */
+                let updateAuth = {
+                    $set: {
+                        authenticateID: access_token
+                    }
+                }
+
+                database.updateOne("ACCOUNTS", userID, updateAuth, function (result) {
+                    if (result != null){
+                        console.log("Found Account");
+                    }
+                });
+                let refreshInterval = 2400000;
+                // database.findOne("ACCOUNTS", userID, function (result) {
+                //     if (result != null){
+                //         console.log("HERERE");
+                //         console.log(result.username);
+                //         console.log(result.authenticateID);
+                //         console.log("-----");
+                //     }
+                // });
+                //let intervalId = setInterval(refreshToken(refresh_token), refreshInterval);
+
                 // use the access token to access the Spotify Web API
                 request.get(options, function(error, response, body) {
                     console.log(body);
                 });
-
-                // we can also pass the token to the browser to make requests from there
-                res.redirect('/#' +
-                    querystring.stringify({
-                        access_token: access_token,
-                        refresh_token: refresh_token
-                    })
-                );
             }
             else {
                 // TODO better error handleing
@@ -519,6 +568,7 @@ app.get('/callback', function(req, res) {
             }
         });
     }
+    res.redirect("/home");
 });
 
 app.put('/party/create-party', function(req, res) {
@@ -531,7 +581,7 @@ app.put('/party/create-party', function(req, res) {
         currentlyPlaying: null,
         partyGoers: [],
         spotifyToken: "",
-        playTimeout : null,
+        playTimeoutId : null,
         songQueue: []
     };
     database.insertOne("PARTIES", dbObject, function (result) {
@@ -547,10 +597,6 @@ app.get('/party/*/search', function(req, res){
 
 app.get('/test/party', function(req, res){
     res.sendFile(__dirname+"/testing/testCreateParty.html");
-});
-
-app.get('/test/play', function(req, res){
-    res.sendFile(__dirname+"/testing/playSong.html");
 });
 
 app.put('/party/*/queue-song', function(req, res) {
@@ -631,7 +677,59 @@ app.get('/party/*/now-playing', function(req, res){
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
 
-    playLoop(partyToken);
+    playLoop(partyToken, res);
+});
+
+app.put('/party/*/vote', function (req, res) {
+    let partyToken = (req.path).split("/")[2];
+    let songToUpdate = JSON.parse(req.body.songToUpdate);
+    //should be true if a like is being added, false if dislike
+    let isLike = JSON.parse(req.body.isLike);
+
+    console.log("testing vote stuff");
+    console.log(songToUpdate);
+    console.log(isLike);
+
+    let query = {
+        partyToken: partyToken
+    };
+
+    database.findOne("PARTIES", query, function(result) {
+        let queue = result.songQueue;
+        for (let i = 0; i < queue.length; i++) {
+            let currSong = queue[i];
+            let currSongId = currSong.songId;
+
+            if (currSongId == songToUpdate) {
+                //If isLike is true (like)
+                if (isLike) {
+                    currSong.likes += 1;
+                    currSong.score += 1;
+                }
+                //If isLike is false (dislike)
+                else {
+                    currSong.dislikes += 1;
+                    currSong.score -= 1;
+                }
+                console.log("voting success");
+            }
+        }
+
+        query = {
+            partyToken: partyToken
+        };
+
+        let newVals = {
+            $set: {
+                songQueue: queue
+            }
+        };
+
+        database.updateOne('PARTIES', query, newVals, function(result) {
+            console.log("updated score in database");
+        })
+    });
+
 });
 
 app.get('/party/*', function(req, res){
@@ -742,67 +840,68 @@ function getLargerSong(song1, song2) {
 /* ----------------------------- PLAY FUNCTIONS ----------------------------- */
 /* -------------------------------------------------------------------------- */
 
-function playLoop(partyToken) {
-
-    let nextSong = null;
+function playLoop(partyToken, res) {
 
     let query = {
         partyToken: partyToken
     };
 
     database.findOne("PARTIES", query, function (result) {
-        /*
-        if (result == null) {
+
+        if (result === null) {
             res.send({
                 error: 'Party not found'
             })
         }
         else {
+
             let queue = result.songQueue;
-            if (queue.size <= 0) {
+
+            if (queue.length <= 0) {
                 res.send({
-                    error: 'No songs in queue'
-                })
+                    error: 'Queue is empty!'
+                });
+                return;
             }
-            else {
-                nextSong = queuePop.call(queue);
-                spotifyAuthToken = result.spotifyToken
-            }
+
+            let nextSong = queuePop.call(queue);
+
+            let songLength = nextSong.songLength;
+            let songId = nextSong.songId;
+
+            //Using temp spotify auth token
+            let spotifyAuthToken = TEMP_AUTH_TOKEN;
+
+            //second arg is the spotify uri, not the spotify song ID
+            playSong(spotifyAuthToken, "spotify:track:" + songId);
+
+
+            //callback function must be surrounded by function(){}
+            let timeoutId = setTimeout(function () {
+                playLoop(partyToken)
+            }                                       ,songLength);
+
+            query = {
+                partyToken: partyToken,
+            };
+
+            //Only seperately putting the $sets worked, change it at your own risk
+            let newVals = {
+                $set: {
+                    playTimeoutId: timeoutId
+                }, $set: {
+                    currentlyPlaying: nextSong
+                }, $set: {
+                    songQueue: queue
+                }
+            };
+
+            database.updateOne("PARTIES", query, newVals, function (result) {
+                console.log(result)
+            });
+
+
         }
-        */
-
-        let queue = result.songQueue;
-        if (queue.length() <= 0) {
-            console.log('No songs in queue!');
-            return;
-        } else {
-            nextSong = queuePop.call(queue);
-//            spotifyAuthToken = result.spotifyToken
-        }
-    });
-
-    //TODO remove!!
-    console.log("temp auth token being used");
-    let spotifyAuthToken = TEMP_AUTH_TOKEN
-
-    let songId = nextSong.songId;
-    let songLength = nextSong.songLength;
-    //Still need to make sure timings are alright
-    let timoutId = setTimeout(playLoop(partyToken), songLength);
-    playSong(spotifyAuthToken, "spotify:track:" + songId);
-
-
-    query = {
-        partyToken: partyToken,
-    };
-
-    let newVals = {
-        currentlyPlaying: songId,
-        playTimeoutId: timoutId,
-    };
-
-    database.updateOne("PARTIES", query, newVals, function(result) {
-        console.log("updated current song and timeout id")
     });
 }
 
@@ -838,7 +937,8 @@ function playSong(authToken, songURI) {
 
 }
 
-//Probably unecessary and doesn't work lol
+//Unecessary and doesn't work
+/*
 function getSongLength (authToken, songID) {
     var header = {
         "Authorization": "Bearer " + authToken,
@@ -862,6 +962,7 @@ function getSongLength (authToken, songID) {
             }
         });
 }
+*/
 
 
 /* -------------------------------------------------------------------------- */
