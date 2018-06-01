@@ -13,6 +13,8 @@
     </script>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.js"></script>
+    <script src="/js/lib/socket.io.js"></script>
+    <script src="/js/lib/jquery.actual.min.js"></script>
     <script src="/js/script.js"></script>
 </head>
 <body>
@@ -30,7 +32,7 @@
                     <br>
                     <h2 id="sc-album">VIEW ALBUM</h2>
                     <br>
-                    <h2 id="sc-artists" href="/tes/">VIEW ARTISTS</h2>
+                    <h2 id="sc-artists">VIEW ARTISTS</h2>
                     <br>
                     <h2 id="sc-close">CLOSE</h2>
                 </div>
@@ -55,7 +57,7 @@
                 <div class="search-sections">
                     <h3 class="search-tab search-curr" id="song-tab">SONGS</h3>
                     <h3 class="search-tab" id="album-tab">ALBUMS</h3>
-                    <h3 class="search-tab" id="artists-tab">ARTISTS</h3>
+                    <h3 class="search-tab" id="artist-tab">ARTISTS</h3>
                     <h3 class="search-tab" id="playlist-tab">PLAYLISTS</h3>
                 </div>
                 <div class="search-content">
@@ -78,27 +80,56 @@
                     </div>
                     <div class="album-content">
                         <h2 id="album-error">...</h2>
-                        <div class="album-item">
-                            <div class="album-cover-section">
-
-                            </div>
-                            <div class="album-content-section">
-                                <div class="album-text">
-                                    <h2 class="album-title">Late Registraton</h2>
-                                    <h2 class="album-artists">KANYE WEST</h2>
-                                    <h3 class="album-year">2013</h3>
+                        <script id="album-item-template" type="text/x-handlebars-template">
+                            <div class="album-item" id="album-{{ALBUM_ID}}">
+                                <div class="album-cover-section">
+                                    <img src= "{{IMG}}" class="album-cover-image">
                                 </div>
-                                <div class="album-options"><i class="fas fa-ellipsis-h"></i></div>
+                                <div class="album-content-section">
+                                    <div class="album-text">
+                                        <h2 class="album-title">{{NAME}}</h2>
+                                        <h2 class="album-artists">{{ARTIST}}</h2>
+                                        <h2 class="album-year">{{YEAR}}</h2>
+                                    </div>
+                                    <div class="album-options"><i class="fas fa-ellipsis-h"></i></div>
+                                </div>
                             </div>
+                        </script>
+                    </div>
+                    <div class="artist-content">
+                        <h2 id="artist-error">...</h2>
+                        <div class="artist-content-rows">
+                            <script id="artist-item-template" type="text/x-handlebars-template">
+                                <div class="artist-item" id="artist-{{ID}}">
+                                    <div class="artist-item-center">
+                                        <div class="artist-item-content">
+                                            <div class="artist-image-content" style="background-image: url('{{IMG}}')"></div>
+                                            <div class="artist-text">
+                                                <h1 class="artist-title">{{NAME}}</h1>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </script>
                         </div>
                     </div>
-                    <div class="artists-content">
-                        artists
-                        <h2 id="artists-error">...</h2>
-                    </div>
                     <div class="playlist-content">
-                        playlists
                         <h2 id="playlist-error">...</h2>
+                        <script id="playlist-item-template" type="text/x-handlebars-template">
+                            <div class="playlist-item" id="playlist-{{PLAYLIST_ID}}">
+                                <div class="playlist-cover-section">
+                                    <img src= "{{IMG}}" class="playlist-cover-image">
+                                </div>
+                                <div class="playlist-content-section">
+                                    <div class="playlist-text">
+                                        <h2 class="playlist-title">{{NAME}}</h2>
+                                        <h2 class="playlist-artists">{{CREATOR}}</h2>
+                                        <h2 class="playlist-year">{{YEAR}}</h2>
+                                    </div>
+                                    <div class="playlist-options"><i class="fas fa-ellipsis-h"></i></div>
+                                </div>
+                            </div>
+                        </script>
                     </div>
                 </div>
             </div>
