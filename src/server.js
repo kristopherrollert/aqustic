@@ -1,7 +1,5 @@
-console.log("using temp token");
-let TEMP_AUTH_TOKEN = 'BQBr4Xu9TLT4Nt_B7QEyAOenp5abjjeh1nM8I1FXYIor1XIStIkotdTsgnkcxpJ2mmN6RAmYspLI3gNGx3_3Q1P57VwJjYqy2qUOq7DnAmovrSKrrdUU4tOKZJAyUGY8xpIVfQJ6JFS8A2gmiSKdA8VPCEeQg9x7fw';
-
 /* jshint esversion: 6 */
+let TEMP_AUTH_TOKEN = 'BQAIJ4E4IFKVyY4iiX-sV_3XQh3kbAj0HkpoRh8m4bRZS8hwpe5fCoKGJQT9BFl0R3Uh6S1Qc0DiG5yO8yMan6xVHq8IywGmBV3Gkss6ZrZQ1XsYknBLX0vv6iIEvrVKBfHJXS83dnjPhJkgagVCb8kxbbQhzptIrmEznI1G';
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -616,38 +614,21 @@ app.put('/party/*/queue-song', function(req, res) {
         if(partyResult == null)
             res.send({ error: 'Party not found' });
         else {
-            // TODO GET INFO FROM SPOTIFY
-
             let newSong = new Song();
             newSong.setSongId(songInfo.songId);
             newSong.setSongName(songInfo.songName);
             newSong.setSongArtists(songInfo.songArtists);
             newSong.setSongLength(songInfo.songLength);
-            if (partyResult.currentlyPlaying == null) {
-                console.log("PLAYING SONG");
-                let updates = {
-                    $set: {
-                        currentlyPlaying: newSong
-                    }
-                };
-                database.updateOne("PARTIES", query, updates, function (result) {
-                    //TODO START PLAYING SONG
-                    // socket.emit('updateQueue', partyResult);
-                });
-            }
-            else {
-                console.log("SONG QUEUED");
-                queuePush.call(partyResult.songQueue, newSong);
-                let updates = {
-                    $set: {
-                        songQueue: partyResult.songQueue
-                    }
-                };
+            queuePush.call(partyResult.songQueue, newSong);
+            let updates = {
+                $set: {
+                    songQueue: partyResult.songQueue
+                }
+            };
 
-                database.updateOne("PARTIES", query, updates, function (result) {
-                    // socket.emit('updateQueue', partyResult);
-                });
-            }
+            database.updateOne("PARTIES", query, updates, function () {
+                res.end();
+            });
         }
     });
 });
@@ -754,14 +735,23 @@ app.get('/party/*', function(req, res){
 /* ------------------------------------------------------------------------- */
 
 io.on('connection', function(socket){
-    console.log('a user connected');
+    // console.log('a user connected');
     socket.on('disconnect', function(){
-        console.log('user disconnected');
+        // console.log('user disconnected');
     });
 
-    socket.on('updateQueue', function (partyInfo) {
-        console.log("UPDATING QUEUE");
-
+    socket.on('updateQueuePing', function (partyToken, toUpdate) {
+        let query = { partyToken: partyToken };
+        switch (toUpdate) {
+            case "Queued Song":
+                database.findOne("PARTIES", query, function (partyResult) {
+                    io.emit('appendToQueue', partyResult);
+                });
+                break;
+            default:
+                console.log("ERROR");
+                //TODO deal with this error
+        }
     });
 });
 
@@ -801,8 +791,6 @@ var sha512 = function(password, salt){
     var hash = crypto.createHmac('sha512', salt); /** Hashing algorithm sha512 */
     hash.update(password);
     var value = hash.digest('hex');
-    console.log("SHA");
-    console.log(value);
     return {
         salt:salt,
         passwordHash:value
@@ -816,8 +804,6 @@ var sha512 = function(password, salt){
 function saltHashPassword(userpassword) {
     let salt = generateRandomString(16);
     let passwordData = sha512(userpassword, salt);
-    console.log("SALT HASH PASS");
-    console.log(passwordData);
     return { hashPassword: passwordData.passwordHash,
              salt: passwordData.salt };
 }
@@ -1029,12 +1015,10 @@ function search(authToken, query, type = 'all') {
                     var artists = [];
                     for (let i = 0; i < data.albums.items.length; i++) {
                         var album = new Album();
+
                         album.setAlbumName(data.albums.items[i].name);
                         album.setAlbumId(data.albums.items[i].id);
-                        for (var a = 0; a < data.albums.items[i].artists.length; a++) {
-                            artists.push(data.albums.items[i].artists[a]);
-                        }
-                        album.setAlbumArtists(artists);
+                        album.setAlbumArtists(data.albums.items[i].artists);
                         album.setAlbumImage(data.albums.items[i].images[0]);
                         album.setAlbumReleaseDate(data.albums.items[i].release_date);
                         dict.albums.push(album);
@@ -1437,6 +1421,15 @@ function Playlist () {
     this.id = null;
     this.name = null;
     this.ownerId = null;
+    this.image = null;
+
+    this.getPlaylistImage = function() {
+        return this.image;
+    };
+
+    this.setPlaylistImage = function(id) {
+        this.image = image;
+    };
 
     this.getPlaylistId = function() {
         return this.id;
