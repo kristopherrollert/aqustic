@@ -694,12 +694,13 @@ app.put('/party/*/vote', function (req, res) {
     database.findOne("PARTIES", query, function(result) {
         let queue = result.songQueue;
 
-        console.log(queueIndex);
+        console.log(isLike);
 
         let currSong = queue[queueIndex];
 
         //Checks if like or dislike
-        if (isLike) {
+        //Uhh for some reason the equals true is needed lol, or else its always true
+        if (isLike === true) {
             currSong.likes += 1;
             currSong.score += 1;
         }
