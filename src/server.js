@@ -694,8 +694,6 @@ app.put('/party/*/vote', function (req, res) {
     database.findOne("PARTIES", query, function(result) {
         let queue = result.songQueue;
 
-        console.log(isLike);
-
         let currSong = queue[queueIndex];
 
         //Checks if like or dislike

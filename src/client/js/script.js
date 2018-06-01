@@ -180,9 +180,6 @@ function generateQueueContent(queueInfo) {
 
         $("#vote-song-" + songInfo.SONG_ID+" > .like-button").bind('click', {queueIndex: i}, function (event){
 
-            console.log("stuff");
-            console.log(event.data.queueIndex);
-
             var path = event.view.window.location.pathname;
             path = path.split("/");
             var partyToken = path[2];
@@ -201,9 +198,6 @@ function generateQueueContent(queueInfo) {
         });
 
         $("#vote-song-" + songInfo.SONG_ID+" > .dislike-button").bind('click', {queueIndex: i}, function (event){
-
-            console.log("stuff as well");
-            console.log(event.data.queueIndex);
 
             var path = event.view.window.location.pathname;
             path = path.split("/");
