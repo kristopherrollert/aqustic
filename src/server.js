@@ -718,9 +718,7 @@ app.put('/party/*/vote', function (req, res) {
             }
         };
 
-        database.updateOne('PARTIES', query, newVals, function(result) {
-            console.log("updated score in database");
-        })
+        database.updateOne('PARTIES', query, newVals, function(result) {})
     });
 
 });

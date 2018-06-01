@@ -162,9 +162,6 @@ function generateQueueContent(queueInfo) {
     var discrepancy = boxSize + 15 + 10 + 2;
     var songInfoWidth = songWidth - discrepancy;
 
-    console.log(queueInfo);
-    console.log(queueInfo.length);
-
     for (var i = 0; i < queueInfo.length; i++ ) {
         var artists = artistsToText(queueInfo[i].songArtists);
         var songInfo = {
