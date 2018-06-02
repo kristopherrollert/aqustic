@@ -645,7 +645,7 @@ app.put('/party/create-party', function(req, res) {
         currentlyPlaying: null,
         partyGoers: [],
         spotifyToken: "",
-        playTimeoutId : null,
+        playTimeoutId : "implement in the future",
         songQueue: []
     };
     database.insertOne("PARTIES", dbObject, function (result) {
@@ -938,30 +938,36 @@ function playLoop(partyToken, res) {
             //callback function must be surrounded by function(){}
             let timeoutId = setTimeout(function () {
                 playLoop(partyToken)
-            }                                       ,songLength);
+            }, songLength);
+
+            //test later, below might look cleaner
+            //let timeoutId = setTimeout(playLoop.bind(partyToken), songLength);
 
             query = {
                 partyToken: partyToken,
             };
+            console.log("Kai look here");
+            console.log(nextSong);
 
             //Only seperately putting the $sets worked, change it at your own risk
             let newVals = {
                 $set: {
-                    playTimeoutId: timeoutId
-                }, $set: {
-                    currentlyPlaying: nextSong
-                }, $set: {
-                    songQueue: queue
+                    songQueue: queue,
+//                  vv The below line causes the server to crash vv
+//                  playTimeoutId: timeoutId,
+                    currentlyPlaying: nextSong,
                 }
             };
 
-            database.updateOne("PARTIES", query, newVals, function (result) {
-                console.log(result)
+            database.update("PARTIES", query, newVals, function (result) {
+                console.log(result);
             });
-
 
         }
     });
+
+    res.send("Playing Song...")
+
 }
 
 
