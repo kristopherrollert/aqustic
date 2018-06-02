@@ -209,7 +209,7 @@ function generateQueueContent(queueInfo) {
                 }
             }).done(function(data) {
                 //Also for you kris
-                console.log("disliked")
+                console.log("disliked");
             });
         });
 
@@ -334,6 +334,7 @@ function searchPage(partyToken) {
     $("#search-button").click(function() {
         var query = $("#search-query").val();
         if (query == "") {
+            $(".open-message").hide();
             removeSearchContent();
             $("#song-error").text("SEARCH CANNOT BE EMPTY").css("display", "block");
             $("#album-error").text("SEARCH CANNOT BE EMPTY").css("display", "block");
@@ -359,7 +360,7 @@ function searchPage(partyToken) {
                 type: 'all'
             }
         }).done(function(data) {
-            console.log(data);
+            $(".open-message").hide();
             //TODO PRECOMPILE
             removeSearchContent();
             if (data.tracks == null) {
@@ -386,8 +387,8 @@ function searchPage(partyToken) {
 
                 if (data.playlists.length == 0)
                     $("#playlist-error").text("NO PLAYLISTS FOUND").css("display", "block");
-                // else
-                    // generatePlaylistContent(currentMaxResults, data.playlists);
+                else
+                    generatePlaylistContent(currentMaxResults, data.playlists);
             }
         });
   });
@@ -401,10 +402,10 @@ function generatePlaylistContent(maxResults, playlistData) {
         var currentPlaylist = playlistData[y];
         var playlistInfo = {
             NAME: currentPlaylist.name,
-            CREATOR: currentPlaylist.ownerId,
-            YEAR: "1999",
+            CREATOR: currentPlaylist.ownerName.toUpperCase(),
+            COUNT: currentPlaylist.songCount,
             PLAYLIST_ID: currentPlaylist.id,
-            IMG: currentPlaylist.image.url
+            IMG: currentPlaylist.image
         };
         var playlistHtml = playlistTemplate(playlistInfo);
         var playlistQuery = "#playlist-" + playlistInfo.PLAYLIST_ID;
@@ -613,6 +614,14 @@ function generateSongContent(maxResults, songData) {
     }
 }
 
+function closeSongCover(event) {
+    if (event.target.className == "song-cover" ||
+        event.target.id == "sc-close") {
+            $("body").removeClass("body-cover");
+            $(".song-cover").remove();
+    }
+}
+
 
  var onSongClick = function(event) {
      var songInfo = event.data.songInfo;
@@ -642,13 +651,6 @@ function generateSongContent(maxResults, songData) {
         window.location.href = "/party/" + partyToken + "/search/artist/" + event.data.songInfo.songArtists[0].id;
     });
 
-    function closeSongCover(event) {
-        if (event.target.className == "song-cover" ||
-            event.target.id == "sc-close") {
-                $("body").removeClass("body-cover");
-                $(".song-cover").remove();
-        }
-    }
 
     function queueSong(event) {
         var path = event.view.window.location.pathname;
@@ -664,6 +666,7 @@ function generateSongContent(maxResults, songData) {
         }).done(function(data) {
             var socket = io.connect('http://localhost:8080');
             socket.emit('updateQueuePing', partyToken, "Queued Song");
+            $(".song-cover").remove();
         });
     }
 
