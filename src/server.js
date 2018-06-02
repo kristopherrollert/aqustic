@@ -587,7 +587,7 @@ app.put('/party/create-party', function(req, res) {
         currentlyPlaying: null,
         partyGoers: [],
         spotifyToken: "",
-        playTimeoutId : null,
+        playTimeoutId : "implement in the future",
         songQueue: []
     };
     database.insertOne("PARTIES", dbObject, function (result) {
@@ -890,7 +890,8 @@ function playLoop(partyToken, res) {
             let newVals = {
                 $set: {
                     songQueue: queue,
-                    playTimeoutId: timeoutId,
+//                  vv The below line causes the server to crash vv
+//                  playTimeoutId: timeoutId,
                     currentlyPlaying: nextSong,
                 }
             };
