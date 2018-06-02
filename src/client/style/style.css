@@ -175,6 +175,11 @@ input[type="text"]:focus, input[type="password"]:focus {
   display: none;
   text-align: center; }
 
+.open-message {
+  text-align: center;
+  font-weight: 200;
+  color: white; }
+
 .search-bar {
   margin-bottom: 10px; }
 
@@ -200,7 +205,7 @@ input[type="text"]:focus, input[type="password"]:focus {
   font-size: 15px;
   font-weight: 200; }
 
-.song-title, .album-title {
+.song-title, .album-title, .playlist-title {
   font-weight: 600;
   font-size: 24px;
   margin-bottom: 0;
@@ -209,7 +214,7 @@ input[type="text"]:focus, input[type="password"]:focus {
   white-space: nowrap;
   overflow: hidden; }
 
-.song-artists, .album-artists {
+.song-artists, .album-artists, .playlist-owner {
   font-weight: 400;
   font-size: 15px;
   margin-top: 0;
@@ -241,8 +246,8 @@ input[type="text"]:focus, input[type="password"]:focus {
   padding-right: 15px;
   font-size: 16px; }
 
-/* ALBUM SPECIFIC */
-.album-item {
+/* ALBUM & PLAYLIST SPECIFIC */
+.album-item, .playlist-item {
   color: white;
   display: flex;
   justify-content: space-between;
@@ -251,33 +256,33 @@ input[type="text"]:focus, input[type="password"]:focus {
   visibility: hidden;
   cursor: pointer; }
 
-.album-title, .album-artists {
+.album-title, .album-artists, .playlist-title {
   margin-bottom: 3px; }
 
-.album-text {
+.album-text, .playlist-text {
   padding-left: 15px;
   padding-right: 15px; }
 
-.album-year {
+.album-year, .playlist-count {
   font-weight: 400;
   font-size: 15px;
   margin-top: 0;
   margin-bottom: 10px;
   font-style: italic; }
 
-.album-content-section {
+.album-content-section, .playlist-content-section {
   border: 1px solid #f6ca5a;
   position: relative; }
 
-.album-options {
+.album-options, .playlist-options {
   position: absolute;
   bottom: 5px;
   right: 15px; }
 
-.album-options > i {
+.album-options > i, .playlist-options > i {
   font-size: 20px; }
 
-.album-cover-section {
+.album-cover-section, .playlist-cover-section {
   border: 1px solid #f6ca5a;
   background-color: #f6ca5a; }
 

@@ -329,6 +329,7 @@ function searchPage(partyToken) {
     $("#search-button").click(function() {
         var query = $("#search-query").val();
         if (query == "") {
+            $(".open-message").hide();
             removeSearchContent();
             $("#song-error").text("SEARCH CANNOT BE EMPTY").css("display", "block");
             $("#album-error").text("SEARCH CANNOT BE EMPTY").css("display", "block");
@@ -354,7 +355,7 @@ function searchPage(partyToken) {
                 type: 'all'
             }
         }).done(function(data) {
-            console.log(data);
+            $(".open-message").hide();
             //TODO PRECOMPILE
             removeSearchContent();
             if (data.tracks == null) {
@@ -381,8 +382,8 @@ function searchPage(partyToken) {
 
                 if (data.playlists.length == 0)
                     $("#playlist-error").text("NO PLAYLISTS FOUND").css("display", "block");
-                // else
-                    // generatePlaylistContent(currentMaxResults, data.playlists);
+                else
+                    generatePlaylistContent(currentMaxResults, data.playlists);
             }
         });
   });
@@ -396,10 +397,10 @@ function generatePlaylistContent(maxResults, playlistData) {
         var currentPlaylist = playlistData[y];
         var playlistInfo = {
             NAME: currentPlaylist.name,
-            CREATOR: currentPlaylist.ownerId,
-            YEAR: "1999",
+            CREATOR: currentPlaylist.ownerName.toUpperCase(),
+            COUNT: currentPlaylist.songCount,
             PLAYLIST_ID: currentPlaylist.id,
-            IMG: currentPlaylist.image.url
+            IMG: currentPlaylist.image
         };
         var playlistHtml = playlistTemplate(playlistInfo);
         var playlistQuery = "#playlist-" + playlistInfo.PLAYLIST_ID;

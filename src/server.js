@@ -1,5 +1,5 @@
 /* jshint esversion: 6 */
-let TEMP_AUTH_TOKEN = 'BQAIJ4E4IFKVyY4iiX-sV_3XQh3kbAj0HkpoRh8m4bRZS8hwpe5fCoKGJQT9BFl0R3Uh6S1Qc0DiG5yO8yMan6xVHq8IywGmBV3Gkss6ZrZQ1XsYknBLX0vv6iIEvrVKBfHJXS83dnjPhJkgagVCb8kxbbQhzptIrmEznI1G';
+let TEMP_AUTH_TOKEN = 'BQAlvm0XELmXqYCnUW1kdUTRPiOQQnuVt2fJZ4qlUvOgDxCNf_-O03h9qXObZhatqjrhXO9DpMRt_Yvf9zV-bNtfPeEMn83412XBh73W9Bf47lH7D2fKwYQ7EYtzm3hgQTmDR_JJ0_dqJc0M8CRsx5bp19KfHRZ2n7RV7VSF';
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -94,8 +94,8 @@ function queuePush (song) {
 var database = {
     /* General Databse Information */
     name: "aqusticDB",
-// the below line should replace the other url in final
-//    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+    // the below line should replace the other url in final
+    //    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
     url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
@@ -281,8 +281,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 /* Save login cookies */
 app.use(session({
     secret: "asdf",
-    resave: false,
-    saveUninitialized: false
+    resave: true,
+    saveUninitialized: true
     //cookie: {secure: true}
         }));
 app.use(passport.initialize());
@@ -306,8 +306,8 @@ app.get('/signup', function(req, res){
 });
 
 app.get('/home', authenticationMiddleware(), function(req, res){
-    console.log(req.user); //check logged in user's username
-    console.log(req.isAuthenticated()); //check if user is authenticated
+    // console.log(req.user); //check logged in user's username
+    // console.log(req.isAuthenticated()); //check if user is authenticated
     res.sendFile(__dirname+"/client/home.html");
 });
 
@@ -316,29 +316,34 @@ app.get('/search', function(req,res) {
     let userID = {
         username: user,
     }
-    console.log(user);
-    var authToken;
-    //TODO: THIS ALL HAS TO BE SAVED TO THE PARTY NOT SPECIFIC USERS
-    database.findOne("ACCOUNTS", userID, function (result) {
-        if (result != null){
-            console.log('--------');
-            console.log("result:" + result);
-            console.log(result.authenticateID);
-            console.log('--------');
-            authToken = result.authenticateID;
+    // console.log(user);
+    var authToken = TEMP_AUTH_TOKEN;
 
-            console.log('******');
-            console.log(authToken);
-            console.log('******');
-            var query = req.query.query || '';
-            var type = req.query.type || 'all';
-            search(authToken, query, type).then(data => {
-                res.send(data);
-            });
-        }
-        else{
-            console.log("ERROR GET OUT");
-        }
+    var query = req.query.query || '';
+    var type = req.query.type || 'all';
+    search(authToken, query, type).then(data => {
+        res.send(data);
+    //TODO: THIS ALL HAS TO BE SAVED TO THE PARTY NOT SPECIFIC USERS
+    // database.findOne("ACCOUNTS", userID, function (result) {
+    //     if (result != null){
+    //         // console.log('--------');
+    //         // console.log("result:" + result);
+    //         // console.log(result.authenticateID);
+    //         // console.log('--------');
+    //         // authToken = result.authenticateID;
+    //         //
+    //         // console.log('******');
+    //         // console.log(authToken);
+    //         // console.log('******');
+    //         var query = req.query.query || '';
+    //         var type = req.query.type || 'all';
+    //         search(authToken, query, type).then(data => {
+    //             res.send(data);
+    //         });
+    //     }
+    //     else{
+    //         console.log("ERROR GET OUT");
+    //     }
     });
 
 });
@@ -1024,13 +1029,20 @@ function search(authToken, query, type = 'all') {
                         dict.albums.push(album);
                     }
                 }
-
+                console.log(data.playlists.items[0]);
                 if (type.includes("playlist")) {
                     for (let i = 0; i < data.playlists.items.length; i++) {
                         var playlist = new Playlist();
                         playlist.setPlaylistName(data.playlists.items[i].name);
                         playlist.setPlaylistId(data.playlists.items[i].id);
-                        playlist.setOwnerId(data.playlists.items[i].owner.id);
+                        playlist.setPlaylistSongCount(data.playlists.items[i].tracks.total);
+                        playlist.setPlaylistImage(data.playlists.items[i].images[0].url);
+
+                        if(data.playlists.items[i].owner.display_name == null )
+                            playlist.setPlaylistOwnerName(data.playlists.items[i].owner.id);
+                        else
+                            playlist.setPlaylistOwnerName(data.playlists.items[i].owner.display_name);
+
                         dict.playlists.push(playlist);
                     }
                 }
@@ -1420,14 +1432,23 @@ function Artist () {
 function Playlist () {
     this.id = null;
     this.name = null;
-    this.ownerId = null;
+    this.ownerName = null;
     this.image = null;
+    this.songCount = 0;
+
+    this.getPlaylistSongCount = function() {
+        return this.songCount;
+    };
+
+    this.setPlaylistSongCount = function(songCount) {
+        this.songCount = songCount;
+    };
 
     this.getPlaylistImage = function() {
         return this.image;
     };
 
-    this.setPlaylistImage = function(id) {
+    this.setPlaylistImage = function(image) {
         this.image = image;
     };
 
@@ -1447,11 +1468,11 @@ function Playlist () {
         this.name = name;
     };
 
-    this.getOwnerId = function(){
-        return this.ownerId;
+    this.getPlaylistOwnerName = function(){
+        return this.ownerName;
     };
 
-    this.setOwnerId = function(ownerId){
-        this.ownerId = ownerId;
+    this.setPlaylistOwnerName = function(ownerName){
+        this.ownerName = ownerName;
     };
 }
