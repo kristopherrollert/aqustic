@@ -1,0 +1,156 @@
+$(document).ready(function() {
+    openLoadingScreen();
+    var artistId = (window.location.pathname).split("/")[5];
+    if (artistId == null || artistId == undefined) {
+        // TODO : DEAL WITH THIS
+        console.log("NO ARTIST GIVEN");
+        return;
+    }
+    console.log("ARTIST ID: " + artistId);
+    $.ajax({
+        type: "GET",
+        url: "/search/artist/" + artistId
+    }).done(function(data) {
+        console.log(data);
+        $("#header-artist-name").text(data.name);
+        var maxResults = 4;
+        generateTopSongs(data.topSongs);
+        generateAlbums(maxResults, data.albums);
+    });
+
+});
+
+function generateTopSongs (topSongsData) {
+    var topSongTemplate = Handlebars.compile($("#top-song-temp").html());
+    var m = 5 < topSongsData.length ? 5 : topSongsData.length;
+    for ( var y = 0; y < m; y ++) {
+        var currentSong = topSongsData[y];
+        var topSongInfo = {
+            NAME: currentSong.songName,
+            NUMBER: (y + 1),
+            SONG_ID: currentSong.songId
+        };
+        var topSongHtml = topSongTemplate(topSongInfo);
+        $(".top-songs-content").append(topSongHtml);
+    }
+}
+
+function generateAlbums (maxResults, albumData) {
+    var width =  $(".content-box").outerWidth();
+    var albumTemplate = Handlebars.compile($("#album-item-template").html());
+    var m = maxResults < albumData.length ? maxResults : albumData.length;
+    for (var y = 0; y < m; y++) {
+        var currentAlbum = albumData[y];
+        var artistsList = artistsToText(currentAlbum.artists);
+        var albumInfo = {
+            NAME: currentAlbum.name,
+            ARTIST: artistsList,
+            YEAR: currentAlbum.releaseDate.substring(0,4),
+            ALBUM_ID: currentAlbum.id,
+            IMG: currentAlbum.image.url
+        };
+        var albumHtml = albumTemplate(albumInfo);
+        var albumQuery = "#album-" + albumInfo.ALBUM_ID;
+        $(".album-content").append(albumHtml);
+        var albumItemHeight = $(albumQuery + " > .album-content-section").actual("height");
+        var albumItemTextWidth = width - albumItemHeight - 2 - 15;
+        var squareCSS = {
+            width: albumItemHeight + "px",
+            height: albumItemHeight + "px"
+        };
+        $(albumQuery + " > .album-cover-section > img").css(squareCSS);
+        $(albumQuery + " > .album-cover-section").css(squareCSS);
+        $(albumQuery + " > .album-content-section").css("width", albumItemTextWidth + "px");
+        $(albumQuery).css("visibility", "visible");
+        $(albumQuery).hover(function () {
+            $(this).find(".album-cover-section").css({
+                "border": "1px solid #222b2f",
+                "backgroundColor" : "#222b2f"
+            });
+            $(this).find(".album-content-section").css({
+                "border" : "1px solid #222b2f",
+                "backgroundColor" : "#222b2f"
+            });
+
+        }, function () {
+            $(this).find(".album-cover-section").css("border", "1px solid #f6ca5a");
+            $(this).find(".album-content-section").css({
+                "border" : "1px solid #f6ca5a",
+                "backgroundColor" : "transparent"
+            });
+        });
+
+        $(albumQuery).bind('click', {albumInfo: albumData[y]}, function (event) {
+            var path = event.view.window.location.pathname;
+            var partyToken = path.split("/")[2];
+            window.location.href = "/party/" + partyToken + "/search/album/" + event.data.albumInfo.id ;
+        });
+    }
+
+    if (maxResults < albumData.length) {
+        var viewMoreTemp = Handlebars.compile($("#show-more").html());
+        var viewMoreHtml = viewMoreTemp({TEXT: "VIEW MORE ALBUMS", ID: "album"});
+        $(".album-content").append(viewMoreHtml);
+        $("#show-more-album").click(function() {
+            $(".album-item").remove();
+            $("#show-more-album").remove();
+            generateAlbums(maxResults + 4, albumData);
+        });
+    }
+}
+
+
+// LOADING JAVACRIPT
+function closeLoadingScreen() {
+    $(".loading-screen").hide();
+}
+
+function openLoadingScreen() {
+    moveBar($("#bar1"), 1600, 250, 30);
+    moveBar($("#bar2"), 700, 250, 55);
+    moveBar($("#bar3"), 1000, 190, 25);
+    moveBar($("#bar4"), 1300, 250, 60);
+    moveBar($("#bar5"), 900, 250, 100);
+
+    setInterval(function() {
+        moveBar($("#bar1"), 1600, 250, 30);
+    }, 3200);
+
+    setInterval(function() {
+        moveBar($("#bar2"), 700, 250, 55);
+    }, 1400);
+
+    setInterval(function() {
+        moveBar($("#bar3"), 1000, 190, 25);
+    }, 2000);
+
+    setInterval(function() {
+        moveBar($("#bar4"), 1300, 250, 60);
+    }, 2600);
+
+    setInterval(function() {
+        moveBar($("#bar5"), 900, 250, 100);
+    }, 1800);
+
+
+    function moveBar($bar, speed, max, min) {
+        var randomMax = Math.floor((max - min) / 2 * Math.random()) + min + (max - min) / 2;
+        var randomMin = Math.floor(((max - min) / 3 * Math.random())) + min;
+        $bar.animate({
+                maxHeight: randomMin + "px"
+            }, speed, "swing", function() {
+        $bar.animate({
+                maxHeight: randomMax + "px"
+            }, speed, "swing");
+        });
+    }
+
+}
+
+function artistsToText(artists) {
+    var artistsText = artists[0].name.toUpperCase();
+    for (var x = 1; x < artists.length; x++) {
+        artistsText = artistsText + ', ' +  artists[x].name.toUpperCase() ;
+    }
+    return artistsText;
+}

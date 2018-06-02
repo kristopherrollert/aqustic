@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>aqustic | artist</title>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/style/style.css">
+    <script src="http://code.jquery.com/jquery-3.3.1.js"
+            integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+            crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.js"></script>
+    <script src="/js/lib/socket.io.js"></script>
+    <script src="/js/lib/jquery.actual.min.js"></script>
+    <script src="/js/artist.js"></script>
+</head>
+<body>
+    <div class="loading-screen">
+        <div class="loading-box">
+            <div class="center-box">
+              <div class="bar-box">
+                    <div id="bar1"></div>
+                    <div id="bar2"></div>
+                    <div id="bar3"></div>
+                    <div id="bar4"></div>
+                    <div id="bar5"></div>
+                </div>
+            </div>
+            <h1 class="loading-text">loading</h1>
+        </div>
+    </div>
+    <script id="song-cover-temp" type="text/x-handlebars-template">
+        <div class="song-cover">
+            <div class="song-cover-content">
+                <img class="song-cover-album-cover" src="{{COVER_URL}}" alt="album-cover">
+                <div class="song-cover-info">
+                    <h1 class="song-cover-title">{{NAME}}</h1>
+                    <h2 class="song-cover-artists" href="/artist/{{ARTIST_ID}}">{{ARTIST}}</h2>
+                    <h2 class="song-cover-album" href="/album/{{ALBUM_ID}}">{{ALBUM_NAME}}</h2>
+                </div>
+                <div class="song-cover-options">
+                    <h2 id="sc-queue">ADD TO QUEUE</h2>
+                    <br>
+                    <h2 id="sc-album">VIEW ALBUM</h2>
+                    <br>
+                    <h2 id="sc-artists">VIEW ARTISTS</h2>
+                    <br>
+                    <h2 id="sc-close">CLOSE</h2>
+                </div>
+            </div>
+        </div>
+    </script>
+    <div class="small-header">
+        <h1 class="small-page-header">aqustic</h1>
+    </div>
+    <div class="content-section full-page">
+        <div class="content-box" style="width:382.472px">
+            <div class="content-header">
+                <p class="page-class section-header">ARTIST</p>
+                <h2 class="tertiary-header full-page" id="header-artist-name"></h2>
+            </div>
+            <div class="top-songs-section">
+                <h3 class="section-header">TOP SONGS</h3>
+                <div class="top-songs-content">
+                    <script id="top-song-temp" type="text/x-handlebars-template">
+                        <div class="top-song-item" id="song-{{SONG_ID}}">
+                            <div class="number-box">
+                                <h3 class="number">{{NUMBER}}</h3>
+                            </div>
+                            <div class="top-song-text">
+                                <h3 class="top-song-name">{{NAME}}</h3>
+                            </div>
+                            <div class="top-song-options"><i class="fas fa-ellipsis-h"></i></div>
+                        </div>
+                    </script>
+                </div>
+            </div>
+            <div class="albums-section">
+                <h3 class="section-header">ALBUMS</h3>
+                <div class="album-content" style="display: block;">
+                    <script id="album-item-template" type="text/x-handlebars-template">
+                        <div class="album-item" id="album-{{ALBUM_ID}}">
+                            <div class="album-cover-section">
+                                <img src= "{{IMG}}" class="album-cover-image">
+                            </div>
+                            <div class="album-content-section" >
+                                <div class="album-text">
+                                    <h2 class="album-title">{{NAME}}</h2>
+                                    <h2 class="album-artists">{{ARTIST}}</h2>
+                                    <h2 class="album-year">{{YEAR}}</h2>
+                                </div>
+                                <div class="album-options"><i class="fas fa-ellipsis-h"></i></div>
+                            </div>
+                        </div>
+                    </script>
+                    <script id="show-more" type="text/x-handlebars-template">
+                        <div class="show-more-button" id="show-more-{{ID}}">
+                            <h1 class="show-more-text">{{TEXT}}</h1>
+                        </div>
+                    </script >
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

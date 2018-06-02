@@ -1,5 +1,6 @@
 /* jshint esversion: 6 */
-let TEMP_AUTH_TOKEN = 'BQBdtB5PlFvmqLIKOWzT3cfs7iILZbbph0WpgV7KUVMjoyekmgHvK7vK_63Mu1Oa-ZNf8wufSuBWO7PBllfsqq5rsDymlHOxk1GWBajEkVSAfW39Pj5O7SzdX9jonwcOX4iuuEtmTpREYMJ33dtdGbDq7VVHD32iU11HsbbA';
+let TEMP_AUTH_TOKEN = 'BQAmZ0CtJCevSBH3GdX4T-pAmDW3a9fz1eKHB8cyxin0P5yCXPIIX2eraWkJHkxXXXcceUyfOBrhBabUpP2HstmBwmHxwYSdn7oeTBR7tHs3eg_K1L4uXv60UAwlMWlLWr1uj_0KDfAq5Kva0hKg_HBcvjpS2B52EI1J33Pm';
+let TEMP_LOCATION_ASSUMPTION = "US";
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -311,6 +312,63 @@ app.get('/home', authenticationMiddleware(), function(req, res){
     res.sendFile(__dirname+"/client/home.html");
 });
 
+
+// Needs: artist name, photo, album names, album images, album id, top songs name,
+//        top songs id,
+app.get('/search/artist/*', function (req, res) {
+    let artistId = (req.path).split("/")[3];
+    let authToken = TEMP_AUTH_TOKEN;
+    if (artistId == null || artistId == undefined) {
+        res.send({
+            error: "NO ARTIST GIVEN"
+        });
+    }
+    else {
+        let artistInfo = {};
+        let artistFunctionsComplete = 0;
+        // Only sends after all async methods are called
+        let checkArtistInfoFinished = function () {
+            if (artistFunctionsComplete == 3){
+                res.send(artistInfo);
+            }
+        };
+
+        searchArtistInfo(authToken, artistId).then(data => {
+            artistInfo.name = data.name;
+            artistInfo.image = data.image;
+            artistFunctionsComplete++;
+            checkArtistInfoFinished();
+        });
+
+        searchArtistAlbums(authToken, artistId).then(data => {
+            artistInfo.albums = data;
+            artistFunctionsComplete++;
+            checkArtistInfoFinished();
+        });
+
+        searchArtistTopSongs(authToken, artistId).then(data => {
+            artistInfo.topSongs = data;
+            artistFunctionsComplete++;
+            checkArtistInfoFinished();
+        });
+    }
+});
+
+app.get('/search/album/*', function (req, res) {
+    var authToken = TEMP_AUTH_TOKEN;
+    var albumId = req.query.albumId;
+    if (albumId == null) {
+        res.send({
+            error: "NO ARTIST GIVEN"
+        });
+    }
+    else {
+        searchAlbum(authToken, albumId).then(data => {
+            res.send(data);
+        });
+    }
+});
+
 app.get('/search', function(req,res) {
     var user = req.user;
     let userID = {
@@ -601,6 +659,10 @@ app.get('/party/*/search', function(req, res){
     res.sendFile(__dirname+"/client/search.html");
 });
 
+app.get('/party/*/search/artist/*', function(req, res){
+    res.sendFile(__dirname+"/client/artist.html");
+});
+
 app.get('/test/party', function(req, res){
     res.sendFile(__dirname+"/testing/testCreateParty.html");
 });
@@ -729,6 +791,7 @@ app.put('/party/*/vote', function (req, res) {
 });
 
 app.get('/party/*', function(req, res){
+    // TODO CHECK IF PARTY IS REAL, if not redirect to sign in page
     res.sendFile(__dirname+"/client/home.html");
 });
 
@@ -965,6 +1028,113 @@ function getSongLength (authToken, songID) {
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */
 
+function searchArtistTopSongs(authToken, artistId) {
+    var headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var init = {
+        method: 'GET',
+        headers: headers
+    };
+
+
+    return fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?country=US`, init)
+        .then(response => {
+            if (response.status === 200) {
+                return response.json().then(function(data) {
+                    var artistTopSongs = [];
+                    for (let i = 0; i < data.tracks.length; i++) {
+                        var track = new Song();
+                        track.setSongName(data.tracks[i].name);
+                        track.setSongId(data.tracks[i].id);
+                        track.setSongArtists(data.tracks[i].artists);
+                        track.setSongLength(data.tracks[i].duration_ms);
+                        track.setAlbumName(data.tracks[i].album.name);
+                        track.setAlbumId(data.tracks[i].album.id);
+                        track.setAlbumImage(data.tracks[i].album.images[0].url);
+                        artistTopSongs.push(track);
+                    }
+                    return artistTopSongs;
+                });
+            }
+            else {
+                console.log("ERROR FROM SPOTIFY");
+            }
+        });
+}
+
+function searchArtistInfo(authToken, artistId) {
+    var headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var init = {
+        method: 'GET',
+        headers: headers
+    };
+
+
+    return fetch(`https://api.spotify.com/v1/artists/${artistId}`, init)
+        .then(response => {
+            if (response.status === 200) {
+                return response.json().then(function(data) {
+                    return {
+                        name : data.name,
+                        image : data.images[0].url,
+                    };
+                });
+            }
+            else {
+                console.log("ERROR FROM SPOTIFY");
+            }
+        });
+}
+
+function searchArtistAlbums(authToken, artistId) {
+    var headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var init = {
+        method: 'GET',
+        headers: headers
+    };
+
+
+    return fetch(`https://api.spotify.com/v1/artists/${artistId}/albums?market=${TEMP_LOCATION_ASSUMPTION}&limit=50`, init)
+        .then(response => {
+            if (response.status === 200) {
+                return response.json().then(function(data) {
+                    var artistAlbums = [];
+                    var previousAlbumName = "";
+                    for (let i = 0; i < data.items.length; i++) {
+                        if (previousAlbumName == data.items[i].name)
+                            continue;
+                        previousAlbumName = data.items[i].name;
+                        var album = new Album();
+                        album.setAlbumName(data.items[i].name);
+                        album.setAlbumId(data.items[i].id);
+                        album.setAlbumArtists(data.items[i].artists);
+                        album.setAlbumImage(data.items[i].images[0]);
+                        album.setAlbumReleaseDate(data.items[i].release_date);
+                        artistAlbums.push(album);
+                    }
+                    return artistAlbums;
+                });
+            }
+            else {
+                console.log("ERROR FROM SPOTIFY");
+            }
+        });
+}
+
 /*
  * DESCRIPTION: A way to search for songs on spotify
  * ARGUMENTS:
@@ -1014,10 +1184,13 @@ function search(authToken, query, type = 'all') {
                 }
 
                 if (type.includes("album")) {
-                    var artists = [];
+                    var artists = []; //TODO I THINK THIS DOESNT HAVE PURPOSE
+                    var previousAlbumName = "";
                     for (let i = 0; i < data.albums.items.length; i++) {
+                        if (previousAlbumName == data.albums.items[i].name)
+                            continue;
+                        previousAlbumName = data.albums.items[i].name;
                         var album = new Album();
-
                         album.setAlbumName(data.albums.items[i].name);
                         album.setAlbumId(data.albums.items[i].id);
                         album.setAlbumArtists(data.albums.items[i].artists);

@@ -15,6 +15,7 @@ $(document).ready(function() {
             homePage();
             break;
         case "party":
+            // if you are in a party
             var partyToken = urlArray[2];
             switch (urlArray[3]) {
                 case undefined:
@@ -38,10 +39,6 @@ $(document).ready(function() {
 /* -------------------------- PAGE SPECIFIC CODE -------------------------- */
 /* ------------------------------------------------------------------------ */
 
-// PLAN !!!!!
-// 1. move queue stuff to its own module
-// 2. create endpoint to get currentlyPlaying song
-// 3. write queue template stuff for home page
 
 function partyHomePage(partyToken) {
     var socket = io.connect('http://localhost:8080');
