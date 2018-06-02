@@ -209,7 +209,7 @@ function generateQueueContent(queueInfo) {
                 }
             }).done(function(data) {
                 //Also for you kris
-                console.log("disliked")
+                console.log("disliked");
             });
         });
 
@@ -614,6 +614,14 @@ function generateSongContent(maxResults, songData) {
     }
 }
 
+function closeSongCover(event) {
+    if (event.target.className == "song-cover" ||
+        event.target.id == "sc-close") {
+            $("body").removeClass("body-cover");
+            $(".song-cover").remove();
+    }
+}
+
 
  var onSongClick = function(event) {
      var songInfo = event.data.songInfo;
@@ -643,13 +651,6 @@ function generateSongContent(maxResults, songData) {
         window.location.href = "/party/" + partyToken + "/search/artist/" + event.data.songInfo.songArtists[0].id;
     });
 
-    function closeSongCover(event) {
-        if (event.target.className == "song-cover" ||
-            event.target.id == "sc-close") {
-                $("body").removeClass("body-cover");
-                $(".song-cover").remove();
-        }
-    }
 
     function queueSong(event) {
         var path = event.view.window.location.pathname;
@@ -665,6 +666,7 @@ function generateSongContent(maxResults, songData) {
         }).done(function(data) {
             var socket = io.connect('http://localhost:8080');
             socket.emit('updateQueuePing', partyToken, "Queued Song");
+            $(".song-cover").remove();
         });
     }
 

@@ -1,5 +1,5 @@
 /* jshint esversion: 6 */
-let TEMP_AUTH_TOKEN = 'BQAlvm0XELmXqYCnUW1kdUTRPiOQQnuVt2fJZ4qlUvOgDxCNf_-O03h9qXObZhatqjrhXO9DpMRt_Yvf9zV-bNtfPeEMn83412XBh73W9Bf47lH7D2fKwYQ7EYtzm3hgQTmDR_JJ0_dqJc0M8CRsx5bp19KfHRZ2n7RV7VSF';
+let TEMP_AUTH_TOKEN = 'BQBdtB5PlFvmqLIKOWzT3cfs7iILZbbph0WpgV7KUVMjoyekmgHvK7vK_63Mu1Oa-ZNf8wufSuBWO7PBllfsqq5rsDymlHOxk1GWBajEkVSAfW39Pj5O7SzdX9jonwcOX4iuuEtmTpREYMJ33dtdGbDq7VVHD32iU11HsbbA';
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -1026,7 +1026,6 @@ function search(authToken, query, type = 'all') {
                         dict.albums.push(album);
                     }
                 }
-                console.log(data.playlists.items[0]);
                 if (type.includes("playlist")) {
                     for (let i = 0; i < data.playlists.items.length; i++) {
                         var playlist = new Playlist();
