@@ -174,37 +174,42 @@ function generateQueueContent(queueInfo) {
 
         var songHtml = songTemplate(songInfo);
         $(".song-queue-list").append(songHtml);
-        $("#song-" + songInfo.ID+" > div > .like-button").click(function(event){
+
+        $("#vote-song-" + songInfo.SONG_ID+" > .like-button").bind('click', {queueIndex: i}, function (event){
+
             var path = event.view.window.location.pathname;
             path = path.split("/");
             var partyToken = path[2];
-            var songId = songInfo.ID;
+            var songId = songInfo.SONG_ID;
             $.ajax({
                 type: "PUT",
                 url: "/party/" + partyToken + "/vote",
                 data: {
-                    queueIndex: i-1,
+                    queueIndex: event.data.queueIndex,
                     isLike: true,
                 }
             }).done(function(data) {
                 //Here you kris
+                console.log("liked")
             });
         });
 
-        $("#song-" + songInfo.ID+" > div > .dislike-button").click(function(event){
+        $("#vote-song-" + songInfo.SONG_ID+" > .dislike-button").bind('click', {queueIndex: i}, function (event){
+
             var path = event.view.window.location.pathname;
             path = path.split("/");
             var partyToken = path[2];
-            var songId = songInfo.ID;
+            var songId = songInfo.SONG_ID;
             $.ajax({
                 type: "PUT",
                 url: "/party/" + partyToken + "/vote",
                 data: {
-                    songToUpdate: songId,
+                    queueIndex: event.data.queueIndex,
                     isLike: false,
                 }
             }).done(function(data) {
                 //Also for you kris
+                console.log("disliked")
             });
         });
 

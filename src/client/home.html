@@ -47,14 +47,14 @@
                     <h2 class="queue-error">...</h2>
                     <div class="song-queue-list">
                         <script id="song-template" type="text/x-handlebars-template">
-                            <div class="song-queue-item" >
+                            <div class="song-queue-item">
                                 <div class="song-item" id="song-{{SONG_ID}}" >
                                     <div class="song-text" style="width:{{WIDTH_SONG}}px; max-width:{{WIDTH_SONG}}px;" >
                                         <h2 class="song-title" style="margin-right:15px;">{{NAME}}</h2>
                                         <h2 class="song-artists" style="margin-right:15px;">{{ARTIST}}</h2>
                                     </div>
                                 </div>
-                                <div class="vote-sidebar" style="width:{{BOX_SIZE}}px; max-width:{{BOX_SIZE}}px">
+                                <div class="vote-sidebar" id="vote-song-{{SONG_ID}}" style="width:{{BOX_SIZE}}px; max-width:{{BOX_SIZE}}px">
                                     <div class="like-button" style="width:{{BOX_SIZE}}px; height:{{BOX_SIZE}}px">+</div>
                                     <div class="dislike-button" style="width:{{BOX_SIZE}}px; height:{{BOX_SIZE}}px">-</div>
                                 </div>
