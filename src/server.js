@@ -633,14 +633,8 @@ app.put('/party/*/queue-song', function(req, res) {
             };
 
             database.updateOne("PARTIES", query, updates, function () {
-//                res.end();
+                res.end();
             });
-
-            if (partyResult.currentlyPlaying === null) {
-                playLoop(partyToken);
-            }
-            res.end();
-
         }
     });
 });
@@ -690,7 +684,7 @@ app.get('/party/*/now-playing', function(req, res){
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
 
-    playLoop(partyToken);
+    playLoop(partyToken, res);
 });
 
 app.put('/party/*/vote', function (req, res) {
@@ -710,43 +704,15 @@ app.put('/party/*/vote', function (req, res) {
 
         //Checks if like or dislike
         //Uhh for some reason the equals true is needed lol, or else its always true
-        if (isLike == true) {
+        if (isLike === true) {
             currSong.likes += 1;
             currSong.score += 1;
-
-            console.log(queue[queueIndex]);
-
-            /*
-            while ((queue[queueIndex].getScore() > queue[queueIndex - 1].getScore()) && queueIndex > 0) {
-                let temp = queue[queueIndex];
-                queue[queueIndex] = queue[queueIndex - 1];
-                queue[queueIndex - 1] = temp;
-
-                queueIndex -= 1;
-
-                console.log("lmao")
-            }
-            */
         }
         //else is for dislikes
         else {
             currSong.dislikes += 1;
             currSong.score -= 1;
-
-            console.log("WHY ARE YOU HERE")
-
-            /*
-            while ((queue[queueIndex].score < queue[queueIndex + 1].score) && queueIndex < queue.length - 1) {
-                let temp = queue[queueIndex];
-                queue[queueIndex] = queue[queueIndex + 1];
-                queue[queueIndex + 1] = temp;
-
-                queueIndex += 1;
-            }
-            */
         }
-
-
 
         query = {
             partyToken: partyToken
@@ -871,7 +837,7 @@ function getLargerSong(song1, song2) {
 /* ----------------------------- PLAY FUNCTIONS ----------------------------- */
 /* -------------------------------------------------------------------------- */
 
-function playLoop(partyToken) {
+function playLoop(partyToken, res) {
 
     let query = {
         partyToken: partyToken
@@ -880,26 +846,17 @@ function playLoop(partyToken) {
     database.findOne("PARTIES", query, function (result) {
 
         if (result === null) {
-            return "Party not found!"
+            res.send({
+                error: 'Party not found'
+            })
         }
         else {
 
             let queue = result.songQueue;
 
             if (queue.length <= 0) {
-
-                let query = {
-                    partyToken: partyToken
-                };
-
-                let newVals = {
-                    $set: {
-                        currentlyPlaying: null
-                    }
-                };
-
-                database.updateOne("PARTIES", query, newVals, function (result) {
-
+                res.send({
+                    error: 'Queue is empty!'
                 });
                 return;
             }
@@ -927,6 +884,8 @@ function playLoop(partyToken) {
             query = {
                 partyToken: partyToken,
             };
+            console.log("Kai look here");
+            console.log(nextSong);
 
             //Only seperately putting the $sets worked, change it at your own risk
             let newVals = {
@@ -939,13 +898,13 @@ function playLoop(partyToken) {
             };
 
             database.update("PARTIES", query, newVals, function (result) {
-
+                console.log(result);
             });
 
         }
     });
 
-    return "Playing Songs..."
+    res.send("Playing Song...")
 
 }
 
