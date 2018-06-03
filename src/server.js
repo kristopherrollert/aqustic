@@ -1,4 +1,4 @@
-console.log("using temp auth token")
+console.log("using temp auth token");
 /* jshint esversion: 6 */
 let TEMP_AUTH_TOKEN = 'BQBaVs1izhCd1Ag4IPSzWa7QVmBGoWNPFstnUAua4cZ5jD-cmxZdWV4osON1omFtG4yVb8Ul3-N7SGRrziaYrYpRRDAT7fkxJvxTdahgngdarPC4BtHaLqs55gbvLC3BdGJXpJ7M2ipvD3NjpV5-2p0ynpdsTnYh8w';
 // ^ this is just for kris, please don't delete
@@ -312,8 +312,6 @@ app.get('/home', authenticationMiddleware(), function(req, res){
     res.sendFile(__dirname+"/client/home.html");
 });
 
-<<<<<<< HEAD
-
 // Needs: artist name, photo, album names, album images, album id, top songs name,
 //        top songs id,
 app.get('/search/artist/*', function (req, res) {
@@ -395,8 +393,6 @@ app.get('/search/album/*', function (req, res) {
     }
 });
 
-=======
->>>>>>> 9849e502d19e861578e2e2adbb64533d650f49ad
 app.get('/search', function(req,res) {
     var user = req.user;
     let userID = {
@@ -782,7 +778,7 @@ app.put('/party/*/vote', function (req, res) {
     let partyToken = (req.path).split("/")[2];
     let queueIndex = req.body.queueIndex;
     //should be true if a like is being added, false if dislike
-    let isLike = req.body.isLike;
+    let vote = req.body.vote;
 
     let query = {
         partyToken: partyToken
@@ -795,7 +791,7 @@ app.put('/party/*/vote', function (req, res) {
 
         //Checks if like or dislike
         //Uhh for some reason the equals true is needed lol, or else its always true
-        if (isLike == true) {
+        if (vote == "like") {
             currSong.likes += 1;
             currSong.score += 1;
 
@@ -812,7 +808,7 @@ app.put('/party/*/vote', function (req, res) {
             */
         }
         //else is for dislikes
-        else {
+        if (vote == "dislike") {
             currSong.dislikes += 1;
             currSong.score -= 1;
 
@@ -1093,7 +1089,6 @@ function getSongLength (authToken, songID) {
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */
 
-<<<<<<< HEAD
 function searchArtistTopSongs(authToken, artistId) {
     var headers = {
         "Accept": "application/json",
@@ -1216,8 +1211,6 @@ function searchArtistAlbums(authToken, artistId) {
         });
 }
 
-=======
->>>>>>> 9849e502d19e861578e2e2adbb64533d650f49ad
 /*
  * DESCRIPTION: A way to search for songs on spotify
  * ARGUMENTS:

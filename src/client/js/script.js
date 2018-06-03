@@ -183,7 +183,7 @@ function generateQueueContent(queueInfo) {
                 url: "/party/" + partyToken + "/vote",
                 data: {
                     queueIndex: event.data.queueIndex,
-                    isLike: true,
+                    vote: "like",
                 }
             }).done(function(data) {
                 //Here you kris
@@ -202,7 +202,7 @@ function generateQueueContent(queueInfo) {
                 url: "/party/" + partyToken + "/vote",
                 data: {
                     queueIndex: event.data.queueIndex,
-                    isLike: false,
+                    vote: "dislike",
                 }
             }).done(function(data) {
                 //Also for you kris
