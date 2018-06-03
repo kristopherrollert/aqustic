@@ -1,5 +1,6 @@
+console.log("using temp auth token")
 /* jshint esversion: 6 */
-let TEMP_AUTH_TOKEN = 'BQBdtB5PlFvmqLIKOWzT3cfs7iILZbbph0WpgV7KUVMjoyekmgHvK7vK_63Mu1Oa-ZNf8wufSuBWO7PBllfsqq5rsDymlHOxk1GWBajEkVSAfW39Pj5O7SzdX9jonwcOX4iuuEtmTpREYMJ33dtdGbDq7VVHD32iU11HsbbA';
+let TEMP_AUTH_TOKEN = 'BQBaVs1izhCd1Ag4IPSzWa7QVmBGoWNPFstnUAua4cZ5jD-cmxZdWV4osON1omFtG4yVb8Ul3-N7SGRrziaYrYpRRDAT7fkxJvxTdahgngdarPC4BtHaLqs55gbvLC3BdGJXpJ7M2ipvD3NjpV5-2p0ynpdsTnYh8w';
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -632,8 +633,14 @@ app.put('/party/*/queue-song', function(req, res) {
             };
 
             database.updateOne("PARTIES", query, updates, function () {
-                res.end();
+//                res.end();
             });
+
+            if (partyResult.currentlyPlaying === null) {
+                playLoop(partyToken);
+            }
+            res.end();
+
         }
     });
 });
@@ -683,7 +690,7 @@ app.get('/party/*/now-playing', function(req, res){
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
 
-    playLoop(partyToken, res);
+    playLoop(partyToken);
 });
 
 app.put('/party/*/vote', function (req, res) {
@@ -703,15 +710,43 @@ app.put('/party/*/vote', function (req, res) {
 
         //Checks if like or dislike
         //Uhh for some reason the equals true is needed lol, or else its always true
-        if (isLike === true) {
+        if (isLike == true) {
             currSong.likes += 1;
             currSong.score += 1;
+
+            console.log(queue[queueIndex]);
+
+            /*
+            while ((queue[queueIndex].getScore() > queue[queueIndex - 1].getScore()) && queueIndex > 0) {
+                let temp = queue[queueIndex];
+                queue[queueIndex] = queue[queueIndex - 1];
+                queue[queueIndex - 1] = temp;
+
+                queueIndex -= 1;
+
+                console.log("lmao")
+            }
+            */
         }
         //else is for dislikes
         else {
             currSong.dislikes += 1;
             currSong.score -= 1;
+
+            console.log("WHY ARE YOU HERE")
+
+            /*
+            while ((queue[queueIndex].score < queue[queueIndex + 1].score) && queueIndex < queue.length - 1) {
+                let temp = queue[queueIndex];
+                queue[queueIndex] = queue[queueIndex + 1];
+                queue[queueIndex + 1] = temp;
+
+                queueIndex += 1;
+            }
+            */
         }
+
+
 
         query = {
             partyToken: partyToken
@@ -836,7 +871,7 @@ function getLargerSong(song1, song2) {
 /* ----------------------------- PLAY FUNCTIONS ----------------------------- */
 /* -------------------------------------------------------------------------- */
 
-function playLoop(partyToken, res) {
+function playLoop(partyToken) {
 
     let query = {
         partyToken: partyToken
@@ -845,17 +880,26 @@ function playLoop(partyToken, res) {
     database.findOne("PARTIES", query, function (result) {
 
         if (result === null) {
-            res.send({
-                error: 'Party not found'
-            })
+            return "Party not found!"
         }
         else {
 
             let queue = result.songQueue;
 
             if (queue.length <= 0) {
-                res.send({
-                    error: 'Queue is empty!'
+
+                let query = {
+                    partyToken: partyToken
+                };
+
+                let newVals = {
+                    $set: {
+                        currentlyPlaying: null
+                    }
+                };
+
+                database.updateOne("PARTIES", query, newVals, function (result) {
+
                 });
                 return;
             }
@@ -883,8 +927,6 @@ function playLoop(partyToken, res) {
             query = {
                 partyToken: partyToken,
             };
-            console.log("Kai look here");
-            console.log(nextSong);
 
             //Only seperately putting the $sets worked, change it at your own risk
             let newVals = {
@@ -897,13 +939,13 @@ function playLoop(partyToken, res) {
             };
 
             database.update("PARTIES", query, newVals, function (result) {
-                console.log(result);
+
             });
 
         }
     });
 
-    res.send("Playing Song...")
+    return "Playing Songs..."
 
 }
 
