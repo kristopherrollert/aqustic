@@ -301,9 +301,11 @@ app.get('/signup', function(req, res){
     res.sendFile(__dirname+"/client/signup.html");
 });
 
-app.get('/home', authenticationMiddleware(), function(req, res){
-    // console.log(req.user); //check logged in user's username
-    // console.log(req.isAuthenticated()); //check if user is authenticated
+
+// , authenticationMiddleware() add when done
+app.get('/home', function(req, res){
+
+    // TODO THIS SHOULD REDIRECT TO LOGIN PAGE
     res.sendFile(__dirname+"/client/home.html");
 });
 
@@ -514,6 +516,25 @@ app.put('/account/sign-up', function (req, res) {
     }
 });
 
+
+app.get('/account/get-info', function (req, res) {
+    var user = req.user;
+    let userID = {
+        username: user,
+    };
+    database.findOne("ACCOUNTS", userID, function (result) {
+        console.log(result);
+        if (result == null) {
+            res.send({error : "ACCOUNT NOT FOUND"});
+        }
+        else {
+            res.send({
+                username : result.username,
+                authenticated : result.authenticateID !== null
+            });
+        }
+    });
+});
 
 /*------------Store Sessions------------*/
 passport.serializeUser(function(userID, done) {
@@ -831,8 +852,8 @@ app.put('/party/*/vote', function (req, res) {
 
 });
 
-app.get('/party/*', function(req, res){
-    res.sendFile(__dirname+"/client/home.html");
+app.get('/party/*', authenticationMiddleware(), function(req, res){
+    res.sendFile(__dirname+"/client/party.html");
 });
 
 

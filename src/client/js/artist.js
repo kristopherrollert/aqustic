@@ -1,6 +1,7 @@
 $(document).ready(function() {
     openLoadingScreen();
     var artistId = (window.location.pathname).split("/")[5];
+    var partyToken = (window.location.pathname).split("/")[3];
     if (artistId == null || artistId == undefined) {
         $(".content-box").hide();
         $("#artist-error").text("NO ARTIST FOUND").show();
@@ -9,7 +10,10 @@ $(document).ready(function() {
     }
     $.ajax({
         type: "GET",
-        url: "/search/artist/" + artistId
+        url: "/search/artist/" + artistId,
+        data: {
+            partyToken : partyToken
+        }
     }).done(function(data) {
         if (data.hasOwnProperty("error")) {
             $(".content-box").hide();

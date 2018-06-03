@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>aqustic | party</title>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/style/style.css" >
+    <script src="http://code.jquery.com/jquery-3.3.1.js"
+            integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+            crossorigin="anonymous">
+    </script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.js"></script>
+    <script src="/js/lib/socket.io.js"></script>
+    <script src="/js/script.js"></script>
+</head>
+<body>
+    <div class="small-header">
+        <h1 class="small-page-header">aqustic</h1>
+    </div>
+    <div class="content-section full-page">
+        <div class="content-box">
+            <div class="content-header">
+                <h2 class="secondary-header full-page">Party</h2>
+            </div>
+            <div class="content-party-connect">
+                <!-- <div class="party-info-section">
+                    <h3 class="section-header">PARTY SETTINGS</h3>
+                    <script id="party-info-template" type="text/x-handlebars-template">
+                        <p class="contected-to-text">Connected to: {{PARTY_NAME}}</p>
+                        <p class="party-owner-text">The party owner is {{PARTY_OWNER}}</p>
+                    </script>
+                </div> -->
+                <div class="now-playing-section">
+                    <h3 class="section-header">NOW PLAYING</h3>
+                    <script id="now-playing-template" type="text/x-handlebars-template">
+                        <div class="song-item" id="now-playing-item">
+                            <div class="song-text" style="width:{{WIDTH}}px; max-width:{{WIDTH}}px">
+                                <h2 class="song-title" style="margin-right:30px;">{{NAME}}</h2>
+                                <h2 class="song-artists" style="margin-right:30px;">{{ARTIST}}</h2>
+                            </div>
+                        </div>
+                    </script>
+                </div>
+                <div class="song-queue-section">
+                    <h3 class="section-header">SONG QUEUE</h3>
+                    <h2 class="queue-error">...</h2>
+                    <div class="song-queue-list">
+                        <script id="song-template" type="text/x-handlebars-template">
+                            <div class="song-queue-item">
+                                <div class="song-item" id="song-{{SONG_ID}}" >
+                                    <div class="song-text" style="width:{{WIDTH_SONG}}px; max-width:{{WIDTH_SONG}}px;" >
+                                        <h2 class="song-title" style="margin-right:15px;">{{NAME}}</h2>
+                                        <h2 class="song-artists" style="margin-right:15px;">{{ARTIST}}</h2>
+                                    </div>
+                                </div>
+                                <div class="vote-sidebar" id="vote-song-{{SONG_ID}}" style="width:{{BOX_SIZE}}px; max-width:{{BOX_SIZE}}px">
+                                    <div class="like-button" style="width:{{BOX_SIZE}}px; height:{{BOX_SIZE}}px">+</div>
+                                    <div class="dislike-button" style="width:{{BOX_SIZE}}px; height:{{BOX_SIZE}}px">-</div>
+                                </div>
+                            </div>
+                        </script>
+                    </div>
+                    <div class="show-more-button">
+                        <h1 class="show-more-text">ADD MORE SONGS</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="content-no-party">
+                <div class="party-error">
+                    <h1 class="party-error-text">...</h1>
+                </div>
+                <div class="connect-to-party">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

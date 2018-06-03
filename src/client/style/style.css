@@ -111,6 +111,27 @@ input[type="text"]:focus, input[type="password"]:focus {
   cursor: pointer;
   font-weight: 200; }
 
+.button-3 {
+  background-color: transparent;
+  color: #2a363b;
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  border: 0.5px solid #2a363b;
+  border-radius: 3px;
+  padding: 8px;
+  padding-left: 15px;
+  padding-right: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-weight: 200;
+  margin-left: 10px;
+  margin-right: 10px;
+  text-decoration: none; }
+
+.button-3:hover {
+  background-color: #2a363b;
+  color: white; }
+
 .button-1:hover {
   background-color: #b99844; }
 
@@ -188,7 +209,7 @@ input[type="text"]:focus, input[type="password"]:focus {
   padding-bottom: 3px;
   cursor: pointer; }
 
-#song-error, #album-error, #playlist-error, #artist-error {
+#song-error, #album-error, #playlist-error, #artist-error, #create-party-error, #join-party-error {
   display: none;
   text-align: center; }
 
@@ -629,5 +650,35 @@ input[type="text"]:focus, input[type="password"]:focus {
 
 #bar5 {
   left: 220px; }
+
+/* HOME PAGE STYLING */
+.home-page-full {
+  width: 100vw;
+  height: 100vh;
+  background-color: #f6ca5a;
+  display: flex;
+  align-items: center;
+  justify-content: center; }
+
+.home-page-header {
+  color: #faf6cd;
+  font-size: 80px; }
+
+.button-box {
+  display: flex;
+  justify-content: center; }
+
+/* HOME SPECIFIC STYLING */
+.join-party-section, .create-party-section {
+  margin-bottom: 40px; }
+
+.description-text {
+  color: white; }
+
+.auth-section > button {
+  margin-left: 0; }
+
+.auth-false, .auth-true {
+  display: none; }
 
 /*# sourceMappingURL=style.css.map */

@@ -1,6 +1,7 @@
 $(document).ready(function() {
     openLoadingScreen();
     var albumId = (window.location.pathname).split("/")[5];
+    var partyToken = (window.location.pathname).split("/")[3];
     if (albumId == null || albumId == undefined) {
         // TODO : DEAL WITH THIS
         console.log("NO ARTIST GIVEN");
@@ -9,7 +10,10 @@ $(document).ready(function() {
 
     $.ajax({
         type: "GET",
-        url: "/search/album/" + albumId
+        url: "/search/album/" + albumId,
+        data: {
+            partyToken : partyToken
+        }
     }).done(function(data) {
         console.log(data);
         if (data.hasOwnProperty("error")) {
