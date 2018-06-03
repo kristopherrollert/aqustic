@@ -1,10 +1,10 @@
 $(document).ready(function() {
     openLoadingScreen();
     var albumId = (window.location.pathname).split("/")[5];
-    var partyToken = (window.location.pathname).split("/")[3];
+    var partyToken = (window.location.pathname).split("/")[2];
     if (albumId == null || albumId == undefined) {
         // TODO : DEAL WITH THIS
-        console.log("NO ARTIST GIVEN");
+        console.log("NO ALBUM GIVEN");
         return;
     }
 

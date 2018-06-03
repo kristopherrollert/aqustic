@@ -1,7 +1,7 @@
 $(document).ready(function() {
     openLoadingScreen();
     var artistId = (window.location.pathname).split("/")[5];
-    var partyToken = (window.location.pathname).split("/")[3];
+    var partyToken = (window.location.pathname).split("/")[2];
     if (artistId == null || artistId == undefined) {
         $(".content-box").hide();
         $("#artist-error").text("NO ARTIST FOUND").show();

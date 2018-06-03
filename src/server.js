@@ -31,6 +31,7 @@ const clientID = "1951f93df40942a59574ed5d17e5425a";
 const clientSecret = "048262fe59c048e18ce94d18d5784078";
 const port = 3000;
 const baseUrl = `http://localhost:${port}`;
+// const baseUrl = 'https://aqustic-20'
 
 /* Server Modules */
 const http = require('http');
@@ -84,8 +85,8 @@ var database = {
     /* General Databse Information */
     name: "aqusticDB",
     // the below line should replace the other url in final
-    //    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
-    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
+    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+    // url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
@@ -313,7 +314,7 @@ app.get('/home', function(req, res){
 //        top songs id,
 app.get('/search/artist/*', function (req, res) {
     let artistId = (req.path).split("/")[3];
-    let authToken = TEMP_AUTH_TOKEN;
+    // let authToken = TEMP_AUTH_TOKEN;
     if (artistId == null || artistId == undefined) {
         res.send({
             error: "NO ARTIST GIVEN"
@@ -330,62 +331,67 @@ app.get('/search/artist/*', function (req, res) {
             }
         };
 
-        searchArtistInfo(authToken, artistId).then(data => {
-            if (data == undefined || data.hasOwnProperty("error")) {
-                if (!error) {
-                    error = true;
-                    res.send(data);
+        getAuthToken(req.query.partyToken, function (authToken) {
+            searchArtistInfo(authToken, artistId).then(data => {
+                if (data == undefined || data.hasOwnProperty("error")) {
+                    if (!error) {
+                        error = true;
+                        res.send(data);
+                    }
                 }
-            }
-            else {
-                artistInfo.name = data.name;
-                artistInfo.image = data.image;
-                artistFunctionsComplete++;
-                checkArtistInfoFinished();
-            }
-        });
+                else {
+                    artistInfo.name = data.name;
+                    artistInfo.image = data.image;
+                    artistFunctionsComplete++;
+                    checkArtistInfoFinished();
+                }
+            });
 
-        searchArtistAlbums(authToken, artistId).then(data => {
-            if (data == undefined || data.hasOwnProperty("error")) {
-                if (!error) {
-                    error = true;
-                    res.send(data);
+            searchArtistAlbums(authToken, artistId).then(data => {
+                if (data == undefined || data.hasOwnProperty("error")) {
+                    if (!error) {
+                        error = true;
+                        res.send(data);
+                    }
                 }
-            }
-            else {
-                artistInfo.albums = data;
-                artistFunctionsComplete++;
-                checkArtistInfoFinished();
-            }
-        });
+                else {
+                    artistInfo.albums = data;
+                    artistFunctionsComplete++;
+                    checkArtistInfoFinished();
+                }
+            });
 
-        searchArtistTopSongs(authToken, artistId).then(data => {
-            if (data.hasOwnProperty("error")) {
-                if (!error) {
-                    error = true;
-                    res.send(data);
+            searchArtistTopSongs(authToken, artistId).then(data => {
+                if (data.hasOwnProperty("error")) {
+                    if (!error) {
+                        error = true;
+                        res.send(data);
+                    }
                 }
-            }
-            else {
-                artistInfo.topSongs = data;
-                artistFunctionsComplete++;
-                checkArtistInfoFinished();
-            }
+                else {
+                    artistInfo.topSongs = data;
+                    artistFunctionsComplete++;
+                    checkArtistInfoFinished();
+                }
+            });
         });
     }
 });
 
 app.get('/search/album/*', function (req, res) {
-    var authToken = TEMP_AUTH_TOKEN;
+    // var authToken = TEMP_AUTH_TOKEN;
     let albumId = (req.path).split("/")[3];
     if (albumId == null) {
         res.send({
-            error: "NO ARTIST GIVEN"
+            error: "NO ALBUM GIVEN"
         });
     }
     else {
-        searchAlbum(authToken, albumId).then(data => {
-            res.send(data);
+        console.log(req.query.partyToken);
+        getAuthToken(req.query.partyToken, function (authToken) {
+            searchAlbum(authToken, albumId).then(data => {
+                res.send(data);
+            });
         });
     }
 });
@@ -661,7 +667,9 @@ app.get('/callback', function(req, res) {
 
 app.put('/party/create-party', function(req, res) {
     let partyToken = generateRandomString(8);
-    let admin = req.body.user || null; //TODO add acount checking
+    let admin = req.user || null; //TODO add acount checking
+    console.log(admin);
+    console.log(req);
 
     let dbObject = {
         partyToken: partyToken,
