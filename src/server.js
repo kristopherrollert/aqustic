@@ -391,38 +391,20 @@ app.get('/search/album/*', function (req, res) {
 });
 
 app.get('/search', function(req,res) {
+    var query = req.query.query || '';
+    var type = req.query.type || 'all';
     var user = req.user;
     let userID = {
         username: user,
-    };
-    // console.log(user);
-    var authToken = TEMP_AUTH_TOKEN;
-
-    var query = req.query.query || '';
-    var type = req.query.type || 'all';
-    search(authToken, query, type).then(data => {
-        res.send(data);
-        //TODO: THIS ALL HAS TO BE SAVED TO THE PARTY NOT SPECIFIC USERS
-        // database.findOne("ACCOUNTS", userID, function (result) {
-        //     if (result != null){
-        //         // console.log('--------');
-        //         // console.log("result:" + result);
-        //         // console.log(result.authenticateID);
-        //         // console.log('--------');
-        //         // authToken = result.authenticateID;
-        //         //
-        //         // console.log('******');
-        //         // console.log(authToken);
-        //         // console.log('******');
-        //         var query = req.query.query || '';
-        //         var type = req.query.type || 'all';
-        //         search(authToken, query, type).then(data => {
-        //             res.send(data);
-        //         });
-        //     }
-        //     else{
-        //         console.log("ERROR GET OUT");
-        //     }
+    }
+    //console.log("=============");
+    //console.log(user);
+    //console.log("=============");
+    getAuthToken(req.query.partyToken, function (authToken) {
+        search(authToken, query, type).then(data => {
+            //console.log('got here!');
+            res.send(data);
+        });
     });
 
 });
@@ -635,27 +617,29 @@ app.get('/callback', function(req, res) {
                 /*
                  *  Save authentication token and update token to the database
                  */
-                let updateAuth = {
-                    $set: {
-                        authenticateID: access_token
-                    }
-                };
+                 let updateAuth = {
+                     $set: {
+                         authenticateID: access_token
+                     }
+                 }
 
-                database.updateOne("ACCOUNTS", userID, updateAuth, function (result) {
-                    if (result != null){
-                        console.log("Found Account");
-                    }
-                });
-                let refreshInterval = 2400000;
-                // database.findOne("ACCOUNTS", userID, function (result) {
-                //     if (result != null){
-                //         console.log("HERERE");
-                //         console.log(result.username);
-                //         console.log(result.authenticateID);
-                //         console.log("-----");
-                //     }
-                // });
-                //let intervalId = setInterval(refreshToken(refresh_token), refreshInterval);
+                 database.updateOne("ACCOUNTS", userID, updateAuth, function (result) {
+                     if (result != null){
+                         console.log("Updated Authtoken");
+                     }
+                 });
+
+                 let updateRefresh = {
+                     $set: {
+                         refreshToken: refresh_token
+                     }
+                 }
+
+                 database.updateOne("ACCOUNTS", userID, updateRefresh, function (result) {
+                     if (result != null){
+                         console.log("Updated Refresh");
+                     }
+                 });
 
                 // use the access token to access the Spotify Web API
                 request.get(options, function(error, response, body) {
@@ -923,9 +907,8 @@ var sha512 = function(password, salt){
     };
 };
 
-/**
+/*
  * returns hashed password and salt
- *
  */
 function saltHashPassword(userpassword) {
     let salt = generateRandomString(16);
@@ -1092,6 +1075,109 @@ function getSongLength (authToken, songID) {
         });
 }
 */
+
+
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------- Authorization FUNCTIONS --------------------- */
+/* -------------------------------------------------------------------------- */
+function pingSpotify(authToken, callbackSuccess, callbackFail) {
+
+    let header = {
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    let init = {
+        method: 'GET',
+        headers: header
+    };
+
+    return fetch("https://api.spotify.com/v1/me", init).then(function (response) {
+        if (response.status == 200){
+            //console.log('Got response so true...');
+            //console.log(response);
+            return callbackSuccess();
+        }
+        else {
+            //console.log('Failed so false...');
+            return callbackFail();
+        }
+    }).then(res => {return res});
+};
+/*
+* Gets an Authentication token from party host sends to
+* pingSpotify to check if the code works then uses it
+* if working. If token is experied it refresh token and
+* updates the token in the user's database.
+*/
+function getAuthToken(partyToken, callback) {
+    //console.log("yyyypartyyyy");
+    //console.log('partyToken:' + partyToken);
+    //console.log("yyyypartyyyy");
+
+    let prtyToken = {
+        partyToken: partyToken
+    }
+
+    database.findOne("PARTIES", prtyToken, function (result) {
+        if (result) {
+            let userId = {
+                username: result.admin
+            };
+
+            // console.log('----------');
+            // console.log("user: " + result.admin);
+            // console.log('----------');
+
+            database.findOne("ACCOUNTS", userId, function (res) {
+                let authToken = res.authenticateID;
+                let refreshToken = res.refreshToken;
+                let userID = {
+                    username: res.username
+                };
+                //console.log("username of user: " + res.username);
+                pingSpotify(authToken, function () {
+                    // console.log('----');
+                    // console.log('The authToken should be working!!');
+                    // console.log('----');
+                    callback(authToken);
+                }, function () {
+                    console.log("Token is broken/expired please get new token");
+                    var authOptions = {
+                            url: 'https://accounts.spotify.com/api/token',
+                            headers: { 'Authorization': 'Basic ' + (new Buffer(clientID + ':' + clientSecret).toString('base64')) },
+                            form: {
+                                grant_type: 'refresh_token',
+                                refresh_token: refreshToken
+                            },
+                            json: true
+                        };
+
+                    return request.post(authOptions, function(error, response, body) {
+                        if (!error && response.statusCode === 200) {
+                            console.log('its working I think?');
+                            var access_token = body.access_token;
+                            let updateAccess = {
+                                $set: {
+                                    authenticateID: access_token
+                                }
+                            }
+                            database.updateOne("ACCOUNTS", userID, updateAccess, function (result) {
+                                if (result != null){
+                                    console.log("Updated Refresh");
+                                }
+                            });
+                            callback(access_token);
+                        }
+                        else console.log('its not working I think? :( ');
+                     });
+                })
+            })
+        }
+
+    });
+
+};
 
 
 /* -------------------------------------------------------------------------- */
