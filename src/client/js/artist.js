@@ -2,8 +2,9 @@ $(document).ready(function() {
     openLoadingScreen();
     var artistId = (window.location.pathname).split("/")[5];
     if (artistId == null || artistId == undefined) {
-        // TODO : DEAL WITH THIS
-        console.log("NO ARTIST GIVEN");
+        $(".content-box").hide();
+        $("#artist-error").text("NO ARTIST FOUND").show();
+        setTimeout(closeLoadingScreen, 1000);
         return;
     }
     $.ajax({

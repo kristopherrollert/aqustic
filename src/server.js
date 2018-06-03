@@ -1,5 +1,5 @@
-console.log("using temp auth token");
 /* jshint esversion: 6 */
+console.log("using temp auth token");
 let TEMP_AUTH_TOKEN = 'BQAW5AerHwoiabOaFE-ms-ShjxkTxa8q1V1OyLaCsp9QrjhJXIp6pP-LTs5OHe2HkiV5vddVKs3_K7QXFEEd-G8A6tIc7ZLxBYsnfkp-NcZXJ5IVnOgAolVy0gS-yOk5cFlHLawio8HVZdo1IQdcKbkkfow4cHUiZMEFLVoV';
 let TEMP_LOCATION_ASSUMPTION = "US";
 // ^ this is just for kris, please don't delete
@@ -795,7 +795,7 @@ app.put('/party/*/vote', function (req, res) {
                     queue[queueIndex] = queue[queueIndex - 1];
                     queue[queueIndex - 1] = temp;
                     queueIndex -= 1;
-                    console.log("lmao")
+                    console.log("lmao");
                 }
             }
         }
@@ -826,7 +826,7 @@ app.put('/party/*/vote', function (req, res) {
             }
         };
 
-        database.updateOne('PARTIES', query, newVals, function(result) {})
+        database.updateOne('PARTIES', query, newVals, function(result) {});
     });
 
 });
@@ -948,7 +948,7 @@ function playLoop(partyToken) {
     database.findOne("PARTIES", query, function (result) {
 
         if (result === null) {
-            return "Party not found!"
+            return "Party not found!";
         }
         else {
 
@@ -986,7 +986,7 @@ function playLoop(partyToken) {
 
             //callback function must be surrounded by function(){}
             let timeoutId = setTimeout(function () {
-                playLoop(partyToken)
+                playLoop(partyToken);
             }, songLength);
 
             //test later, below might look cleaner
