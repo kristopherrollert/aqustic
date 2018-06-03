@@ -1,6 +1,7 @@
-console.log("using temp auth token");
 /* jshint esversion: 6 */
-let TEMP_AUTH_TOKEN = 'BQB7XsHC4AHTBIiVQyaWt9B4dDuSwI21GYahlP0dwDLL4DtDx0VOYGMZXUmcO_cOR6LIERM81Fm3B66KLm-VtYcEw_B28W7ggODTuIWvpAK5BNtW4aXRxjqeNeMDFuVEH40UR8UB3L19cURu3Lp8n4l5HfJ40i2LCQ';
+console.log("using temp auth token");
+let TEMP_AUTH_TOKEN = 'BQAW5AerHwoiabOaFE-ms-ShjxkTxa8q1V1OyLaCsp9QrjhJXIp6pP-LTs5OHe2HkiV5vddVKs3_K7QXFEEd-G8A6tIc7ZLxBYsnfkp-NcZXJ5IVnOgAolVy0gS-yOk5cFlHLawio8HVZdo1IQdcKbkkfow4cHUiZMEFLVoV';
+let TEMP_LOCATION_ASSUMPTION = "US";
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -62,21 +63,8 @@ const debug = false; // this can be set to false to hide console.logs
 
 
 /* -------------------------------------------------------------------------- */
-/* ----------------------------------- QUEUE -------------------------------- */
+/* ------------------------------ QUEUE FUNCTIONS --------------------------- */
 /* -------------------------------------------------------------------------- */
-
-// Classes cannot be hoisted aparently so don't move this
-class Queue {
-    constructor() {
-        this.head = null;
-        this.tail = null;
-        this.size = 0;
-        this.list = [];
-    }
-}
-
-// [funcName].call([QUEUE], para1, para2 ...);
-// queuePop.call(queue)
 
 //If anyone is reading this, queuepop does not remove songs be
 function queuePop () {
@@ -301,13 +289,23 @@ app.get('/signin', function(req, res){
     res.sendFile(__dirname+"/client/signin.html");
 });
 
+app.get('/party/*/search/artist/*', function(req, res){
+    res.sendFile(__dirname+"/client/artist.html");
+});
+
+app.get('/party/*/search/album/*', function(req, res){
+    res.sendFile(__dirname+"/client/album.html");
+});
+
 app.get('/signup', function(req, res){
     res.sendFile(__dirname+"/client/signup.html");
 });
 
-app.get('/home', authenticationMiddleware(), function(req, res){
-    // console.log(req.user); //check logged in user's username
-    // console.log(req.isAuthenticated()); //check if user is authenticated
+
+// , authenticationMiddleware() add when done
+app.get('/home', function(req, res){
+
+    // TODO THIS SHOULD REDIRECT TO LOGIN PAGE
     res.sendFile(__dirname+"/client/home.html");
 });
 
@@ -333,7 +331,7 @@ app.get('/search/artist/*', function (req, res) {
         };
 
         searchArtistInfo(authToken, artistId).then(data => {
-            if (data.hasOwnProperty("error")) {
+            if (data == undefined || data.hasOwnProperty("error")) {
                 if (!error) {
                     error = true;
                     res.send(data);
@@ -348,7 +346,7 @@ app.get('/search/artist/*', function (req, res) {
         });
 
         searchArtistAlbums(authToken, artistId).then(data => {
-            if (data.hasOwnProperty("error")) {
+            if (data == undefined || data.hasOwnProperty("error")) {
                 if (!error) {
                     error = true;
                     res.send(data);
@@ -379,7 +377,7 @@ app.get('/search/artist/*', function (req, res) {
 
 app.get('/search/album/*', function (req, res) {
     var authToken = TEMP_AUTH_TOKEN;
-    var albumId = req.query.albumId;
+    let albumId = (req.path).split("/")[3];
     if (albumId == null) {
         res.send({
             error: "NO ARTIST GIVEN"
@@ -393,38 +391,20 @@ app.get('/search/album/*', function (req, res) {
 });
 
 app.get('/search', function(req,res) {
+    var query = req.query.query || '';
+    var type = req.query.type || 'all';
     var user = req.user;
     let userID = {
         username: user,
     }
-    // console.log(user);
-    var authToken = TEMP_AUTH_TOKEN;
-
-    var query = req.query.query || '';
-    var type = req.query.type || 'all';
-    search(authToken, query, type).then(data => {
-        res.send(data);
-        //TODO: THIS ALL HAS TO BE SAVED TO THE PARTY NOT SPECIFIC USERS
-        // database.findOne("ACCOUNTS", userID, function (result) {
-        //     if (result != null){
-        //         // console.log('--------');
-        //         // console.log("result:" + result);
-        //         // console.log(result.authenticateID);
-        //         // console.log('--------');
-        //         // authToken = result.authenticateID;
-        //         //
-        //         // console.log('******');
-        //         // console.log(authToken);
-        //         // console.log('******');
-        //         var query = req.query.query || '';
-        //         var type = req.query.type || 'all';
-        //         search(authToken, query, type).then(data => {
-        //             res.send(data);
-        //         });
-        //     }
-        //     else{
-        //         console.log("ERROR GET OUT");
-        //     }
+    //console.log("=============");
+    //console.log(user);
+    //console.log("=============");
+    getAuthToken(req.query.partyToken, function (authToken) {
+        search(authToken, query, type).then(data => {
+            //console.log('got here!');
+            res.send(data);
+        });
     });
 
 });
@@ -519,6 +499,25 @@ app.put('/account/sign-up', function (req, res) {
 });
 
 
+app.get('/account/get-info', function (req, res) {
+    var user = req.user;
+    let userID = {
+        username: user,
+    };
+    database.findOne("ACCOUNTS", userID, function (result) {
+        console.log(result);
+        if (result == null) {
+            res.send({error : "ACCOUNT NOT FOUND"});
+        }
+        else {
+            res.send({
+                username : result.username,
+                authenticated : result.authenticateID !== null
+            });
+        }
+    });
+});
+
 /*------------Store Sessions------------*/
 passport.serializeUser(function(userID, done) {
     done(null, userID);
@@ -533,7 +532,7 @@ function authenticationMiddleware () {
         console.log(`req.session.passport.user: ${JSON.stringify(req.session.passport)}`);
         if (req.isAuthenticated()) return next();
         res.redirect('/signin');
-    }
+    };
 }
 
 
@@ -577,7 +576,7 @@ app.get('/callback', function(req, res) {
     var user = req.user;
     let userID = {
         username: user,
-    }
+    };
 
     if (state === null || state !== storedState) {
         //TODO: make a better error report
@@ -618,27 +617,29 @@ app.get('/callback', function(req, res) {
                 /*
                  *  Save authentication token and update token to the database
                  */
-                let updateAuth = {
-                    $set: {
-                        authenticateID: access_token
-                    }
-                }
+                 let updateAuth = {
+                     $set: {
+                         authenticateID: access_token
+                     }
+                 }
 
-                database.updateOne("ACCOUNTS", userID, updateAuth, function (result) {
-                    if (result != null){
-                        console.log("Found Account");
-                    }
-                });
-                let refreshInterval = 2400000;
-                // database.findOne("ACCOUNTS", userID, function (result) {
-                //     if (result != null){
-                //         console.log("HERERE");
-                //         console.log(result.username);
-                //         console.log(result.authenticateID);
-                //         console.log("-----");
-                //     }
-                // });
-                //let intervalId = setInterval(refreshToken(refresh_token), refreshInterval);
+                 database.updateOne("ACCOUNTS", userID, updateAuth, function (result) {
+                     if (result != null){
+                         console.log("Updated Authtoken");
+                     }
+                 });
+
+                 let updateRefresh = {
+                     $set: {
+                         refreshToken: refresh_token
+                     }
+                 }
+
+                 database.updateOne("ACCOUNTS", userID, updateRefresh, function (result) {
+                     if (result != null){
+                         console.log("Updated Refresh");
+                     }
+                 });
 
                 // use the access token to access the Spotify Web API
                 request.get(options, function(error, response, body) {
@@ -696,7 +697,7 @@ app.put('/party/*/queue-song', function(req, res) {
     };
 
     database.findOne("PARTIES", query, function (partyResult) {
-        // could not find pary
+
         if(partyResult == null)
             res.send({ error: 'Party not found' });
         else {
@@ -769,8 +770,7 @@ app.get('/party/*/now-playing', function(req, res){
 
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
-
-    playLoop(partyToken);
+    playLoop(partyToken, res);
 });
 
 app.put('/party/*/vote', function (req, res) {
@@ -800,7 +800,7 @@ app.put('/party/*/vote', function (req, res) {
                     queue[queueIndex] = queue[queueIndex - 1];
                     queue[queueIndex - 1] = temp;
                     queueIndex -= 1;
-                    console.log("lmao")
+                    console.log("lmao");
                 }
             }
         }
@@ -831,13 +831,13 @@ app.put('/party/*/vote', function (req, res) {
             }
         };
 
-        database.updateOne('PARTIES', query, newVals, function(result) {})
+        database.updateOne('PARTIES', query, newVals, function(result) {});
     });
 
 });
 
-app.get('/party/*', function(req, res){
-    res.sendFile(__dirname+"/client/home.html");
+app.get('/party/*', authenticationMiddleware(), function(req, res){
+    res.sendFile(__dirname+"/client/party.html");
 });
 
 
@@ -907,9 +907,8 @@ var sha512 = function(password, salt){
     };
 };
 
-/**
+/*
  * returns hashed password and salt
- *
  */
 function saltHashPassword(userpassword) {
     let salt = generateRandomString(16);
@@ -953,7 +952,7 @@ function playLoop(partyToken) {
     database.findOne("PARTIES", query, function (result) {
 
         if (result === null) {
-            return "Party not found!"
+            return "Party not found!";
         }
         else {
 
@@ -991,7 +990,7 @@ function playLoop(partyToken) {
 
             //callback function must be surrounded by function(){}
             let timeoutId = setTimeout(function () {
-                playLoop(partyToken)
+                playLoop(partyToken);
             }, songLength);
 
             //test later, below might look cleaner
@@ -1017,9 +1016,7 @@ function playLoop(partyToken) {
 
         }
     });
-
-    return "Playing Songs..."
-
+    return "Playing Songs...";
 }
 
 
@@ -1080,9 +1077,164 @@ function getSongLength (authToken, songID) {
 */
 
 
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------- Authorization FUNCTIONS --------------------- */
+/* -------------------------------------------------------------------------- */
+function pingSpotify(authToken, callbackSuccess, callbackFail) {
+
+    let header = {
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    let init = {
+        method: 'GET',
+        headers: header
+    };
+
+    return fetch("https://api.spotify.com/v1/me", init).then(function (response) {
+        if (response.status == 200){
+            //console.log('Got response so true...');
+            //console.log(response);
+            return callbackSuccess();
+        }
+        else {
+            //console.log('Failed so false...');
+            return callbackFail();
+        }
+    }).then(res => {return res});
+};
+/*
+* Gets an Authentication token from party host sends to
+* pingSpotify to check if the code works then uses it
+* if working. If token is experied it refresh token and
+* updates the token in the user's database.
+*/
+function getAuthToken(partyToken, callback) {
+    //console.log("yyyypartyyyy");
+    //console.log('partyToken:' + partyToken);
+    //console.log("yyyypartyyyy");
+
+    let prtyToken = {
+        partyToken: partyToken
+    }
+
+    database.findOne("PARTIES", prtyToken, function (result) {
+        if (result) {
+            let userId = {
+                username: result.admin
+            };
+
+            // console.log('----------');
+            // console.log("user: " + result.admin);
+            // console.log('----------');
+
+            database.findOne("ACCOUNTS", userId, function (res) {
+                let authToken = res.authenticateID;
+                let refreshToken = res.refreshToken;
+                let userID = {
+                    username: res.username
+                };
+                //console.log("username of user: " + res.username);
+                pingSpotify(authToken, function () {
+                    // console.log('----');
+                    // console.log('The authToken should be working!!');
+                    // console.log('----');
+                    callback(authToken);
+                }, function () {
+                    console.log("Token is broken/expired please get new token");
+                    var authOptions = {
+                            url: 'https://accounts.spotify.com/api/token',
+                            headers: { 'Authorization': 'Basic ' + (new Buffer(clientID + ':' + clientSecret).toString('base64')) },
+                            form: {
+                                grant_type: 'refresh_token',
+                                refresh_token: refreshToken
+                            },
+                            json: true
+                        };
+
+                    return request.post(authOptions, function(error, response, body) {
+                        if (!error && response.statusCode === 200) {
+                            console.log('its working I think?');
+                            var access_token = body.access_token;
+                            let updateAccess = {
+                                $set: {
+                                    authenticateID: access_token
+                                }
+                            }
+                            database.updateOne("ACCOUNTS", userID, updateAccess, function (result) {
+                                if (result != null){
+                                    console.log("Updated Refresh");
+                                }
+                            });
+                            callback(access_token);
+                        }
+                        else console.log('its not working I think? :( ');
+                     });
+                })
+            })
+        }
+
+    });
+
+};
+
+
 /* -------------------------------------------------------------------------- */
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */
+
+function searchAlbum(authToken, albumId) {
+    var headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var init = {
+        method: 'GET',
+        headers: headers
+    };
+
+    return fetch(`https://api.spotify.com/v1/albums/${albumId}`, init)
+        .then(response => {
+            if (response.status === 200) {
+                return response.json().then(function(data) {
+                    var albumInfo = {
+                        albumName : data.name,
+                        artists : data.artists,
+                        tracks : [],
+                        image : data.images[0].url
+                    };
+                    for (let i = 0; i < data.tracks.items.length; i++) {
+                        var track = new Song();
+                        // console.log("______________________________");
+                        // console.log(data.tracks.items[i]);
+                        track.setSongName(data.tracks.items[i].name);
+                        track.setSongId(data.tracks.items[i].id);
+                        track.setSongArtists(data.tracks.items[i].artists);
+                        track.setSongLength(data.tracks.items[i].duration_ms);
+                        track.setAlbumName(data.name);
+                        track.setAlbumId(data.tracks.id);
+                        track.setAlbumImage(data.images[0].url);
+                        albumInfo.tracks.push(track);
+                    }
+                    return albumInfo;
+                });
+            }
+            else if (response.status === 400) {
+                return {
+                    error: "ALBUM NOT FOUND"
+                };
+            }
+            else {
+                console.log("ERROR FROM SPOTIFY : " + response.status);
+                return {
+                    error: "ERROR FROM SPOTIFY"
+                };
+            }
+        });
+}
 
 function searchArtistTopSongs(authToken, artistId) {
     var headers = {
@@ -1123,7 +1275,9 @@ function searchArtistTopSongs(authToken, artistId) {
             }
             else {
                 console.log("ERROR FROM SPOTIFY : " + response.status);
-            }
+                return {
+                    error: "ERROR FROM SPOTIFY"
+                };            }
         });
 }
 
@@ -1156,8 +1310,10 @@ function searchArtistInfo(authToken, artistId) {
                 };
             }
             else {
-                console.log("ERROR FROM SPOTIFY");
-            }
+                console.log("ERROR FROM SPOTIFY : " + response.status);
+                return {
+                    error: "ERROR FROM SPOTIFY"
+                };            }
         });
 }
 
@@ -1201,8 +1357,10 @@ function searchArtistAlbums(authToken, artistId) {
                 };
             }
             else {
-                console.log("ERROR FROM SPOTIFY");
-            }
+                console.log("ERROR FROM SPOTIFY : " + response.status);
+                return {
+                    error: "ERROR FROM SPOTIFY"
+                };            }
         });
 }
 
@@ -1318,119 +1476,7 @@ function parse_search(query) {
     return query.replace(/ /i, '%20');
 }
 
-/*
- * DESCRIPTION: A way to get the songs in an album on spotify
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  albumId -> album to get tracks from
- * returns a dictionary of the tracks, made into song objects
- */
-function getAlbum(authToken, albumId) {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    }
-
-    var init = {
-        method: 'GET',
-        headers: header,
-    }
-
-    return fetch(`https://api.spotify.com/v1/albums/${albumId}`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                var album = new Album();
-                return res.json().then(function(data) {
-                    var tracks = [];
-                    for (i = 0; i < data.tracks.items.length; i++) {
-                        var track = new Song();
-                        track.setSongName(data.tracks.items[i].name);
-                        track.setSongId(data.tracks.items[i].id);
-                        track.setSongArtists(data.tracks.items[i].artists);
-                        track.setSongLength(data.tracks.items[i].duration_ms);
-                        tracks.push(track);
-                    }
-                    album.setSongs(tracks);
-                    album.setAlbumId(data.id);
-                    var artists = [];
-                    for(j = 0; j < data.artists.length; j++) {
-                        var artist = new Artist();
-                        artist.setArtistId(data.artists[j].id);
-                        artist.setArtistName(data.artists[j].name);
-                        artists.push(artist);
-                    }
-                    album.setAlbumArtists(artists);
-                    return album;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-            console.debug(response);
-            // ...
-        }).catch(error => {
-            console.error(error);
-        });
-}
-
-
-/*
- * DESCRIPTION: A way to get the top songs and albums from an artist on spotify
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  artistId -> artist to be looked up
- * Returns a dictionary of the top tracks and albums from the artist
- */
-function getArtist(authToken, artistId) {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    };
-
-    var init = JSON.stringify({
-        method: 'GET',
-        headers: header,
-    });
-
-    var artist = fetch(` https://api.spotify.com/v1/artists/${artistId}`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                return res.json().then(function(data) {
-                    var artist = new Artist();
-                    artist.setArtistId(data.id);
-                    artist.setArtistName(data.name);
-                    return artist;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-            console.debug(response);
-            // ...
-        }).catch(error => {
-            console.error(error);
-        });
-
-    return artist;
-}
-
-/*
- * DESCRIPTION: A way to get the songs from a spotify playlist
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  playlistId -> id of the playlist
- *  userId -> userId of the playlist owner
- * Returns a dictionary of the top tracks and albums from the artist
- */
-function getPlaylist(authToken, playlistId, userId) {
+function searchPlaylist(authToken, playlistId) {
 
     var header = {
         "Accept": "application/json",
@@ -1465,7 +1511,6 @@ function getPlaylist(authToken, playlistId, userId) {
         })
         .then(response => {
             console.debug(response);
-            // ...
         }).catch(error => {
             console.error(error);
         });

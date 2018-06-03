@@ -1,14 +1,19 @@
 $(document).ready(function() {
     openLoadingScreen();
     var artistId = (window.location.pathname).split("/")[5];
+    var partyToken = (window.location.pathname).split("/")[3];
     if (artistId == null || artistId == undefined) {
-        // TODO : DEAL WITH THIS
-        console.log("NO ARTIST GIVEN");
+        $(".content-box").hide();
+        $("#artist-error").text("NO ARTIST FOUND").show();
+        setTimeout(closeLoadingScreen, 1000);
         return;
     }
     $.ajax({
         type: "GET",
-        url: "/search/artist/" + artistId
+        url: "/search/artist/" + artistId,
+        data: {
+            partyToken : partyToken
+        }
     }).done(function(data) {
         if (data.hasOwnProperty("error")) {
             $(".content-box").hide();

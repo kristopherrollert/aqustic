@@ -354,7 +354,8 @@ function searchPage(partyToken) {
             url: "/search",
             data: {
                 query: query,
-                type: 'all'
+                type: 'all',
+                partyToken: partyToken
             }
         }).done(function(data) {
             $(".open-message").hide();
