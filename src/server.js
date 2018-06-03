@@ -1,11 +1,7 @@
 console.log("using temp auth token");
 /* jshint esversion: 6 */
-<<<<<<< HEAD
 let TEMP_AUTH_TOKEN = 'BQAW5AerHwoiabOaFE-ms-ShjxkTxa8q1V1OyLaCsp9QrjhJXIp6pP-LTs5OHe2HkiV5vddVKs3_K7QXFEEd-G8A6tIc7ZLxBYsnfkp-NcZXJ5IVnOgAolVy0gS-yOk5cFlHLawio8HVZdo1IQdcKbkkfow4cHUiZMEFLVoV';
 let TEMP_LOCATION_ASSUMPTION = "US";
-=======
-let TEMP_AUTH_TOKEN = 'BQB7XsHC4AHTBIiVQyaWt9B4dDuSwI21GYahlP0dwDLL4DtDx0VOYGMZXUmcO_cOR6LIERM81Fm3B66KLm-VtYcEw_B28W7ggODTuIWvpAK5BNtW4aXRxjqeNeMDFuVEH40UR8UB3L19cURu3Lp8n4l5HfJ40i2LCQ';
->>>>>>> 9db6b507ed1c3a38a3a7ef348d1a862aa56044ec
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -311,10 +307,6 @@ app.get('/home', authenticationMiddleware(), function(req, res){
     res.sendFile(__dirname+"/client/home.html");
 });
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 9db6b507ed1c3a38a3a7ef348d1a862aa56044ec
 // Needs: artist name, photo, album names, album images, album id, top songs name,
 //        top songs id,
 app.get('/search/artist/*', function (req, res) {
@@ -537,7 +529,7 @@ function authenticationMiddleware () {
         console.log(`req.session.passport.user: ${JSON.stringify(req.session.passport)}`);
         if (req.isAuthenticated()) return next();
         res.redirect('/signin');
-    }
+    };
 }
 
 
@@ -773,12 +765,7 @@ app.get('/party/*/now-playing', function(req, res){
 
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
-<<<<<<< HEAD
     playLoop(partyToken, res);
-=======
-
-    playLoop(partyToken);
->>>>>>> 9db6b507ed1c3a38a3a7ef348d1a862aa56044ec
 });
 
 app.put('/party/*/vote', function (req, res) {
@@ -961,13 +948,7 @@ function playLoop(partyToken) {
     database.findOne("PARTIES", query, function (result) {
 
         if (result === null) {
-<<<<<<< HEAD
-            res.send({
-                error: 'Party not found'
-            });
-=======
             return "Party not found!"
->>>>>>> 9db6b507ed1c3a38a3a7ef348d1a862aa56044ec
         }
         else {
 
@@ -1031,13 +1012,7 @@ function playLoop(partyToken) {
 
         }
     });
-
-<<<<<<< HEAD
-    res.send("Playing Song...");
-=======
-    return "Playing Songs..."
->>>>>>> 9db6b507ed1c3a38a3a7ef348d1a862aa56044ec
-
+    return "Playing Songs...";
 }
 
 
@@ -1102,7 +1077,6 @@ function getSongLength (authToken, songID) {
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */
 
-<<<<<<< HEAD
 function searchAlbum(authToken, albumId) {
     var headers = {
         "Accept": "application/json",
@@ -1155,8 +1129,6 @@ function searchAlbum(authToken, albumId) {
         });
 }
 
-=======
->>>>>>> 9db6b507ed1c3a38a3a7ef348d1a862aa56044ec
 function searchArtistTopSongs(authToken, artistId) {
     var headers = {
         "Accept": "application/json",
@@ -1397,123 +1369,7 @@ function parse_search(query) {
     return query.replace(/ /i, '%20');
 }
 
-<<<<<<< HEAD
-function searchPlaylist(authToken, playlistId, userId) {
-=======
-/*
- * DESCRIPTION: A way to get the songs in an album on spotify
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  albumId -> album to get tracks from
- * returns a dictionary of the tracks, made into song objects
- */
-function getAlbum(authToken, albumId) {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    }
-
-    var init = {
-        method: 'GET',
-        headers: header,
-    }
-
-    return fetch(`https://api.spotify.com/v1/albums/${albumId}`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                var album = new Album();
-                return res.json().then(function(data) {
-                    var tracks = [];
-                    for (i = 0; i < data.tracks.items.length; i++) {
-                        var track = new Song();
-                        track.setSongName(data.tracks.items[i].name);
-                        track.setSongId(data.tracks.items[i].id);
-                        track.setSongArtists(data.tracks.items[i].artists);
-                        track.setSongLength(data.tracks.items[i].duration_ms);
-                        tracks.push(track);
-                    }
-                    album.setSongs(tracks);
-                    album.setAlbumId(data.id);
-                    var artists = [];
-                    for(j = 0; j < data.artists.length; j++) {
-                        var artist = new Artist();
-                        artist.setArtistId(data.artists[j].id);
-                        artist.setArtistName(data.artists[j].name);
-                        artists.push(artist);
-                    }
-                    album.setAlbumArtists(artists);
-                    return album;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-            console.debug(response);
-            // ...
-        }).catch(error => {
-            console.error(error);
-        });
-}
-
-
-/*
- * DESCRIPTION: A way to get the top songs and albums from an artist on spotify
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  artistId -> artist to be looked up
- * Returns a dictionary of the top tracks and albums from the artist
- */
-function getArtist(authToken, artistId) {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    };
-
-    var init = JSON.stringify({
-        method: 'GET',
-        headers: header,
-    });
-
-    var artist = fetch(` https://api.spotify.com/v1/artists/${artistId}`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                return res.json().then(function(data) {
-                    var artist = new Artist();
-                    artist.setArtistId(data.id);
-                    artist.setArtistName(data.name);
-                    return artist;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-            console.debug(response);
-            // ...
-        }).catch(error => {
-            console.error(error);
-        });
-
-    return artist;
-}
-
-/*
- * DESCRIPTION: A way to get the songs from a spotify playlist
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  playlistId -> id of the playlist
- *  userId -> userId of the playlist owner
- * Returns a dictionary of the top tracks and albums from the artist
- */
-function getPlaylist(authToken, playlistId, userId) {
->>>>>>> 9db6b507ed1c3a38a3a7ef348d1a862aa56044ec
+function searchPlaylist(authToken, playlistId) {
 
     var header = {
         "Accept": "application/json",
@@ -1548,11 +1404,6 @@ function getPlaylist(authToken, playlistId, userId) {
         })
         .then(response => {
             console.debug(response);
-<<<<<<< HEAD
-
-=======
-            // ...
->>>>>>> 9db6b507ed1c3a38a3a7ef348d1a862aa56044ec
         }).catch(error => {
             console.error(error);
         });
