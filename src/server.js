@@ -804,7 +804,7 @@ app.put('/party/*/vote', function (req, res) {
                 }
             }
         }
-        //else is for dislikes
+        
         if (vote == "dislike") {
             currSong.dislikes += 1;
             currSong.score -= 1;
