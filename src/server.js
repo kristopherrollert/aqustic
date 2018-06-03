@@ -783,7 +783,7 @@ app.get('/party/*/play', function(req, res) {
 
 app.put('/party/*/vote', function (req, res) {
     let partyToken = (req.path).split("/")[2];
-    let queueIndex = req.body.queueIndex;
+    let queueIndex = parseInt(req.body.queueIndex);
     //should be true if a like is being added, false if dislike
     let vote = req.body.vote;
 
@@ -798,32 +798,27 @@ app.put('/party/*/vote', function (req, res) {
 
         //Checks if like or dislike
         //Uhh for some reason the equals true is needed lol, or else its always true
-        if (vote == "like") {
+        if (vote === "like") {
             currSong.likes += 1;
             currSong.score += 1;
 
-            if (queueIndex > 0) {
-                while (queueIndex > 0 && (queue[queueIndex].score > queue[queueIndex - 1].score)) {
-                    let temp = queue[queueIndex];
-                    queue[queueIndex] = queue[queueIndex - 1];
-                    queue[queueIndex - 1] = temp;
-                    queueIndex -= 1;
-                    console.log("lmao");
-                }
+            while (queueIndex > 0 && (queue[queueIndex].score > queue[queueIndex - 1].score)) {
+                let temp = queue[queueIndex];
+                queue[queueIndex] = queue[queueIndex - 1];
+                queue[queueIndex - 1] = temp;
+                queueIndex -= 1;
             }
         }
-        //else is for dislikes
-        if (vote == "dislike") {
+        
+        if (vote === "dislike") {
             currSong.dislikes += 1;
             currSong.score -= 1;
 
-            if (queueIndex < queue.length - 1) {
-                while (queueIndex < queue.length - 1 && (queue[queueIndex].score < queue[queueIndex + 1].score)) {
-                    let temp = queue[queueIndex];
-                    queue[queueIndex] = queue[queueIndex + 1];
-                    queue[queueIndex + 1] = temp;
-                    queueIndex += 1;
-                }
+            while (queueIndex < queue.length - 1 && (queue[queueIndex].score < queue[queueIndex + 1].score)) {
+                let temp = queue[queueIndex];
+                queue[queueIndex] = queue[queueIndex + 1];
+                queue[queueIndex + 1] = temp;
+                queueIndex += 1;
             }
         }
 
@@ -946,6 +941,7 @@ function getLargerSong(song1, song2) {
         return song2;
     return null;
 }
+
 
 /* -------------------------------------------------------------------------- */
 /* ----------------------------- PLAY FUNCTIONS ----------------------------- */
