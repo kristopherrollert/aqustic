@@ -481,13 +481,13 @@ input[type="text"]:focus, input[type="password"]:focus {
   margin-bottom: 12px;
   margin-right: 20px; }
 
-.top-song-text {
+.top-song-text, .album-song-text {
   color: white;
   flex-grow: 1;
   word-wrap: break-word;
   width: calc(100% - 90px); }
 
-.top-song-name {
+.top-song-name, .album-song-name {
   font-weight: 400;
   font-size: 24px;
   margin-top: 12px;
@@ -496,14 +496,14 @@ input[type="text"]:focus, input[type="password"]:focus {
   white-space: nowrap;
   overflow: hidden; }
 
-.top-song-item {
+.top-song-item, .album-song-item {
   display: flex;
   width: 100%;
   align-items: center;
   border-bottom: 1px solid #f6ca5a;
   cursor: pointer; }
 
-.top-song-item:hover {
+.top-song-item:hover, .album-song-item {
   background-color: #222b2f; }
 
 .top-song-item:last-of-type {
@@ -556,8 +556,7 @@ input[type="text"]:focus, input[type="password"]:focus {
   width: 100vw;
   height: 100vh;
   background-color: #2a363b;
-  z-index: 2;
-  display: none; }
+  z-index: 2; }
 
 .center-box {
   display: flex;

@@ -6,16 +6,22 @@ $(document).ready(function() {
         console.log("NO ARTIST GIVEN");
         return;
     }
-    console.log("ARTIST ID: " + artistId);
     $.ajax({
         type: "GET",
         url: "/search/artist/" + artistId
     }).done(function(data) {
-        console.log(data);
-        var maxResults = 4;
-        generateHeader(data.name, data.image);
-        generateTopSongs(data.topSongs);
-        generateAlbums(maxResults, data.albums);
+        if (data.hasOwnProperty("error")) {
+            $(".content-box").hide();
+            $("#artist-error").text(data.error).show();
+            setTimeout(closeLoadingScreen, 1000);
+        }
+        else {
+            var maxResults = 4;
+            generateHeader(data.name, data.image);
+            generateTopSongs(data.topSongs);
+            generateAlbums(maxResults, data.albums);
+            setTimeout(closeLoadingScreen, 1000);
+        }
     });
 
 });
@@ -25,7 +31,7 @@ function generateHeader(name, img) {
     var headerInfo = {
         NAME: name,
         IMG: img
-    }
+    };
     var headerHtml = headerTemplate(headerInfo);
     $(".content-header-section").append(headerHtml);
 }
@@ -168,10 +174,12 @@ function generateAlbums (maxResults, albumData) {
 
 // LOADING JAVACRIPT
 function closeLoadingScreen() {
+    $("body").removeClass("body-cover");
     $(".loading-screen").hide();
 }
 
 function openLoadingScreen() {
+    $("body").addClass("body-cover");
     moveBar($("#bar1"), 1600, 250, 30);
     moveBar($("#bar2"), 700, 250, 55);
     moveBar($("#bar3"), 1000, 190, 25);

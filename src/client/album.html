@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>aqustic | artist</title>
+    <title>artist | album</title>
     <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="/style/style.css">
     <script src="http://code.jquery.com/jquery-3.3.1.js"
@@ -15,7 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.js"></script>
     <script src="/js/lib/socket.io.js"></script>
     <script src="/js/lib/jquery.actual.min.js"></script>
-    <script src="/js/artist.js"></script>
+    <script src="/js/album.js"></script>
 </head>
 <body>
     <div class="loading-screen">
@@ -59,58 +59,26 @@
     <div class="content-section full-page">
         <h2 id="artist-error">...</h2>
         <div class="content-box" style="width:382.472px">
-            <div class="content-header-section">
-                <script id="content-header-temp" type="text/x-handlebars-template">
-                    <div class="content-header">
-                        <p class="page-class section-header">ARTIST</p>
-                        <h2 class="tertiary-header full-page" id="header-artist-name">{{NAME}}</h2>
-                    </div>
-                    <div class="artist-image-section">
-                        <div class="image-border-box">
-                            <div class="artist-page-image" style="background-image: url('{{IMG}}')"></div>
-                        </div>
-                    </div>
-                </script>
-            </div>
-            <div class="top-songs-section">
-                <h3 class="section-header">TOP SONGS</h3>
-                <div class="top-songs-content">
-                    <script id="top-song-temp" type="text/x-handlebars-template">
-                        <div class="top-song-item" id="song-{{SONG_ID}}">
+            <script id="content-header-temp" type="text/x-handlebars-template">
+                <div class="content-header">
+                    <p class="page-class section-header">ALBUM</p>
+                    <h2 class="tertiary-header full-page" id="header-artist-name">{{NAME}}</h2>
+                    <p class="section-header">{{ARTIST}}</p>
+                </div>
+            </script>
+            <div class="album-songs-section">
+                <div class="album-songs-content">
+                    <script id="album-song-temp" type="text/x-handlebars-template">
+                        <div class="album-song-item" id="song-{{SONG_ID}}">
                             <div class="number-box">
                                 <h3 class="number">{{NUMBER}}</h3>
                             </div>
-                            <div class="top-song-text">
-                                <h3 class="top-song-name">{{NAME}}</h3>
+                            <div class="album-song-text">
+                                <h3 class="album-song-name">{{NAME}}</h3>
                             </div>
-                            <div class="top-song-options"><i class="fas fa-ellipsis-h"></i></div>
+                            <div class="album-song-options"><i class="fas fa-ellipsis-h"></i></div>
                         </div>
                     </script>
-                </div>
-            </div>
-            <div class="albums-section">
-                <h3 class="section-header">ALBUMS</h3>
-                <div class="album-content" style="display: block;">
-                    <script id="album-item-template" type="text/x-handlebars-template">
-                        <div class="album-item" id="album-{{ALBUM_ID}}">
-                            <div class="album-cover-section">
-                                <img src= "{{IMG}}" class="album-cover-image">
-                            </div>
-                            <div class="album-content-section" >
-                                <div class="album-text">
-                                    <h2 class="album-title">{{NAME}}</h2>
-                                    <h2 class="album-artists">{{ARTIST}}</h2>
-                                    <h2 class="album-year">{{YEAR}}</h2>
-                                </div>
-                                <div class="album-options"><i class="fas fa-ellipsis-h"></i></div>
-                            </div>
-                        </div>
-                    </script>
-                    <script id="show-more" type="text/x-handlebars-template">
-                        <div class="show-more-button" id="show-more-{{ID}}">
-                            <h1 class="show-more-text">{{TEXT}}</h1>
-                        </div>
-                    </script >
                 </div>
             </div>
         </div>

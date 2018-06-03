@@ -325,6 +325,7 @@ app.get('/search/artist/*', function (req, res) {
     }
     else {
         let artistInfo = {};
+        let error = false;
         let artistFunctionsComplete = 0;
         // Only sends after all async methods are called
         let checkArtistInfoFinished = function () {
@@ -334,22 +335,46 @@ app.get('/search/artist/*', function (req, res) {
         };
 
         searchArtistInfo(authToken, artistId).then(data => {
-            artistInfo.name = data.name;
-            artistInfo.image = data.image;
-            artistFunctionsComplete++;
-            checkArtistInfoFinished();
+            if (data.hasOwnProperty("error")) {
+                if (!error) {
+                    error = true;
+                    res.send(data);
+                }
+            }
+            else {
+                artistInfo.name = data.name;
+                artistInfo.image = data.image;
+                artistFunctionsComplete++;
+                checkArtistInfoFinished();
+            }
         });
 
         searchArtistAlbums(authToken, artistId).then(data => {
-            artistInfo.albums = data;
-            artistFunctionsComplete++;
-            checkArtistInfoFinished();
+            if (data.hasOwnProperty("error")) {
+                if (!error) {
+                    error = true;
+                    res.send(data);
+                }
+            }
+            else {
+                artistInfo.albums = data;
+                artistFunctionsComplete++;
+                checkArtistInfoFinished();
+            }
         });
 
         searchArtistTopSongs(authToken, artistId).then(data => {
-            artistInfo.topSongs = data;
-            artistFunctionsComplete++;
-            checkArtistInfoFinished();
+            if (data.hasOwnProperty("error")) {
+                if (!error) {
+                    error = true;
+                    res.send(data);
+                }
+            }
+            else {
+                artistInfo.topSongs = data;
+                artistFunctionsComplete++;
+                checkArtistInfoFinished();
+            }
         });
     }
 });
@@ -1066,8 +1091,13 @@ function searchArtistTopSongs(authToken, artistId) {
                     return artistTopSongs;
                 });
             }
+            else if (response.status === 400) {
+                return {
+                    error: "ARTIST NOT FOUND"
+                };
+            }
             else {
-                console.log("ERROR FROM SPOTIFY");
+                console.log("ERROR FROM SPOTIFY : " + response.status);
             }
         });
 }
@@ -1094,6 +1124,11 @@ function searchArtistInfo(authToken, artistId) {
                         image : data.images[0].url,
                     };
                 });
+            }
+            else if (response.status === 400) {
+                return {
+                    error: "ARTIST NOT FOUND"
+                };
             }
             else {
                 console.log("ERROR FROM SPOTIFY");
@@ -1134,6 +1169,11 @@ function searchArtistAlbums(authToken, artistId) {
                     }
                     return artistAlbums;
                 });
+            }
+            else if (response.status === 400) {
+                return {
+                    error: "ARTIST NOT FOUND"
+                };
             }
             else {
                 console.log("ERROR FROM SPOTIFY");
