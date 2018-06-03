@@ -196,7 +196,7 @@ var database = {
                     }
                     db.close();
                     if (callback) callback(result);
-            });
+                });
         });
     },
 
@@ -227,7 +227,7 @@ var database = {
                     if (debug) console.log("DELETED ELEMENT");
                     db.close();
                     if (callback) callback(result);
-            });
+                });
         });
     },
 
@@ -241,7 +241,7 @@ var database = {
                     if (debug) console.log(`DELETED ${result.result.n} ELEMENT(S)`);
                     db.close();
                     if (callback) callback(result);
-            });
+                });
         });
     },
 
@@ -285,7 +285,7 @@ app.use(session({
     resave: true,
     saveUninitialized: true
     //cookie: {secure: true}
-        }));
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -324,27 +324,27 @@ app.get('/search', function(req,res) {
     var type = req.query.type || 'all';
     search(authToken, query, type).then(data => {
         res.send(data);
-    //TODO: THIS ALL HAS TO BE SAVED TO THE PARTY NOT SPECIFIC USERS
-    // database.findOne("ACCOUNTS", userID, function (result) {
-    //     if (result != null){
-    //         // console.log('--------');
-    //         // console.log("result:" + result);
-    //         // console.log(result.authenticateID);
-    //         // console.log('--------');
-    //         // authToken = result.authenticateID;
-    //         //
-    //         // console.log('******');
-    //         // console.log(authToken);
-    //         // console.log('******');
-    //         var query = req.query.query || '';
-    //         var type = req.query.type || 'all';
-    //         search(authToken, query, type).then(data => {
-    //             res.send(data);
-    //         });
-    //     }
-    //     else{
-    //         console.log("ERROR GET OUT");
-    //     }
+        //TODO: THIS ALL HAS TO BE SAVED TO THE PARTY NOT SPECIFIC USERS
+        // database.findOne("ACCOUNTS", userID, function (result) {
+        //     if (result != null){
+        //         // console.log('--------');
+        //         // console.log("result:" + result);
+        //         // console.log(result.authenticateID);
+        //         // console.log('--------');
+        //         // authToken = result.authenticateID;
+        //         //
+        //         // console.log('******');
+        //         // console.log(authToken);
+        //         // console.log('******');
+        //         var query = req.query.query || '';
+        //         var type = req.query.type || 'all';
+        //         search(authToken, query, type).then(data => {
+        //             res.send(data);
+        //         });
+        //     }
+        //     else{
+        //         console.log("ERROR GET OUT");
+        //     }
     });
 
 });
@@ -450,10 +450,10 @@ passport.deserializeUser(function(userID, done) {
 
 function authenticationMiddleware () {
     return (req, res, next) => {
-  	     console.log(`req.session.passport.user: ${JSON.stringify(req.session.passport)}`);
-  	     if (req.isAuthenticated()) return next();
-  	     res.redirect('/signin');
-  	}
+        console.log(`req.session.passport.user: ${JSON.stringify(req.session.passport)}`);
+        if (req.isAuthenticated()) return next();
+        res.redirect('/signin');
+    }
 }
 
 
@@ -468,12 +468,12 @@ app.get('/spotify-authorization', function(req, res){
     // redirects to spotify authorization page, returns to the redirect_uri
     res.redirect('https://accounts.spotify.com/authorize?' +
         querystring.stringify({
-             response_type: 'code',
-             client_id: clientID,
-             scope: 'streaming user-read-private user-read-email',
-             redirect_uri: `${baseUrl}/callback/`,
-             state: state
-     }));
+            response_type: 'code',
+            client_id: clientID,
+            scope: 'streaming user-read-private user-read-email',
+            redirect_uri: `${baseUrl}/callback/`,
+            state: state
+        }));
 });
 
 /*
@@ -488,8 +488,8 @@ app.get('/settings', function(req, res){
 
 
 app.get('/callback', function(req, res) {
-  // your application requests refresh and access tokens
-  // after checking the state parameter
+    // your application requests refresh and access tokens
+    // after checking the state parameter
 
     var code = req.query.code || null;
     var state = req.query.state || null;
@@ -503,8 +503,8 @@ app.get('/callback', function(req, res) {
         //TODO: make a better error report
         res.redirect('/#' +
             querystring.stringify({
-            error: 'state_mismatch'
-        }));
+                error: 'state_mismatch'
+            }));
     }
     else {
         res.clearCookie(authStateKey);
@@ -514,7 +514,7 @@ app.get('/callback', function(req, res) {
                 code: code,
                 redirect_uri: `${baseUrl}/callback/`,
                 grant_type: 'authorization_code'
-                },
+            },
             headers: {
                 'Authorization': 'Basic ' + (new Buffer(clientID + ':' + clientSecret).toString('base64'))
             },
@@ -633,8 +633,14 @@ app.put('/party/*/queue-song', function(req, res) {
             };
 
             database.updateOne("PARTIES", query, updates, function () {
-                res.end();
+//                res.end();
             });
+
+            if (partyResult.currentlyPlaying === null) {
+                playLoop(partyToken);
+            }
+            res.end();
+
         }
     });
 });
@@ -684,7 +690,7 @@ app.get('/party/*/now-playing', function(req, res){
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
 
-    playLoop(partyToken, res);
+    playLoop(partyToken);
 });
 
 app.put('/party/*/vote', function (req, res) {
@@ -704,15 +710,40 @@ app.put('/party/*/vote', function (req, res) {
 
         //Checks if like or dislike
         //Uhh for some reason the equals true is needed lol, or else its always true
-        if (isLike === true) {
+        if (isLike == true) {
             currSong.likes += 1;
             currSong.score += 1;
+
+            console.log(queue[queueIndex]);
+
+            /*
+            while ((queue[queueIndex].getScore() > queue[queueIndex - 1].getScore()) && queueIndex > 0) {
+                let temp = queue[queueIndex];
+                queue[queueIndex] = queue[queueIndex - 1];
+                queue[queueIndex - 1] = temp;
+                queueIndex -= 1;
+                console.log("lmao")
+            }
+            */
         }
         //else is for dislikes
         else {
             currSong.dislikes += 1;
             currSong.score -= 1;
+
+            console.log("WHY ARE YOU HERE")
+
+            /*
+            while ((queue[queueIndex].score < queue[queueIndex + 1].score) && queueIndex < queue.length - 1) {
+                let temp = queue[queueIndex];
+                queue[queueIndex] = queue[queueIndex + 1];
+                queue[queueIndex + 1] = temp;
+                queueIndex += 1;
+            }
+            */
         }
+
+
 
         query = {
             partyToken: partyToken
@@ -753,7 +784,7 @@ io.on('connection', function(socket){
                 break;
             default:
                 console.log("ERROR");
-                //TODO deal with this error
+            //TODO deal with this error
         }
     });
 });
@@ -808,7 +839,7 @@ function saltHashPassword(userpassword) {
     let salt = generateRandomString(16);
     let passwordData = sha512(userpassword, salt);
     return { hashPassword: passwordData.passwordHash,
-             salt: passwordData.salt };
+        salt: passwordData.salt };
 }
 
 function hashPassword(userpassword, salt) {
@@ -820,7 +851,7 @@ function hashPassword(userpassword, salt) {
  * Returns true if string has special characters
  */
 function isValid(str){
- return !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(str);
+    return !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(str);
 }
 
 function getLargerSong(song1, song2) {
@@ -837,7 +868,7 @@ function getLargerSong(song1, song2) {
 /* ----------------------------- PLAY FUNCTIONS ----------------------------- */
 /* -------------------------------------------------------------------------- */
 
-function playLoop(partyToken, res) {
+function playLoop(partyToken) {
 
     let query = {
         partyToken: partyToken
@@ -846,17 +877,26 @@ function playLoop(partyToken, res) {
     database.findOne("PARTIES", query, function (result) {
 
         if (result === null) {
-            res.send({
-                error: 'Party not found'
-            })
+            return "Party not found!"
         }
         else {
 
             let queue = result.songQueue;
 
             if (queue.length <= 0) {
-                res.send({
-                    error: 'Queue is empty!'
+
+                let query = {
+                    partyToken: partyToken
+                };
+
+                let newVals = {
+                    $set: {
+                        currentlyPlaying: null
+                    }
+                };
+
+                database.updateOne("PARTIES", query, newVals, function (result) {
+
                 });
                 return;
             }
@@ -884,8 +924,6 @@ function playLoop(partyToken, res) {
             query = {
                 partyToken: partyToken,
             };
-            console.log("Kai look here");
-            console.log(nextSong);
 
             //Only seperately putting the $sets worked, change it at your own risk
             let newVals = {
@@ -898,13 +936,13 @@ function playLoop(partyToken, res) {
             };
 
             database.update("PARTIES", query, newVals, function (result) {
-                console.log(result);
+
             });
 
         }
     });
 
-    res.send("Playing Song...")
+    return "Playing Songs..."
 
 }
 
@@ -946,12 +984,10 @@ function getSongLength (authToken, songID) {
     var header = {
         "Authorization": "Bearer " + authToken,
     };
-
     var init = {
         method: 'GET',
         headers: header,
     };
-
     let songLength = -1;
     fetch('https://api.spotify.com/v1/tracks/' + songID, init)
         .then(function (res) {
@@ -998,80 +1034,80 @@ function search(authToken, query, type = 'all') {
 
     return fetch(`https://api.spotify.com/v1/search?q=${query}&type=${type}`, init)
         .then(response => {
-        if (response.status === 200) {
-            return response.json().then(function(data) {
-                var dict = {
-                    tracks: [],
-                    albums: [],
-                    playlists: [],
-                    artists: []
-                };
-                if (type.includes("track")) {
-                    for (let i = 0; i < data.tracks.items.length; i++) {
-                        var track = new Song();
-                        track.setSongName(data.tracks.items[i].name);
-                        track.setSongId(data.tracks.items[i].id);
-                        track.setSongArtists(data.tracks.items[i].artists);
-                        track.setSongLength(data.tracks.items[i].duration_ms);
-                        track.setAlbumName(data.tracks.items[i].album.name);
-                        track.setAlbumId(data.tracks.items[i].album.id);
-                        track.setAlbumImage(data.tracks.items[i].album.images[0].url);
-                        dict.tracks.push(track);
+            if (response.status === 200) {
+                return response.json().then(function(data) {
+                    var dict = {
+                        tracks: [],
+                        albums: [],
+                        playlists: [],
+                        artists: []
+                    };
+                    if (type.includes("track")) {
+                        for (let i = 0; i < data.tracks.items.length; i++) {
+                            var track = new Song();
+                            track.setSongName(data.tracks.items[i].name);
+                            track.setSongId(data.tracks.items[i].id);
+                            track.setSongArtists(data.tracks.items[i].artists);
+                            track.setSongLength(data.tracks.items[i].duration_ms);
+                            track.setAlbumName(data.tracks.items[i].album.name);
+                            track.setAlbumId(data.tracks.items[i].album.id);
+                            track.setAlbumImage(data.tracks.items[i].album.images[0].url);
+                            dict.tracks.push(track);
+                        }
                     }
-                }
 
-                if (type.includes("album")) {
-                    var artists = [];
-                    for (let i = 0; i < data.albums.items.length; i++) {
-                        var album = new Album();
+                    if (type.includes("album")) {
+                        var artists = [];
+                        for (let i = 0; i < data.albums.items.length; i++) {
+                            var album = new Album();
 
-                        album.setAlbumName(data.albums.items[i].name);
-                        album.setAlbumId(data.albums.items[i].id);
-                        album.setAlbumArtists(data.albums.items[i].artists);
-                        album.setAlbumImage(data.albums.items[i].images[0]);
-                        album.setAlbumReleaseDate(data.albums.items[i].release_date);
-                        dict.albums.push(album);
+                            album.setAlbumName(data.albums.items[i].name);
+                            album.setAlbumId(data.albums.items[i].id);
+                            album.setAlbumArtists(data.albums.items[i].artists);
+                            album.setAlbumImage(data.albums.items[i].images[0]);
+                            album.setAlbumReleaseDate(data.albums.items[i].release_date);
+                            dict.albums.push(album);
+                        }
                     }
-                }
-                if (type.includes("playlist")) {
-                    for (let i = 0; i < data.playlists.items.length; i++) {
-                        var playlist = new Playlist();
-                        playlist.setPlaylistName(data.playlists.items[i].name);
-                        playlist.setPlaylistId(data.playlists.items[i].id);
-                        playlist.setPlaylistSongCount(data.playlists.items[i].tracks.total);
-                        playlist.setPlaylistImage(data.playlists.items[i].images[0].url);
+                    if (type.includes("playlist")) {
+                        for (let i = 0; i < data.playlists.items.length; i++) {
+                            var playlist = new Playlist();
+                            playlist.setPlaylistName(data.playlists.items[i].name);
+                            playlist.setPlaylistId(data.playlists.items[i].id);
+                            playlist.setPlaylistSongCount(data.playlists.items[i].tracks.total);
+                            playlist.setPlaylistImage(data.playlists.items[i].images[0].url);
 
-                        if(data.playlists.items[i].owner.display_name == null )
-                            playlist.setPlaylistOwnerName(data.playlists.items[i].owner.id);
-                        else
-                            playlist.setPlaylistOwnerName(data.playlists.items[i].owner.display_name);
+                            if(data.playlists.items[i].owner.display_name == null )
+                                playlist.setPlaylistOwnerName(data.playlists.items[i].owner.id);
+                            else
+                                playlist.setPlaylistOwnerName(data.playlists.items[i].owner.display_name);
 
-                        dict.playlists.push(playlist);
+                            dict.playlists.push(playlist);
+                        }
                     }
-                }
 
-                if (type.includes("artist")) {
-                    for (let i = 0; i < data.artists.items.length; i++) {
-                        var artist = new Artist();
-                        artist.setArtistName(data.artists.items[i].name);
-                        artist.setArtistId(data.artists.items[i].id);
-                        artist.setArtistImage(data.artists.items[i].images[0]);
-                        dict.artists.push(artist);
+                    if (type.includes("artist")) {
+                        for (let i = 0; i < data.artists.items.length; i++) {
+                            var artist = new Artist();
+                            artist.setArtistName(data.artists.items[i].name);
+                            artist.setArtistId(data.artists.items[i].id);
+                            artist.setArtistImage(data.artists.items[i].images[0]);
+                            dict.artists.push(artist);
+                        }
                     }
-                }
-                return dict;
-            });
-        } else {
-            console.log(response);
-            throw new Error(`Something went wrong on api server! ${response.status}`);
-        }
-    })
-    .then(response => {
-        return response;
-        // ...
-    }).catch(error => {
-        console.log(error);
-    });
+                    return dict;
+                });
+            } else {
+                console.log(response);
+                throw new Error(`Something went wrong on api server! ${response.status}`);
+            }
+        })
+        .then(response => {
+            return response;
+            // ...
+        }).catch(error => {
+            console.log(error);
+        });
 }
 
 /*
@@ -1136,7 +1172,7 @@ function getAlbum(authToken, albumId) {
             }
         })
         .then(response => {
-        console.debug(response);
+            console.debug(response);
             // ...
         }).catch(error => {
             console.error(error);
@@ -1151,7 +1187,7 @@ function getAlbum(authToken, albumId) {
  *  artistId -> artist to be looked up
  * Returns a dictionary of the top tracks and albums from the artist
  */
- function getArtist(authToken, artistId) {
+function getArtist(authToken, artistId) {
 
     var header = {
         "Accept": "application/json",
@@ -1230,7 +1266,7 @@ function getPlaylist(authToken, playlistId, userId) {
             }
         })
         .then(response => {
-        console.debug(response);
+            console.debug(response);
             // ...
         }).catch(error => {
             console.error(error);
