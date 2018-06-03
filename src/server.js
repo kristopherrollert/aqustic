@@ -668,8 +668,6 @@ app.get('/callback', function(req, res) {
 app.put('/party/create-party', function(req, res) {
     let partyToken = generateRandomString(8);
     let admin = req.user || null; //TODO add acount checking
-    console.log(admin);
-    console.log(req);
 
     let dbObject = {
         partyToken: partyToken,
@@ -709,6 +707,7 @@ app.put('/party/*/queue-song', function(req, res) {
         if(partyResult == null)
             res.send({ error: 'Party not found' });
         else {
+            console.log('Party Found!');
             let newSong = new Song();
             newSong.setSongId(songInfo.songId);
             newSong.setSongName(songInfo.songName);
@@ -726,6 +725,7 @@ app.put('/party/*/queue-song', function(req, res) {
             });
 
             if (partyResult.currentlyPlaying === null) {
+                console.log("going into playLoop");
                 playLoop(partyToken);
             }
             res.end();
@@ -993,7 +993,9 @@ function playLoop(partyToken) {
             let spotifyAuthToken = TEMP_AUTH_TOKEN;
 
             //second arg is the spotify uri, not the spotify song ID
-            playSong(spotifyAuthToken, "spotify:track:" + songId);
+            getAuthToken(partyToken, function (authToken) {
+                playSong(authToken, "spotify:track:" + songId);
+            });
 
 
             //callback function must be surrounded by function(){}
