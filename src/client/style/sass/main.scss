@@ -32,6 +32,7 @@ body {
 
 .content-box {
     position: relative;
+    margin-bottom: 50px;
 }
 
 /* Header Styling */
@@ -610,7 +611,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     cursor: pointer;
 }
 
-.top-song-item:hover, .album-song-item {
+.top-song-item:hover, .album-song-item:hover {
     background-color: $background-color;
 }
 
@@ -623,12 +624,12 @@ input[type="text"]:focus, input[type="password"]:focus {
     width: 30px;
 }
 
-.top-song-options > i {
+.top-song-options > i , .album-song-options > i{
     float: right;
     padding-right: 10px;
 }
 
-.top-songs-section {
+.top-songs-section,  {
     margin-top: 20px;
     margin-bottom: 40px;
 }
@@ -664,6 +665,42 @@ input[type="text"]:focus, input[type="password"]:focus {
     width: 80px;
     padding-top: 80px;
     border-radius: 100%;
+}
+
+// ALBUM SPECIFIC CONTENT
+
+.album-songs-section {
+    margin-top: 30px;
+}
+
+.album-page-image{
+    overflow: hidden;
+    background-position: center center;
+    background-size: cover;
+    width: 80px;
+    padding-top: 80px;
+}
+
+.album-image-border-box {
+    border: 1px solid $highlight-color;
+}
+
+.album-song-item:first-of-type {
+    border-top: 1px solid $highlight-color;
+}
+
+.album-song-name {
+    margin-bottom: 0;
+    margin-top: 10px;
+}
+
+.album-song-artists {
+    margin-top: 0;
+    font-weight: 400;
+    margin-bottom: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 // LOADING SPECIFIC STLYING

@@ -57,17 +57,24 @@
         <h1 class="small-page-header">aqustic</h1>
     </div>
     <div class="content-section full-page">
-        <h2 id="artist-error">...</h2>
+        <h2 id="album-error">...</h2>
         <div class="content-box" style="width:382.472px">
-            <script id="content-header-temp" type="text/x-handlebars-template">
-                <div class="content-header">
-                    <p class="page-class section-header">ALBUM</p>
-                    <h2 class="tertiary-header full-page" id="header-artist-name">{{NAME}}</h2>
-                    <p class="section-header">{{ARTIST}}</p>
-                </div>
-            </script>
-            <div class="album-songs-section">
-                <div class="album-songs-content">
+            <div class="content-header-section" >
+                <script id="content-header-temp" type="text/x-handlebars-template">
+                    <div class="content-header">
+                        <p class="page-class section-header">ALBUM</p>
+                        <h2 class="tertiary-header full-page" style="margin-bottom: 0px;" id="header-artist-name">{{NAME}}</h2>
+                        <p class="section-header" style="margin-bottom: 0px;">{{ARTISTS}}</p>
+                    </div>
+                    <div class="artist-image-section">
+                        <div class="album-image-border-box">
+                            <div class="album-page-image" style="background-image: url('{{IMG}}')"></div>
+                        </div>
+                    </div>
+                </script>
+            </div>
+            <div class="album-songs-section" style="display: block">
+                <div class="album-songs-content" >
                     <script id="album-song-temp" type="text/x-handlebars-template">
                         <div class="album-song-item" id="song-{{SONG_ID}}">
                             <div class="number-box">
@@ -75,6 +82,7 @@
                             </div>
                             <div class="album-song-text">
                                 <h3 class="album-song-name">{{NAME}}</h3>
+                                <h4 class="album-song-artists">{{ARTISTS}}</h4>
                             </div>
                             <div class="album-song-options"><i class="fas fa-ellipsis-h"></i></div>
                         </div>

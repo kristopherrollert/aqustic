@@ -1,6 +1,7 @@
-console.log("using temp auth token")
+console.log("using temp auth token");
 /* jshint esversion: 6 */
-let TEMP_AUTH_TOKEN = 'BQBaVs1izhCd1Ag4IPSzWa7QVmBGoWNPFstnUAua4cZ5jD-cmxZdWV4osON1omFtG4yVb8Ul3-N7SGRrziaYrYpRRDAT7fkxJvxTdahgngdarPC4BtHaLqs55gbvLC3BdGJXpJ7M2ipvD3NjpV5-2p0ynpdsTnYh8w';
+let TEMP_AUTH_TOKEN = 'BQAW5AerHwoiabOaFE-ms-ShjxkTxa8q1V1OyLaCsp9QrjhJXIp6pP-LTs5OHe2HkiV5vddVKs3_K7QXFEEd-G8A6tIc7ZLxBYsnfkp-NcZXJ5IVnOgAolVy0gS-yOk5cFlHLawio8HVZdo1IQdcKbkkfow4cHUiZMEFLVoV';
+let TEMP_LOCATION_ASSUMPTION = "US";
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -62,21 +63,8 @@ const debug = false; // this can be set to false to hide console.logs
 
 
 /* -------------------------------------------------------------------------- */
-/* ----------------------------------- QUEUE -------------------------------- */
+/* ------------------------------ QUEUE FUNCTIONS --------------------------- */
 /* -------------------------------------------------------------------------- */
-
-// Classes cannot be hoisted aparently so don't move this
-class Queue {
-    constructor() {
-        this.head = null;
-        this.tail = null;
-        this.size = 0;
-        this.list = [];
-    }
-}
-
-// [funcName].call([QUEUE], para1, para2 ...);
-// queuePop.call(queue)
 
 //If anyone is reading this, queuepop does not remove songs be
 function queuePop () {
@@ -302,6 +290,14 @@ app.get('/signin', function(req, res){
     res.sendFile(__dirname+"/client/signin.html");
 });
 
+app.get('/party/*/search/artist/*', function(req, res){
+    res.sendFile(__dirname+"/client/artist.html");
+});
+
+app.get('/party/*/search/album/*', function(req, res){
+    res.sendFile(__dirname+"/client/album.html");
+});
+
 app.get('/signup', function(req, res){
     res.sendFile(__dirname+"/client/signup.html");
 });
@@ -312,7 +308,6 @@ app.get('/home', authenticationMiddleware(), function(req, res){
     res.sendFile(__dirname+"/client/home.html");
 });
 
-<<<<<<< HEAD
 
 // Needs: artist name, photo, album names, album images, album id, top songs name,
 //        top songs id,
@@ -336,7 +331,7 @@ app.get('/search/artist/*', function (req, res) {
         };
 
         searchArtistInfo(authToken, artistId).then(data => {
-            if (data.hasOwnProperty("error")) {
+            if (data == undefined || data.hasOwnProperty("error")) {
                 if (!error) {
                     error = true;
                     res.send(data);
@@ -351,7 +346,7 @@ app.get('/search/artist/*', function (req, res) {
         });
 
         searchArtistAlbums(authToken, artistId).then(data => {
-            if (data.hasOwnProperty("error")) {
+            if (data == undefined || data.hasOwnProperty("error")) {
                 if (!error) {
                     error = true;
                     res.send(data);
@@ -382,7 +377,7 @@ app.get('/search/artist/*', function (req, res) {
 
 app.get('/search/album/*', function (req, res) {
     var authToken = TEMP_AUTH_TOKEN;
-    var albumId = req.query.albumId;
+    let albumId = (req.path).split("/")[3];
     if (albumId == null) {
         res.send({
             error: "NO ARTIST GIVEN"
@@ -395,13 +390,11 @@ app.get('/search/album/*', function (req, res) {
     }
 });
 
-=======
->>>>>>> 9849e502d19e861578e2e2adbb64533d650f49ad
 app.get('/search', function(req,res) {
     var user = req.user;
     let userID = {
         username: user,
-    }
+    };
     // console.log(user);
     var authToken = TEMP_AUTH_TOKEN;
 
@@ -582,7 +575,7 @@ app.get('/callback', function(req, res) {
     var user = req.user;
     let userID = {
         username: user,
-    }
+    };
 
     if (state === null || state !== storedState) {
         //TODO: make a better error report
@@ -627,7 +620,7 @@ app.get('/callback', function(req, res) {
                     $set: {
                         authenticateID: access_token
                     }
-                }
+                };
 
                 database.updateOne("ACCOUNTS", userID, updateAuth, function (result) {
                     if (result != null){
@@ -701,7 +694,7 @@ app.put('/party/*/queue-song', function(req, res) {
     };
 
     database.findOne("PARTIES", query, function (partyResult) {
-        // could not find pary
+
         if(partyResult == null)
             res.send({ error: 'Party not found' });
         else {
@@ -768,7 +761,6 @@ app.get('/party/*/now-playing', function(req, res){
 
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
-
     playLoop(partyToken, res);
 });
 
@@ -933,7 +925,7 @@ function playLoop(partyToken, res) {
         if (result === null) {
             res.send({
                 error: 'Party not found'
-            })
+            });
         }
         else {
 
@@ -989,7 +981,7 @@ function playLoop(partyToken, res) {
         }
     });
 
-    res.send("Playing Song...")
+    res.send("Playing Song...");
 
 }
 
@@ -1057,7 +1049,58 @@ function getSongLength (authToken, songID) {
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */
 
-<<<<<<< HEAD
+function searchAlbum(authToken, albumId) {
+    var headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var init = {
+        method: 'GET',
+        headers: headers
+    };
+
+    return fetch(`https://api.spotify.com/v1/albums/${albumId}`, init)
+        .then(response => {
+            if (response.status === 200) {
+                return response.json().then(function(data) {
+                    var albumInfo = {
+                        albumName : data.name,
+                        artists : data.artists,
+                        tracks : [],
+                        image : data.images[0].url
+                    };
+                    for (let i = 0; i < data.tracks.items.length; i++) {
+                        var track = new Song();
+                        // console.log("______________________________");
+                        // console.log(data.tracks.items[i]);
+                        track.setSongName(data.tracks.items[i].name);
+                        track.setSongId(data.tracks.items[i].id);
+                        track.setSongArtists(data.tracks.items[i].artists);
+                        track.setSongLength(data.tracks.items[i].duration_ms);
+                        track.setAlbumName(data.name);
+                        track.setAlbumId(data.tracks.id);
+                        track.setAlbumImage(data.images[0].url);
+                        albumInfo.tracks.push(track);
+                    }
+                    return albumInfo;
+                });
+            }
+            else if (response.status === 400) {
+                return {
+                    error: "ALBUM NOT FOUND"
+                };
+            }
+            else {
+                console.log("ERROR FROM SPOTIFY : " + response.status);
+                return {
+                    error: "ERROR FROM SPOTIFY"
+                };
+            }
+        });
+}
+
 function searchArtistTopSongs(authToken, artistId) {
     var headers = {
         "Accept": "application/json",
@@ -1097,7 +1140,9 @@ function searchArtistTopSongs(authToken, artistId) {
             }
             else {
                 console.log("ERROR FROM SPOTIFY : " + response.status);
-            }
+                return {
+                    error: "ERROR FROM SPOTIFY"
+                };            }
         });
 }
 
@@ -1130,8 +1175,10 @@ function searchArtistInfo(authToken, artistId) {
                 };
             }
             else {
-                console.log("ERROR FROM SPOTIFY");
-            }
+                console.log("ERROR FROM SPOTIFY : " + response.status);
+                return {
+                    error: "ERROR FROM SPOTIFY"
+                };            }
         });
 }
 
@@ -1175,13 +1222,13 @@ function searchArtistAlbums(authToken, artistId) {
                 };
             }
             else {
-                console.log("ERROR FROM SPOTIFY");
-            }
+                console.log("ERROR FROM SPOTIFY : " + response.status);
+                return {
+                    error: "ERROR FROM SPOTIFY"
+                };            }
         });
 }
 
-=======
->>>>>>> 9849e502d19e861578e2e2adbb64533d650f49ad
 /*
  * DESCRIPTION: A way to search for songs on spotify
  * ARGUMENTS:
@@ -1294,119 +1341,7 @@ function parse_search(query) {
     return query.replace(/ /i, '%20');
 }
 
-/*
- * DESCRIPTION: A way to get the songs in an album on spotify
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  albumId -> album to get tracks from
- * returns a dictionary of the tracks, made into song objects
- */
-function getAlbum(authToken, albumId) {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    }
-
-    var init = {
-        method: 'GET',
-        headers: header,
-    }
-
-    return fetch(`https://api.spotify.com/v1/albums/${albumId}`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                var album = new Album();
-                return res.json().then(function(data) {
-                    var tracks = [];
-                    for (i = 0; i < data.tracks.items.length; i++) {
-                        var track = new Song();
-                        track.setSongName(data.tracks.items[i].name);
-                        track.setSongId(data.tracks.items[i].id);
-                        track.setSongArtists(data.tracks.items[i].artists);
-                        track.setSongLength(data.tracks.items[i].duration_ms);
-                        tracks.push(track);
-                    }
-                    album.setSongs(tracks);
-                    album.setAlbumId(data.id);
-                    var artists = [];
-                    for(j = 0; j < data.artists.length; j++) {
-                        var artist = new Artist();
-                        artist.setArtistId(data.artists[j].id);
-                        artist.setArtistName(data.artists[j].name);
-                        artists.push(artist);
-                    }
-                    album.setAlbumArtists(artists);
-                    return album;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-        console.debug(response);
-            // ...
-        }).catch(error => {
-            console.error(error);
-        });
-}
-
-
-/*
- * DESCRIPTION: A way to get the top songs and albums from an artist on spotify
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  artistId -> artist to be looked up
- * Returns a dictionary of the top tracks and albums from the artist
- */
- function getArtist(authToken, artistId) {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    };
-
-    var init = JSON.stringify({
-        method: 'GET',
-        headers: header,
-    });
-
-    var artist = fetch(` https://api.spotify.com/v1/artists/${artistId}`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                return res.json().then(function(data) {
-                    var artist = new Artist();
-                    artist.setArtistId(data.id);
-                    artist.setArtistName(data.name);
-                    return artist;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-            console.debug(response);
-            // ...
-        }).catch(error => {
-            console.error(error);
-        });
-
-    return artist;
-}
-
-/*
- * DESCRIPTION: A way to get the songs from a spotify playlist
- * ARGUMENTS:
- *  authToken -> authorization to work with spotify api
- *  playlistId -> id of the playlist
- *  userId -> userId of the playlist owner
- * Returns a dictionary of the top tracks and albums from the artist
- */
-function getPlaylist(authToken, playlistId, userId) {
+function searchPlaylist(authToken, playlistId, userId) {
 
     var header = {
         "Accept": "application/json",
@@ -1440,8 +1375,8 @@ function getPlaylist(authToken, playlistId, userId) {
             }
         })
         .then(response => {
-        console.debug(response);
-            // ...
+            console.debug(response);
+
         }).catch(error => {
             console.error(error);
         });
