@@ -27,7 +27,9 @@
             </div>
             <div class="create-party-section">
                 <h3 class="section-header">CREATE PARTY</h3>
-                <h2 id="create-party-error">...</h2>
+                <div class="client-error" id="create-error">
+                    <p id="create-error-text">...</p>
+                </div>
                 <form id="create-party-form">
                     <input type="text" placeholder="Party Name" id="party-name">
                     <input type="submit" value="CREATE" class="button-2 search" id="create-button">
@@ -35,7 +37,9 @@
             </div>
             <div class="join-party-section">
                 <h3 class="section-header">JOIN PARTY</h3>
-                <h2 id="join-party-error">...</h2>
+                <div class="client-error" id="join-error">
+                    <p id="join-error-text">...</p>
+                </div>
                 <form id="join-party-form">
                     <input type="text" placeholder="Party Token" id="party-token">
                     <input type="submit" value="JOIN" class="button-2 search" id="join-button">
@@ -44,7 +48,7 @@
             <div class="auth-section">
                 <h3 class="section-header">AUTHENTICATE WITH SPOTIFY</h3>
                 <div class="auth-true">
-                    <p class="description-text">You have already authenticate your account!</p>
+                    <p class="description-text">Your account is authenticated!</p>
                 </div>
                 <div class="auth-false">
                     <p class="description-text">To create a party, you must connect your account with Spotify.</p>

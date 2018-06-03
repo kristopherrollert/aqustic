@@ -505,7 +505,6 @@ app.get('/account/get-info', function (req, res) {
         username: user,
     };
     database.findOne("ACCOUNTS", userID, function (result) {
-        console.log(result);
         if (result == null) {
             res.send({error : "ACCOUNT NOT FOUND"});
         }
@@ -661,22 +660,67 @@ app.get('/callback', function(req, res) {
 
 app.put('/party/create-party', function(req, res) {
     let partyToken = generateRandomString(8);
-    let admin = req.body.user || null; //TODO add acount checking
-
-    let dbObject = {
-        partyToken: partyToken,
-        admin: admin,
-        currentlyPlaying: null,
-        partyGoers: [],
-        spotifyToken: "",
-        playTimeoutId : "implement in the future",
-        songQueue: []
-    };
-    database.insertOne("PARTIES", dbObject, function (result) {
+    let admin = req.user;
+    let partyName = req.body.partyName;
+    let authenticated = req.body.authenticated;
+    if (!authenticated) {
         res.send({
-            redirect : `/party/${partyToken}`,
+            error: "YOU ARE NOT AUTHENTICATED"
         });
-    });
+    }
+    else if (partyName == undefined || partyName.length == 0) {
+        res.send({
+            error : "PARTY NAME CANNOT BE EMPTY"
+        });
+    }
+    else if (admin == null || admin == undefined) {
+        console.log("error");
+    }
+    else {
+        let dbObject = {
+            partyToken: partyToken,
+            admin: admin,
+            currentlyPlaying: null,
+            partyGoers: [],
+            spotifyToken: "",
+            playTimeoutId : "implement in the future",
+            songQueue: []
+        };
+        database.insertOne("PARTIES", dbObject, function (result) {
+            res.send({ redirect : `/party/${partyToken}`});
+        });
+    }
+});
+
+app.put('/party/join-party', function(req, res) {
+    var partyToken = req.body.partyToken;
+    if ( partyToken == undefined  || partyToken == null) {
+        res.send({
+            error : "NO PARTY TOKEN GIVEN"
+        });
+    }
+    else if (partyToken == null || partyToken == "" ) {
+        res.send({
+            error: "PARTY TOKEN CANNOT BE EMPTY"
+        });
+    }
+    else {
+        let query = {
+            partyToken: req.body.partyToken
+        };
+        database.findOne("PARTIES", query, function (result) {
+            if (result == null) {
+                res.send({
+                    error: "PARTY NOT FOUND"
+                });
+            }
+            else {
+                res.send({
+                    redirect : `/party/${partyToken}`,
+                });
+            }
+        });
+    }
 });
 
 app.get('/party/*/search', function(req, res){
