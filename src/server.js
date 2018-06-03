@@ -450,7 +450,7 @@ app.put('/account/sign-in', function (req, res) {
 
 
 app.put('/account/sign-up', function (req, res) {
-    let minUserLen = 4;
+    let minUserLen = 3;
     let maxUserLen = 20;
     let maxPassLen = 128;
     let minPassLen = 5;
