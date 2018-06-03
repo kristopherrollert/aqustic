@@ -31,6 +31,7 @@ const clientID = "1951f93df40942a59574ed5d17e5425a";
 const clientSecret = "048262fe59c048e18ce94d18d5784078";
 const port = 3000;
 const baseUrl = `http://localhost:${port}`;
+// const baseUrl = 'https://aqustic-20'
 
 /* Server Modules */
 const http = require('http');
@@ -84,8 +85,8 @@ var database = {
     /* General Databse Information */
     name: "aqusticDB",
     // the below line should replace the other url in final
-    //    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
-    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
+    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+    // url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
@@ -313,7 +314,7 @@ app.get('/home', function(req, res){
 //        top songs id,
 app.get('/search/artist/*', function (req, res) {
     let artistId = (req.path).split("/")[3];
-    let authToken = TEMP_AUTH_TOKEN;
+    // let authToken = TEMP_AUTH_TOKEN;
     if (artistId == null || artistId == undefined) {
         res.send({
             error: "NO ARTIST GIVEN"
@@ -330,62 +331,67 @@ app.get('/search/artist/*', function (req, res) {
             }
         };
 
-        searchArtistInfo(authToken, artistId).then(data => {
-            if (data == undefined || data.hasOwnProperty("error")) {
-                if (!error) {
-                    error = true;
-                    res.send(data);
+        getAuthToken(req.query.partyToken, function (authToken) {
+            searchArtistInfo(authToken, artistId).then(data => {
+                if (data == undefined || data.hasOwnProperty("error")) {
+                    if (!error) {
+                        error = true;
+                        res.send(data);
+                    }
                 }
-            }
-            else {
-                artistInfo.name = data.name;
-                artistInfo.image = data.image;
-                artistFunctionsComplete++;
-                checkArtistInfoFinished();
-            }
-        });
+                else {
+                    artistInfo.name = data.name;
+                    artistInfo.image = data.image;
+                    artistFunctionsComplete++;
+                    checkArtistInfoFinished();
+                }
+            });
 
-        searchArtistAlbums(authToken, artistId).then(data => {
-            if (data == undefined || data.hasOwnProperty("error")) {
-                if (!error) {
-                    error = true;
-                    res.send(data);
+            searchArtistAlbums(authToken, artistId).then(data => {
+                if (data == undefined || data.hasOwnProperty("error")) {
+                    if (!error) {
+                        error = true;
+                        res.send(data);
+                    }
                 }
-            }
-            else {
-                artistInfo.albums = data;
-                artistFunctionsComplete++;
-                checkArtistInfoFinished();
-            }
-        });
+                else {
+                    artistInfo.albums = data;
+                    artistFunctionsComplete++;
+                    checkArtistInfoFinished();
+                }
+            });
 
-        searchArtistTopSongs(authToken, artistId).then(data => {
-            if (data.hasOwnProperty("error")) {
-                if (!error) {
-                    error = true;
-                    res.send(data);
+            searchArtistTopSongs(authToken, artistId).then(data => {
+                if (data.hasOwnProperty("error")) {
+                    if (!error) {
+                        error = true;
+                        res.send(data);
+                    }
                 }
-            }
-            else {
-                artistInfo.topSongs = data;
-                artistFunctionsComplete++;
-                checkArtistInfoFinished();
-            }
+                else {
+                    artistInfo.topSongs = data;
+                    artistFunctionsComplete++;
+                    checkArtistInfoFinished();
+                }
+            });
         });
     }
 });
 
 app.get('/search/album/*', function (req, res) {
-    var authToken = TEMP_AUTH_TOKEN;
+    // var authToken = TEMP_AUTH_TOKEN;
     let albumId = (req.path).split("/")[3];
     if (albumId == null) {
         res.send({
-            error: "NO ARTIST GIVEN"
+            error: "NO ALBUM GIVEN"
         });
     }
     else {
-        searchAlbum(authToken, albumId).then(data => {
-            res.send(data);
+        console.log(req.query.partyToken);
+        getAuthToken(req.query.partyToken, function (authToken) {
+            searchAlbum(authToken, albumId).then(data => {
+                res.send(data);
+            });
         });
     }
 });
@@ -444,7 +450,7 @@ app.put('/account/sign-in', function (req, res) {
 
 
 app.put('/account/sign-up', function (req, res) {
-    let minUserLen = 4;
+    let minUserLen = 3;
     let maxUserLen = 20;
     let maxPassLen = 128;
     let minPassLen = 5;
@@ -745,6 +751,7 @@ app.put('/party/*/queue-song', function(req, res) {
         if(partyResult == null)
             res.send({ error: 'Party not found' });
         else {
+            console.log('Party Found!');
             let newSong = new Song();
             newSong.setSongId(songInfo.songId);
             newSong.setSongName(songInfo.songName);
@@ -762,6 +769,7 @@ app.put('/party/*/queue-song', function(req, res) {
             });
 
             if (partyResult.currentlyPlaying === null) {
+                console.log("going into playLoop");
                 playLoop(partyToken);
             }
             res.end();
@@ -819,7 +827,7 @@ app.get('/party/*/play', function(req, res) {
 
 app.put('/party/*/vote', function (req, res) {
     let partyToken = (req.path).split("/")[2];
-    let queueIndex = req.body.queueIndex;
+    let queueIndex = parseInt(req.body.queueIndex);
     //should be true if a like is being added, false if dislike
     let vote = req.body.vote;
 
@@ -834,32 +842,27 @@ app.put('/party/*/vote', function (req, res) {
 
         //Checks if like or dislike
         //Uhh for some reason the equals true is needed lol, or else its always true
-        if (vote == "like") {
+        if (vote === "like") {
             currSong.likes += 1;
             currSong.score += 1;
 
-            if (queueIndex > 0) {
-                while (queueIndex > 0 && (queue[queueIndex].score > queue[queueIndex - 1].score)) {
-                    let temp = queue[queueIndex];
-                    queue[queueIndex] = queue[queueIndex - 1];
-                    queue[queueIndex - 1] = temp;
-                    queueIndex -= 1;
-                    console.log("lmao");
-                }
+            while (queueIndex > 0 && (queue[queueIndex].score > queue[queueIndex - 1].score)) {
+                let temp = queue[queueIndex];
+                queue[queueIndex] = queue[queueIndex - 1];
+                queue[queueIndex - 1] = temp;
+                queueIndex -= 1;
             }
         }
-        //else is for dislikes
-        if (vote == "dislike") {
+
+        if (vote === "dislike") {
             currSong.dislikes += 1;
             currSong.score -= 1;
 
-            if (queueIndex < queue.length - 1) {
-                while (queueIndex < queue.length - 1 && (queue[queueIndex].score < queue[queueIndex + 1].score)) {
-                    let temp = queue[queueIndex];
-                    queue[queueIndex] = queue[queueIndex + 1];
-                    queue[queueIndex + 1] = temp;
-                    queueIndex += 1;
-                }
+            while (queueIndex < queue.length - 1 && (queue[queueIndex].score < queue[queueIndex + 1].score)) {
+                let temp = queue[queueIndex];
+                queue[queueIndex] = queue[queueIndex + 1];
+                queue[queueIndex + 1] = temp;
+                queueIndex += 1;
             }
         }
 
@@ -983,6 +986,7 @@ function getLargerSong(song1, song2) {
     return null;
 }
 
+
 /* -------------------------------------------------------------------------- */
 /* ----------------------------- PLAY FUNCTIONS ----------------------------- */
 /* -------------------------------------------------------------------------- */
@@ -1029,7 +1033,9 @@ function playLoop(partyToken) {
             let spotifyAuthToken = TEMP_AUTH_TOKEN;
 
             //second arg is the spotify uri, not the spotify song ID
-            playSong(spotifyAuthToken, "spotify:track:" + songId);
+            getAuthToken(partyToken, function (authToken) {
+                playSong(authToken, "spotify:track:" + songId);
+            });
 
 
             //callback function must be surrounded by function(){}
