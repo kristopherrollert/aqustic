@@ -22,12 +22,16 @@ body {
   margin-top: 0px;
   margin-bottom: 0px; }
 
+.content-box {
+  position: relative; }
+
 /* Header Styling */
 .header {
   width: 100vw; }
 
 .content-header {
-  display: inline-block; }
+  display: inline-block;
+  flex-grow: 1; }
 
 .secondary-header {
   font-size: 50px;
@@ -41,11 +45,14 @@ body {
   font-weight: 600;
   display: inline-block;
   margin-bottom: 10px;
-  margin-top: 0; }
+  margin-top: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden; }
 
 .page-class {
   margin-bottom: 0 !important;
-  margin-top: 50px !important; }
+  margin-top: 15px !important; }
 
 /* Form Styling */
 .form-text-box {
@@ -513,6 +520,31 @@ input[type="text"]:focus, input[type="password"]:focus {
 .top-songs-section {
   margin-top: 20px;
   margin-bottom: 40px; }
+
+.content-header-section {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-top: 35px; }
+
+#header-artist-name {
+  max-width: 100%; }
+
+.content-header-section > .content-header {
+  max-width: calc(100% - 95px); }
+
+.image-border-box {
+  border: 1px solid #f6ca5a;
+  padding: 5px;
+  border-radius: 100%; }
+
+.artist-page-image {
+  overflow: hidden;
+  background-position: center center;
+  background-size: cover;
+  width: 80px;
+  padding-top: 80px;
+  border-radius: 100%; }
 
 .loading-screen {
   display: flex;

@@ -12,13 +12,23 @@ $(document).ready(function() {
         url: "/search/artist/" + artistId
     }).done(function(data) {
         console.log(data);
-        $("#header-artist-name").text(data.name);
         var maxResults = 4;
+        generateHeader(data.name, data.image);
         generateTopSongs(data.topSongs);
         generateAlbums(maxResults, data.albums);
     });
 
 });
+
+function generateHeader(name, img) {
+    var headerTemplate = Handlebars.compile($("#content-header-temp").html());
+    var headerInfo = {
+        NAME: name,
+        IMG: img
+    }
+    var headerHtml = headerTemplate(headerInfo);
+    $(".content-header-section").append(headerHtml);
+}
 
 function generateTopSongs (topSongsData) {
     var topSongTemplate = Handlebars.compile($("#top-song-temp").html());
@@ -32,7 +42,63 @@ function generateTopSongs (topSongsData) {
         };
         var topSongHtml = topSongTemplate(topSongInfo);
         $(".top-songs-content").append(topSongHtml);
+        $("#song-" + topSongInfo.SONG_ID).bind('click', {songInfo: topSongsData[y]}, onSongClick);
     }
+}
+
+var onSongClick = function(event) {
+    var songInfo = event.data.songInfo;
+    var songCoverTemp = Handlebars.compile($("#song-cover-temp").html());
+    var artists = artistsToText(songInfo.songArtists);
+    var popUpInfo = {
+       NAME: songInfo.songName,
+       ARTIST: artists,
+       ARTIST_ID: songInfo.artistId,
+       ALBUM_NAME: songInfo.albumName,
+       ALBUM_ID: songInfo.albumId,
+       COVER_URL: songInfo.albumImage
+   };
+   var songCoverHtml = songCoverTemp(popUpInfo);
+   $("body").addClass("body-cover");
+   $("body").append(songCoverHtml);
+   $(".song-cover").click(closeSongCover);
+   $("#sc-queue").bind("click", {songInfo : songInfo}, queueSong);
+   $("#sc-album").bind("click", {songInfo : songInfo}, function () {
+       var path = window.location.pathname;
+       var partyToken = path.split("/")[2];
+       window.location.href = "/party/" + partyToken + "/search/album/" + event.data.songInfo.albumId;
+   });
+   $("#sc-artists").bind("click", {songInfo : songInfo}, function () {
+       var path = window.location.pathname;
+       var partyToken = path.split("/")[2];
+       window.location.href = "/party/" + partyToken + "/search/artist/" + event.data.songInfo.songArtists[0].id;
+   });
+};
+
+function closeSongCover(event) {
+    if (event.target.className == "song-cover" ||
+        event.target.id == "sc-close") {
+            $("body").removeClass("body-cover");
+            $(".song-cover").remove();
+    }
+}
+
+function queueSong(event) {
+    var path = event.view.window.location.pathname;
+    path = path.split("/");
+    var partyToken = path[2];
+    $.ajax({
+        type: "PUT",
+        url: "/party/" + partyToken + "/queue-song",
+        data: {
+            songInfo: JSON.stringify(event.data.songInfo),
+            user: null,
+        }
+    }).done(function(data) {
+        var socket = io.connect('http://localhost:8080');
+        socket.emit('updateQueuePing', partyToken, "Queued Song");
+        $(".song-cover").remove();
+    });
 }
 
 function generateAlbums (maxResults, albumData) {

@@ -58,9 +58,18 @@
     </div>
     <div class="content-section full-page">
         <div class="content-box" style="width:382.472px">
-            <div class="content-header">
-                <p class="page-class section-header">ARTIST</p>
-                <h2 class="tertiary-header full-page" id="header-artist-name"></h2>
+            <div class="content-header-section">
+                <script id="content-header-temp" type="text/x-handlebars-template">
+                    <div class="content-header">
+                        <p class="page-class section-header">ARTIST</p>
+                        <h2 class="tertiary-header full-page" id="header-artist-name">{{NAME}}</h2>
+                    </div>
+                    <div class="artist-image-section">
+                        <div class="image-border-box">
+                            <div class="artist-page-image" style="background-image: url('{{IMG}}')"></div>
+                        </div>
+                    </div>
+                </script>
             </div>
             <div class="top-songs-section">
                 <h3 class="section-header">TOP SONGS</h3>

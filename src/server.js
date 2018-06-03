@@ -1,5 +1,5 @@
 /* jshint esversion: 6 */
-let TEMP_AUTH_TOKEN = 'BQAmZ0CtJCevSBH3GdX4T-pAmDW3a9fz1eKHB8cyxin0P5yCXPIIX2eraWkJHkxXXXcceUyfOBrhBabUpP2HstmBwmHxwYSdn7oeTBR7tHs3eg_K1L4uXv60UAwlMWlLWr1uj_0KDfAq5Kva0hKg_HBcvjpS2B52EI1J33Pm';
+let TEMP_AUTH_TOKEN = 'BQBOy9gFCurnJctr3d3tObf2_X2RRfaYZGtPGjfDYAOssemiCfXT9yhVqbROWIBIYyxBpAhz-8nku79I7NHqB6dBt88dFGDuKAfP0lIMTZwLX0z_p-4YFs2v8BgcILx91tsZbeBENwu1Mh8VGK_YFy3aAxb6_6bzay0RssWl';
 let TEMP_LOCATION_ASSUMPTION = "US";
 // ^ this is just for kris, please don't delete
 /*
