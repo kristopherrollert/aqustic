@@ -1,6 +1,6 @@
 console.log("using temp auth token");
 /* jshint esversion: 6 */
-let TEMP_AUTH_TOKEN = 'BQBaVs1izhCd1Ag4IPSzWa7QVmBGoWNPFstnUAua4cZ5jD-cmxZdWV4osON1omFtG4yVb8Ul3-N7SGRrziaYrYpRRDAT7fkxJvxTdahgngdarPC4BtHaLqs55gbvLC3BdGJXpJ7M2ipvD3NjpV5-2p0ynpdsTnYh8w';
+let TEMP_AUTH_TOKEN = 'BQB7XsHC4AHTBIiVQyaWt9B4dDuSwI21GYahlP0dwDLL4DtDx0VOYGMZXUmcO_cOR6LIERM81Fm3B66KLm-VtYcEw_B28W7ggODTuIWvpAK5BNtW4aXRxjqeNeMDFuVEH40UR8UB3L19cURu3Lp8n4l5HfJ40i2LCQ';
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -209,7 +209,6 @@ var database = {
                     if (err) throw err;
                     if (debug) {
                         console.log("UPDATE RESULT:");
-                        //console.log(result);
                     }
                     db.close();
                     if (callback) callback(result);
@@ -761,7 +760,7 @@ app.get('/party/*/now-playing', function(req, res){
             });
         }
         else {
-            console.log(result.currentlyPlaying);
+//            console.log(result.currentlyPlaying);
             res.send(result.currentlyPlaying);
         }
     });
@@ -795,33 +794,29 @@ app.put('/party/*/vote', function (req, res) {
             currSong.likes += 1;
             currSong.score += 1;
 
-            console.log(queue[queueIndex]);
-
-            /*
-            while ((queue[queueIndex].getScore() > queue[queueIndex - 1].getScore()) && queueIndex > 0) {
-                let temp = queue[queueIndex];
-                queue[queueIndex] = queue[queueIndex - 1];
-                queue[queueIndex - 1] = temp;
-                queueIndex -= 1;
-                console.log("lmao")
+            if (queueIndex > 0) {
+                while (queueIndex > 0 && (queue[queueIndex].score > queue[queueIndex - 1].score)) {
+                    let temp = queue[queueIndex];
+                    queue[queueIndex] = queue[queueIndex - 1];
+                    queue[queueIndex - 1] = temp;
+                    queueIndex -= 1;
+                    console.log("lmao")
+                }
             }
-            */
         }
         //else is for dislikes
         if (vote == "dislike") {
             currSong.dislikes += 1;
             currSong.score -= 1;
 
-            console.log("WHY ARE YOU HERE")
-
-            /*
-            while ((queue[queueIndex].score < queue[queueIndex + 1].score) && queueIndex < queue.length - 1) {
-                let temp = queue[queueIndex];
-                queue[queueIndex] = queue[queueIndex + 1];
-                queue[queueIndex + 1] = temp;
-                queueIndex += 1;
+            if (queueIndex < queue.length - 1) {
+                while (queueIndex < queue.length - 1 && (queue[queueIndex].score < queue[queueIndex + 1].score)) {
+                    let temp = queue[queueIndex];
+                    queue[queueIndex] = queue[queueIndex + 1];
+                    queue[queueIndex + 1] = temp;
+                    queueIndex += 1;
+                }
             }
-            */
         }
 
 
