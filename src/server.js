@@ -1,6 +1,6 @@
+console.log("using temp auth token")
 /* jshint esversion: 6 */
-let TEMP_AUTH_TOKEN = 'BQBOy9gFCurnJctr3d3tObf2_X2RRfaYZGtPGjfDYAOssemiCfXT9yhVqbROWIBIYyxBpAhz-8nku79I7NHqB6dBt88dFGDuKAfP0lIMTZwLX0z_p-4YFs2v8BgcILx91tsZbeBENwu1Mh8VGK_YFy3aAxb6_6bzay0RssWl';
-let TEMP_LOCATION_ASSUMPTION = "US";
+let TEMP_AUTH_TOKEN = 'BQBaVs1izhCd1Ag4IPSzWa7QVmBGoWNPFstnUAua4cZ5jD-cmxZdWV4osON1omFtG4yVb8Ul3-N7SGRrziaYrYpRRDAT7fkxJvxTdahgngdarPC4BtHaLqs55gbvLC3BdGJXpJ7M2ipvD3NjpV5-2p0ynpdsTnYh8w';
 // ^ this is just for kris, please don't delete
 /*
  *                               _    _
@@ -312,6 +312,7 @@ app.get('/home', authenticationMiddleware(), function(req, res){
     res.sendFile(__dirname+"/client/home.html");
 });
 
+<<<<<<< HEAD
 
 // Needs: artist name, photo, album names, album images, album id, top songs name,
 //        top songs id,
@@ -394,6 +395,8 @@ app.get('/search/album/*', function (req, res) {
     }
 });
 
+=======
+>>>>>>> 9849e502d19e861578e2e2adbb64533d650f49ad
 app.get('/search', function(req,res) {
     var user = req.user;
     let userID = {
@@ -684,10 +687,6 @@ app.get('/party/*/search', function(req, res){
     res.sendFile(__dirname+"/client/search.html");
 });
 
-app.get('/party/*/search/artist/*', function(req, res){
-    res.sendFile(__dirname+"/client/artist.html");
-});
-
 app.get('/test/party', function(req, res){
     res.sendFile(__dirname+"/testing/testCreateParty.html");
 });
@@ -816,7 +815,6 @@ app.put('/party/*/vote', function (req, res) {
 });
 
 app.get('/party/*', function(req, res){
-    // TODO CHECK IF PARTY IS REAL, if not redirect to sign in page
     res.sendFile(__dirname+"/client/home.html");
 });
 
@@ -1059,6 +1057,7 @@ function getSongLength (authToken, songID) {
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */
 
+<<<<<<< HEAD
 function searchArtistTopSongs(authToken, artistId) {
     var headers = {
         "Accept": "application/json",
@@ -1181,6 +1180,8 @@ function searchArtistAlbums(authToken, artistId) {
         });
 }
 
+=======
+>>>>>>> 9849e502d19e861578e2e2adbb64533d650f49ad
 /*
  * DESCRIPTION: A way to search for songs on spotify
  * ARGUMENTS:
@@ -1230,13 +1231,10 @@ function search(authToken, query, type = 'all') {
                 }
 
                 if (type.includes("album")) {
-                    var artists = []; //TODO I THINK THIS DOESNT HAVE PURPOSE
-                    var previousAlbumName = "";
+                    var artists = [];
                     for (let i = 0; i < data.albums.items.length; i++) {
-                        if (previousAlbumName == data.albums.items[i].name)
-                            continue;
-                        previousAlbumName = data.albums.items[i].name;
                         var album = new Album();
+
                         album.setAlbumName(data.albums.items[i].name);
                         album.setAlbumId(data.albums.items[i].id);
                         album.setAlbumArtists(data.albums.items[i].artists);
