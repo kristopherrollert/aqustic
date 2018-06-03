@@ -304,7 +304,7 @@ app.get('/signup', function(req, res){
 
 
 // , authenticationMiddleware() add when done
-app.get('/home', function(req, res){
+app.get('/home', authenticationMiddleware() ,function(req, res){
 
     // TODO THIS SHOULD REDIRECT TO LOGIN PAGE
     res.sendFile(__dirname+"/client/home.html");

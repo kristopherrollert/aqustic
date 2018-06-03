@@ -17,6 +17,20 @@
     <script src="/js/home.js"></script>
 </head>
 <body>
+    <div class="loading-screen">
+        <div class="loading-box">
+            <div class="center-box">
+              <div class="bar-box">
+                    <div id="bar1"></div>
+                    <div id="bar2"></div>
+                    <div id="bar3"></div>
+                    <div id="bar4"></div>
+                    <div id="bar5"></div>
+                </div>
+            </div>
+            <h1 class="loading-text">loading</h1>
+        </div>
+    </div>
     <div class="small-header">
         <h1 class="small-page-header">aqustic</h1>
     </div>
@@ -52,7 +66,7 @@
                 </div>
                 <div class="auth-false">
                     <p class="description-text">To create a party, you must connect your account with Spotify.</p>
-                    <button class="button-2">AUTHENTICATE</button>
+                    <a class="button-2" id="auth-button" href="/spotify-authorization">AUTHENTICATE</a>
                 </div>
             </div>
         </div>
