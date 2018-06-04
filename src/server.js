@@ -304,7 +304,7 @@ app.get('/signup', function(req, res){
 
 
 // , authenticationMiddleware() add when done
-app.get('/home', function(req, res){
+app.get('/home', authenticationMiddleware() ,function(req, res){
 
     // TODO THIS SHOULD REDIRECT TO LOGIN PAGE
     res.sendFile(__dirname+"/client/home.html");
@@ -415,7 +415,7 @@ app.get('/search', function(req,res) {
 
 });
 
-/* ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------- */
 
 app.put('/account/sign-in', function (req, res) {
     let username = req.body.username || '';
@@ -523,7 +523,7 @@ app.get('/account/get-info', function (req, res) {
     });
 });
 
-/*------------Store Sessions------------*/
+/*-----------------Store Sessions-----------------*/
 passport.serializeUser(function(userID, done) {
     done(null, userID);
 });
@@ -1141,37 +1141,15 @@ function getSongLength (authToken, songID) {
 
 
 /* -------------------------------------------------------------------------- */
-/* ---------------------------- Authorization FUNCTIONS --------------------- */
+/* ---------------------------- AUTHORIZATION FUNCTIONS --------------------- */
 /* -------------------------------------------------------------------------- */
-function pingSpotify(authToken, callbackSuccess, callbackFail) {
 
-    let header = {
-        "Authorization": `Bearer ${authToken}`
-    };
 
-    let init = {
-        method: 'GET',
-        headers: header
-    };
-
-    return fetch("https://api.spotify.com/v1/me", init).then(function (response) {
-        if (response.status == 200){
-            //console.log('Got response so true...');
-            //console.log(response);
-            return callbackSuccess();
-        }
-        else {
-            //console.log('Failed so false...');
-            return callbackFail();
-        }
-    }).then(res => {return res});
-};
 /*
-* Gets an Authentication token from party host sends to
-* pingSpotify to check if the code works then uses it
-* if working. If token is experied it refresh token and
-* updates the token in the user's database.
-*/
+ * Gets an Authentication token from party host sends to
+ * pingSpotify to check if the code works then uses it
+ * updates the token in the user's database.
+ */
 function getAuthToken(partyToken, callback) {
     //console.log("yyyypartyyyy");
     //console.log('partyToken:' + partyToken);
@@ -1241,7 +1219,32 @@ function getAuthToken(partyToken, callback) {
 
 };
 
+/*
+ * Makes a call to Spotify to check if authToken is valid.
+ */
+function pingSpotify(authToken, callbackSuccess, callbackFail) {
 
+    let header = {
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    let init = {
+        method: 'GET',
+        headers: header
+    };
+
+    return fetch("https://api.spotify.com/v1/me", init).then(function (response) {
+        if (response.status == 200){
+            //console.log('Got response so true...');
+            //console.log(response);
+            return callbackSuccess();
+        }
+        else {
+            //console.log('Failed so false...');
+            return callbackFail();
+        }
+    }).then(res => {return res});
+};
 /* -------------------------------------------------------------------------- */
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */

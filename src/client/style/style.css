@@ -109,7 +109,8 @@ input[type="text"]:focus, input[type="password"]:focus {
   padding-right: 12px;
   font-weight: 600;
   cursor: pointer;
-  font-weight: 200; }
+  font-weight: 200;
+  text-decoration: none; }
 
 .button-3 {
   background-color: transparent;
