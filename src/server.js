@@ -589,7 +589,6 @@ app.get('/spotify-authorization', function(req, res){
 
 /*
  * description: puts the html from auth.html into the /settings page
- *
  */
 app.get('/settings', function(req, res){
     res.sendFile(__dirname+"/client/auth.html");
@@ -1243,8 +1242,8 @@ function playSong(authToken, songURI) {
 
 /*
  * Gets an Authentication token from party host sends to
- * pingSpotify to check if the code works then uses it
- * updates the token in the user's database.
+ * pingSpotify to check if the code is valid then if valid
+ * uses it, if not updates the token in the user's database.
  */
 function getAuthToken(partyToken, callback) {
     //console.log("yyyypartyyyy");
