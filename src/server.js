@@ -284,9 +284,9 @@ app.use(session({
     activeDuration: 5 * 60 * 1000,
     store: new MongoStore({
         url: 'mongodb://localhost:27017/',
-        touchAfter: 24 * 3600 // time period in seconds
+        touchAfter: 24 * 24 * 3600 // time period in seconds
     }),
-    secret: 'asdf',
+    secret: 'asdf',//make secrets secret
     saveUninitialized: false, // don't create session until something stored
     resave: false, //don't save session if unmodified
     cookie: {
