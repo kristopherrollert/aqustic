@@ -758,6 +758,18 @@ app.put('/party/*/queue-song', function(req, res) {
             newSong.setSongArtists(songInfo.songArtists);
             newSong.setSongLength(songInfo.songLength);
             queuePush.call(partyResult.songQueue, newSong);
+
+            let queue = partyResult.songQueue;
+            let newSongIndex = queue.length - 1;
+
+            while (newSongIndex > 0 && (queue[newSongIndex].score > queue[newSongIndex - 1])) {
+                let temp = queue[newSongIndex];
+                queue[newSongIndex] = queue[newSongIndex - 1];
+                queue[newSongIndex - 1] = temp;
+                newSongIndex -= 1;
+            }
+
+
             let updates = {
                 $set: {
                     songQueue: partyResult.songQueue
