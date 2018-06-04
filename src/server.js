@@ -419,9 +419,9 @@ app.get('/search/album/*', function (req, res) {
 });
 
 app.get('/search', function(req,res) {
-    var query = req.query.query || '';
-    var type = req.query.type || 'all';
-    var user = req.user;
+    let query = req.query.query || '';
+    let type = req.query.type || 'all';
+    let user = req.user;
     let userID = {
         username: user,
     }
@@ -862,7 +862,8 @@ app.get('/party/*/play', function(req, res) {
 app.put('/party/*/vote', function (req, res) {
     let partyToken = (req.path).split("/")[2];
     let queueIndex = parseInt(req.body.queueIndex);
-    //should be true if a like is being added, false if dislike
+    let user = req.user;
+    // req.body.vote is either "like" or "dislike"
     let vote = req.body.vote;
 
     let query = {
@@ -871,14 +872,36 @@ app.put('/party/*/vote', function (req, res) {
 
     database.findOne("PARTIES", query, function(result) {
         let queue = result.songQueue;
-
         let currSong = queue[queueIndex];
+        let usersLikedList = currSong.usersLiked;
+        let usersDislikedList = currSong.usersDisliked;
+        let likeIndex = usersLikedList.indexOf(user);
+        let dislikeIndex = usersDislikedList.indexOf(user);
 
         //Checks if like or dislike
         //Uhh for some reason the equals true is needed lol, or else its always true
         if (vote === "like") {
-            currSong.likes += 1;
-            currSong.score += 1;
+            //if the user is in usersLikedList
+            if (likeIndex > -1) {
+                res.end();
+            }
+            //if the user is in usersDislikedList
+            else if (dislikeIndex > -1) {
+                currSong.likes += 1;
+                currSong.dislikes -= 1;
+                currSong.score += 2;
+
+                //removes user from dislikes and adds to likes
+                usersDislikedList.splice(dislikeIndex, 1);
+                usersLikedList.push(user);
+            }
+            //Only if user is not in either like or dislike list
+            else {
+                currSong.likes += 1;
+                currSong.score += 1;
+
+                usersLikedList.push(user);
+            }
 
             while (queueIndex > 0 && (queue[queueIndex].score > queue[queueIndex - 1].score)) {
                 let temp = queue[queueIndex];
@@ -889,8 +912,26 @@ app.put('/party/*/vote', function (req, res) {
         }
 
         if (vote === "dislike") {
-            currSong.dislikes += 1;
-            currSong.score -= 1;
+            if (dislikeIndex > -1) {
+                res.end();
+            }
+            //if the user is in usersDislikedList
+            else if (likeIndex > -1) {
+                currSong.dislikes += 1;
+                currSong.likes -= 1;
+                currSong.score -= 2;
+
+                //removes user from dislikes and adds to likes
+                usersLikedList.splice(dislikeIndex, 1);
+                usersDislikedList.push(user);
+            }
+            //Only if user is not in either like or dislike list
+            else {
+                currSong.dislikes += 1;
+                currSong.score -= 1;
+
+                usersDislikedList.push(user);
+            }
 
             while (queueIndex < queue.length - 1 && (queue[queueIndex].score < queue[queueIndex + 1].score)) {
                 let temp = queue[queueIndex];
@@ -900,7 +941,10 @@ app.put('/party/*/vote', function (req, res) {
             }
         }
 
+        currSong.usersLiked = usersLikedList;
+        currSong.usersDisliked = usersDislikedList;
 
+        queue[queueIndex] = currSong;
 
         query = {
             partyToken: partyToken
@@ -1064,7 +1108,6 @@ function playLoop(partyToken) {
             let songId = nextSong.songId;
 
             //Using temp spotify auth token
-            let spotifyAuthToken = TEMP_AUTH_TOKEN;
 
             //second arg is the spotify uri, not the spotify song ID
             getAuthToken(partyToken, function (authToken) {
@@ -1687,6 +1730,8 @@ function Song () {
     this.likes = 0;
     this.dislikes = 0;
     this.score = 0;
+    this.usersLiked = [];
+    this.usersDisliked = [];
 
     this.getSongName = function() {
         return this.songName;

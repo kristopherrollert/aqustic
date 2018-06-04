@@ -129,7 +129,7 @@ function generatePartyInfoContent(data) {
     var partyInfoTemplate = Handlebars.compile($("#party-info-template").html());
     var partyInfo = {
         PARTY_NAME : "Slug Rager",
-        PARTY_OWNER : "Ryan Glenn",
+        PARTY_OWNER : "Ryan Gleen",
     };
     var partyInfoHtml = partyInfoTemplate(partyInfo);
     $(".party-info-section").append(partyInfoHtml);
