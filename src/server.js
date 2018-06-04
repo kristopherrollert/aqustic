@@ -280,11 +280,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(session({
     cookieName: 'session',
-    duration: 30 * 60 * 1000,
-    activeDuration: 5 * 60 * 1000,
+    duration: (30 * 60 * 1000 * 100),
+    activeDuration: (5 * 60 * 1000 * 100),
     store: new MongoStore({
         url: 'mongodb://localhost:27017/',
-        touchAfter: 24 * 24 * 3600 // time period in seconds
+        touchAfter: (24 * 24 * 36000) // time period in seconds
     }),
     secret: 'asdf',//make secrets secret
     saveUninitialized: false, // don't create session until something stored
@@ -293,7 +293,7 @@ app.use(session({
         secure: false,
         path: '/',
         httpOnly: true,
-        maxAge: new Date(Date.now() + 3600000),
+        maxAge: new Date(Date.now() + 36000000),
     }
 }));
 
@@ -325,6 +325,12 @@ app.get('/signup', function(req, res){
     res.sendFile(__dirname+"/client/signup.html");
 });
 
+app.get('/logout', function(req, res){
+    req.logout();
+    req.session.destroy();
+    console.log("Logged Out!");
+    res.redirect('/signin');
+});
 
 // , authenticationMiddleware() add when done
 app.get('/home', authenticationMiddleware() ,function(req, res){
