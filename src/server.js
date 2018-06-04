@@ -280,20 +280,20 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(session({
     cookieName: 'session',
-    duration: 30 * 60 * 1000,
-    activeDuration: 5 * 60 * 1000,
+    duration: (30 * 60 * 1000 * 100),
+    activeDuration: (5 * 60 * 1000 * 100),
     store: new MongoStore({
         url: 'mongodb://localhost:27017/',
-        touchAfter: 24 * 3600 // time period in seconds
+        touchAfter: (24 * 24 * 36000) // time period in seconds
     }),
-    secret: 'asdf',
+    secret: 'asdf',//make secrets secret
     saveUninitialized: false, // don't create session until something stored
     resave: false, //don't save session if unmodified
     cookie: {
         secure: false,
         path: '/',
         httpOnly: true,
-        maxAge: new Date(Date.now() + 3600000),
+        maxAge: new Date(Date.now() + 36000000),
     }
 }));
 
@@ -325,6 +325,12 @@ app.get('/signup', function(req, res){
     res.sendFile(__dirname+"/client/signup.html");
 });
 
+app.get('/logout', function(req, res){
+    req.logout();
+    req.session.destroy();
+    console.log("Logged Out!");
+    res.redirect('/signin');
+});
 
 // , authenticationMiddleware() add when done
 app.get('/home', authenticationMiddleware() ,function(req, res){
@@ -686,11 +692,13 @@ app.get('/callback', function(req, res) {
     res.redirect("/home");
 });
 
+
+
 app.put('/party/create-party', function(req, res) {
     let partyToken = generateRandomString(8);
     let admin = req.user;
     let partyName = req.body.partyName;
-    let authenticated = req.body.authenticated;
+    let authenticated = JSON.parse(req.body.authenticated);
     if (!authenticated) {
         res.send({
             error: "YOU ARE NOT AUTHENTICATED"
@@ -707,6 +715,7 @@ app.put('/party/create-party', function(req, res) {
     else {
         let dbObject = {
             partyToken: partyToken,
+            partyName : partyName,
             admin: admin,
             currentlyPlaying: null,
             partyGoers: [],
@@ -763,7 +772,6 @@ app.put('/party/*/queue-song', function(req, res) {
     let partyToken = (req.path).split("/")[2];
     let songInfo = JSON.parse(req.body.songInfo);
 
-    let user = req.body.user;
     let query = {
         partyToken: partyToken,
     };
@@ -808,6 +816,30 @@ app.put('/party/*/queue-song', function(req, res) {
             }
             res.end();
 
+        }
+    });
+});
+
+app.get('/party/*/get-info', function(req, res){
+    let partyToken = (req.path).split("/")[2];
+
+    let query = {
+        partyToken: partyToken
+    };
+
+    database.findOne("PARTIES", query, function (result) {
+        // could not find pary
+        if(result == null) {
+            res.send({
+                error: 'Party not found'
+            });
+        }
+        else {
+            res.send({
+                partyName : result.partyName,
+                admin : result.admin,
+                partyToken : result.partyToken
+            });
         }
     });
 });
@@ -956,7 +988,9 @@ app.put('/party/*/vote', function (req, res) {
             }
         };
 
-        database.updateOne('PARTIES', query, newVals, function(result) {});
+        database.updateOne('PARTIES', query, newVals, function () {
+            io.to(partyToken).emit('updateQueue');
+        });
     });
 
 });
@@ -971,22 +1005,16 @@ app.get('/party/*', authenticationMiddleware(), function(req, res){
 
 io.on('connection', function(socket){
     // console.log('a user connected');
-    socket.on('disconnect', function(){
+    socket.on('disconnect', function() {
         // console.log('user disconnected');
     });
 
-    socket.on('updateQueuePing', function (partyToken, toUpdate) {
-        let query = { partyToken: partyToken };
-        switch (toUpdate) {
-            case "Queued Song":
-                database.findOne("PARTIES", query, function (partyResult) {
-                    io.emit('appendToQueue', partyResult);
-                });
-                break;
-            default:
-                console.log("ERROR");
-            //TODO deal with this error
-        }
+    socket.on('join-party', function (partyToken) {
+        socket.join(partyToken);
+    });
+
+    socket.on('updateQueuePing', function (partyToken) {
+        io.in(partyToken).emit('updateQueue');
     });
 });
 
@@ -1097,7 +1125,7 @@ function playLoop(partyToken) {
                 };
 
                 database.updateOne("PARTIES", query, newVals, function (result) {
-
+                    io.to(partyToken).emit('updateQueue');
                 });
                 return;
             }
@@ -1136,11 +1164,9 @@ function playLoop(partyToken) {
                     currentlyPlaying: nextSong,
                 }
             };
-
-            database.update("PARTIES", query, newVals, function (result) {
-
+            database.update("PARTIES", query, newVals, function () {
+                io.to(partyToken).emit('updateQueue');
             });
-
         }
     });
     return "Playing Songs...";
@@ -1428,9 +1454,10 @@ function searchArtistInfo(authToken, artistId) {
         .then(response => {
             if (response.status === 200) {
                 return response.json().then(function(data) {
+                    var artistImageData = data.images[0];
                     return {
                         name : data.name,
-                        image : data.images[0].url,
+                        image : artistImageData != null ? artistImageData.url : null,
                     };
                 });
             }
@@ -1474,7 +1501,7 @@ function searchArtistAlbums(authToken, artistId) {
                         album.setAlbumName(data.items[i].name);
                         album.setAlbumId(data.items[i].id);
                         album.setAlbumArtists(data.items[i].artists);
-                        album.setAlbumImage(data.items[i].images[0]);
+                        album.setAlbumImage(data.items[i].images[0].url);
                         album.setAlbumReleaseDate(data.items[i].release_date);
                         artistAlbums.push(album);
                     }
@@ -1550,7 +1577,7 @@ function search(authToken, query, type = 'all') {
                             album.setAlbumName(data.albums.items[i].name);
                             album.setAlbumId(data.albums.items[i].id);
                             album.setAlbumArtists(data.albums.items[i].artists);
-                            album.setAlbumImage(data.albums.items[i].images[0]);
+                            album.setAlbumImage(data.albums.items[i].images[0].url);
                             album.setAlbumReleaseDate(data.albums.items[i].release_date);
                             dict.albums.push(album);
                         }
@@ -1577,7 +1604,8 @@ function search(authToken, query, type = 'all') {
                             var artist = new Artist();
                             artist.setArtistName(data.artists.items[i].name);
                             artist.setArtistId(data.artists.items[i].id);
-                            artist.setArtistImage(data.artists.items[i].images[0]);
+                            var artistImageData = data.artists.items[i].images[0];
+                            artist.setArtistImage(artistImageData != null ? artistImageData.url : null );
                             dict.artists.push(artist);
                         }
                     }
