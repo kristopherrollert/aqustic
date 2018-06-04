@@ -1570,6 +1570,75 @@ function searchPlaylist(authToken, playlistId) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* ---------------------------- CREATE PLAYLIST ----------------------------- */
+/* -------------------------------------------------------------------------- */
+
+//This function will create a playlist with the party name.
+//returns the id of the playlist created for the party - needs to be saved
+function createPlaylist(authToken, userId, partyName) {
+
+    var header = {
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var body = {
+        "name": `aqustic_${partyName}`,
+    };
+
+    var init = {
+        method: 'POST',
+        headers: header,
+        body: JSON.stringify(body),
+    };
+    //TODO make the query "device_id" equal to the name of the player
+    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists`, init)
+        .then(function (res) {
+            if (res.status == 201) {
+                console.log("Creating Playlist...");
+                res.json().then(function(data) {
+                    console.log(data);
+                });
+            }
+            else {
+                console.log("ERROR: " + res.status);
+            }
+        })
+}
+
+//from the userId and playlistId, adds tracks to the playlist
+//form of tracks - 'spotify:track:songId' in an array
+//ex: ['spotify:track:1301WleyT98MSxVHPZCA6M']
+function addToPlaylist(authToken, userId, playlistId, tracks) {
+
+    var header = {
+        'Authorization': `Bearer ${authToken}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    };
+
+    var body = {
+        'uris': tracks
+    };
+
+    var init = {
+        method: 'POST',
+        headers: header,
+        body: JSON.stringify(body)
+    };
+
+    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`, init).then(function (res) {
+        console.log(res);
+        if (res.status == 201) {
+            console.log('adding songs');
+        }
+        else {
+            console.log('ERROR: ' + JSON.stringify(res));
+        }
+    });
+}
+
+
+/* -------------------------------------------------------------------------- */
 /* ---------------------------- SONG OBJECT/INFO ---------------------------- */
 /* -------------------------------------------------------------------------- */
 
