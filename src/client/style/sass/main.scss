@@ -533,7 +533,12 @@ input[type="text"]:focus, input[type="password"]:focus {
     padding-bottom: 2px;
 }
 
-/* HOME PAGE */
+/* PARTY PAGE */
+
+#no-queue-section, #no-currently-playing-section {
+    display: none;
+}
+
 .content-party-connect {
     width: 385px;
 }
@@ -557,7 +562,6 @@ input[type="text"]:focus, input[type="password"]:focus {
     color:white;
     font-weight: 400;
     margin: 0;
-    margin-bottom: 10px;
 }
 
 .vote-sidebar {
@@ -590,6 +594,11 @@ input[type="text"]:focus, input[type="password"]:focus {
 
 .party-info-section, .now-playing-section , .song-queue-section {
     margin-bottom: 25px;
+}
+
+.no-queue-text, .no-currently-playing-text {
+    color: white !important;
+    font-weight: 400;
 }
 
 // ARTIST SPECIFIC STYLING
@@ -834,4 +843,9 @@ input[type="text"]:focus, input[type="password"]:focus {
 
 .auth-false, .auth-true {
     display: none;
+}
+
+.highlight {
+    color: $highlight-color;
+    font-weight: 600;
 }
