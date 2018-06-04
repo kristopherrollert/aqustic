@@ -1,6 +1,4 @@
 /* jshint esversion: 6 */
-console.log("using temp auth token");
-let TEMP_AUTH_TOKEN = 'BQAW5AerHwoiabOaFE-ms-ShjxkTxa8q1V1OyLaCsp9QrjhJXIp6pP-LTs5OHe2HkiV5vddVKs3_K7QXFEEd-G8A6tIc7ZLxBYsnfkp-NcZXJ5IVnOgAolVy0gS-yOk5cFlHLawio8HVZdo1IQdcKbkkfow4cHUiZMEFLVoV';
 let TEMP_LOCATION_ASSUMPTION = "US";
 // ^ this is just for kris, please don't delete
 /*
@@ -60,9 +58,7 @@ const mongoPass = 'aqustic115';
 
 server.listen(8080);
 
-/* TODO : I am unsure what this does, but I feel like it shouldn't be a global
- *        varible. -kris */
-var authStateKey = 'spotify_auth_state';
+let authStateKey = 'spotify_auth_state';
 const debug = false; // this can be set to false to hide console.logs
 
 
@@ -70,7 +66,6 @@ const debug = false; // this can be set to false to hide console.logs
 /* ------------------------------ QUEUE FUNCTIONS --------------------------- */
 /* -------------------------------------------------------------------------- */
 
-//If anyone is reading this, queuepop does not remove songs be
 function queuePop () {
     return this.shift();
 }
@@ -85,15 +80,15 @@ function queuePush (song) {
 /* ------------------------------------------------------------------------- */
 
 var database = {
-    /* General Databse Information */
+    /* General Database Information */
     name: "aqusticDB",
-    // the below line should replace the other url in final
+    // the below line should replace the other url in final for the server
     //url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
      url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
-            var database = db.db(this.name);
+            let database = db.db(this.name);
             database.createCollection(collectionName,
                 function(err, result) {
                     if (err) throw err;
@@ -107,7 +102,7 @@ var database = {
     insertOne: function (collectionName, item, callback = null) {
         mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
-            var database = db.db(this.name);
+            let database = db.db(this.name);
             database.collection(collectionName).insertOne(item,
                 function (err, result) {
                     if (err) throw err;
@@ -122,7 +117,7 @@ var database = {
     insertMany: function (collectionName, items, callback = null) {
         mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
-            var database = db.db(this.name);
+            let database = db.db(this.name);
             database.collection(collectionName).insertMany(items,
                 function(err, result) {
                     if (err) throw err;
@@ -138,7 +133,7 @@ var database = {
     findOne: function (collectionName, query = {}, callback = null) {
         return mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
-            var database = db.db(this.name);
+            let database = db.db(this.name);
             return database.collection(collectionName).findOne(query,
                 function (err, result) {
                     if (err) throw err;
@@ -156,7 +151,7 @@ var database = {
     find: function(collectionName, query = {}, limit = 0, callback = null){
         return mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
-            var database = db.db(this.name);
+            let database = db.db(this.name);
             return database.collection(collectionName).find(query).limit(limit).toArray(
                 function (err, result) {
                     if (err) throw err;
@@ -178,7 +173,7 @@ var database = {
     updateOne: function (collectionName, query, newValues, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
-            var database = db.db(this.name);
+            let database = db.db(this.name);
             database.collection(collectionName).updateOne(query, newValues,
                 function(err, result) {
                     if (err) throw err;
@@ -195,7 +190,7 @@ var database = {
     update: function (collectionName, query, newValues, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
-            var database = db.db(this.name);
+            let database = db.db(this.name);
             database.collection(collectionName).updateMany(query, newValues,
                 function(err, result) {
                     if (err) throw err;
@@ -211,7 +206,7 @@ var database = {
     deleteOne: function (collectionName, query, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
-            var database = db.db(this.name);
+            let database = db.db(this.name);
             database.collection(collectionName).deleteOne(query,
                 function(err, result) {
                     if (err) throw err;
@@ -225,7 +220,7 @@ var database = {
     delete: function (collectionName, query, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
-            var database = db.db(this.name);
+            let database = db.db(this.name);
             database.collection(collectionName).deleteMany(query,
                 function(err, result) {
                     if (err) throw err;
@@ -572,6 +567,9 @@ function authenticationMiddleware () {
 
 /* ------------------------------------------------------------------------- */
 
+/**
+ * Endpoint to send you to the spotify authorization site
+ */
 app.get('/spotify-authorization', function(req, res){
     console.log("GOT SPOTIFY AUTH");
     // cookie to ensure browser/server connection is secure
@@ -598,8 +596,9 @@ app.get('/settings', function(req, res){
 });
 
 
-
-
+/**
+ * Where the spotify authorization sends you after you approve access for this app
+ */
 app.get('/callback', function(req, res) {
     // your application requests refresh and access tokens
     // after checking the state parameter
@@ -692,8 +691,9 @@ app.get('/callback', function(req, res) {
     res.redirect("/home");
 });
 
-
-
+/**
+ * Endpoint to create a party, needs party name and an admin for token
+ */
 app.put('/party/create-party', function(req, res) {
     let partyToken = generateRandomString(8);
     let admin = req.user;
@@ -729,6 +729,9 @@ app.put('/party/create-party', function(req, res) {
     }
 });
 
+/**
+ *  Endpoint for non-party-owners to join a party
+ */
 app.put('/party/join-party', function(req, res) {
     var partyToken = req.body.partyToken;
     if ( partyToken == undefined  || partyToken == null) {
@@ -760,14 +763,23 @@ app.put('/party/join-party', function(req, res) {
     }
 });
 
+/**
+ *  Endpoint that sends you to the search page
+ */
 app.get('/party/*/search', function(req, res){
     res.sendFile(__dirname+"/client/search.html");
 });
 
+/**
+ *  Endpoint that sends you to testing page, only accessable through direct url
+ */
 app.get('/test/party', function(req, res){
     res.sendFile(__dirname+"/testing/testCreateParty.html");
 });
 
+/**
+ *  Enpoint that adds a song to the song queue for a specific party
+ */
 app.put('/party/*/queue-song', function(req, res) {
     let partyToken = (req.path).split("/")[2];
     let songInfo = JSON.parse(req.body.songInfo);
@@ -820,6 +832,9 @@ app.put('/party/*/queue-song', function(req, res) {
     });
 });
 
+/**
+ *  Endpoint that returns information about specific party
+ */
 app.get('/party/*/get-info', function(req, res){
     let partyToken = (req.path).split("/")[2];
 
@@ -844,6 +859,9 @@ app.get('/party/*/get-info', function(req, res){
     });
 });
 
+/**
+ *  Endpoint that returns the entire queue for that party
+ */
 app.get('/party/*/queue', function(req, res){
     let partyToken = (req.path).split("/")[2];
 
@@ -864,6 +882,9 @@ app.get('/party/*/queue', function(req, res){
     });
 });
 
+/**
+ *  Endpoint that returns the currentlyPlaying song in that party
+ */
 app.get('/party/*/now-playing', function(req, res){
     let partyToken = (req.path).split("/")[2];
 
@@ -885,12 +906,19 @@ app.get('/party/*/now-playing', function(req, res){
     });
 });
 
-
+/**
+ *  Endpoint that triggers playing from the start of the queue
+ *
+ *  Unused in current website, playLoop is triggered by queueing a song with a null currentlyPlaying
+ */
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
     playLoop(partyToken, res);
 });
 
+/**
+ *  Endpoint in charge of voting, req.body.vote must be either "like" or "dislike"
+ */
 app.put('/party/*/vote', function (req, res) {
     let partyToken = (req.path).split("/")[2];
     let queueIndex = parseInt(req.body.queueIndex);
@@ -978,6 +1006,7 @@ app.put('/party/*/vote', function (req, res) {
 
         queue[queueIndex] = currSong;
 
+        //Update all the new info into the database
         query = {
             partyToken: partyToken
         };
@@ -995,6 +1024,9 @@ app.put('/party/*/vote', function (req, res) {
 
 });
 
+/**
+ *  Endpoint that sends you to the homepage of a specific party
+ */
 app.get('/party/*', authenticationMiddleware(), function(req, res){
     res.sendFile(__dirname+"/client/party.html");
 });
@@ -1003,6 +1035,9 @@ app.get('/party/*', authenticationMiddleware(), function(req, res){
 
 /* ------------------------------------------------------------------------- */
 
+/**
+ *  Socket.io functions to handle live updating of votes and currentlyPlaying
+ */
 io.on('connection', function(socket){
     // console.log('a user connected');
     socket.on('disconnect', function() {
@@ -1018,6 +1053,9 @@ io.on('connection', function(socket){
     });
 });
 
+/**
+ *  Initialization of node.js
+ */
 app.listen(port, (err) => {
     if (err) {
         return console.log('Something bad happened', err);
@@ -1060,7 +1098,7 @@ var sha512 = function(password, salt){
     };
 };
 
-/*
+/**
  * returns hashed password and salt
  */
 function saltHashPassword(userpassword) {
@@ -1070,6 +1108,9 @@ function saltHashPassword(userpassword) {
         salt: passwordData.salt };
 }
 
+/**
+ * Hashes password with salt
+ */
 function hashPassword(userpassword, salt) {
     let passwordData = sha512(userpassword, salt);
     return passwordData.passwordHash;
@@ -1082,21 +1123,17 @@ function isValid(str){
     return !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(str);
 }
 
-function getLargerSong(song1, song2) {
-    let score1 = song1.getScore();
-    let score2 = song2.getScore();
-    if(score1 > score2)
-        return song1;
-    else if(score2 > score1)
-        return song2;
-    return null;
-}
-
-
 /* -------------------------------------------------------------------------- */
 /* ----------------------------- PLAY FUNCTIONS ----------------------------- */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Calling the playLoop function causes songs to start playing from the queue,
+ * with partyToken being the token of the party to start playing
+ *
+ * This function is called recursively by the setTimeout(), which calls this function after
+ * the duration of the song to be played.
+ */
 function playLoop(partyToken) {
 
     let query = {
@@ -1104,16 +1141,12 @@ function playLoop(partyToken) {
     };
 
     database.findOne("PARTIES", query, function (result) {
-
         if (result === null) {
             return "Party not found!";
         }
         else {
-
             let queue = result.songQueue;
-
             if (queue.length <= 0) {
-
                 let query = {
                     partyToken: partyToken
                 };
@@ -1131,17 +1164,13 @@ function playLoop(partyToken) {
             }
 
             let nextSong = queuePop.call(queue);
-
             let songLength = nextSong.songLength;
             let songId = nextSong.songId;
-
-            //Using temp spotify auth token
 
             //second arg is the spotify uri, not the spotify song ID
             getAuthToken(partyToken, function (authToken) {
                 playSong(authToken, "spotify:track:" + songId);
             });
-
 
             //callback function must be surrounded by function(){}
             let timeoutId = setTimeout(function () {
@@ -1173,7 +1202,10 @@ function playLoop(partyToken) {
 }
 
 
-
+/**
+ * This function makes the spotify api call to play a song, using the spotify authentication token
+ * and the song song uri (the one with track:spotify:... before it).
+ */
 function playSong(authToken, songURI) {
 
     var header = {
@@ -1203,33 +1235,6 @@ function playSong(authToken, songURI) {
 
 
 }
-
-//Unecessary and doesn't work
-/*
-function getSongLength (authToken, songID) {
-    var header = {
-        "Authorization": "Bearer " + authToken,
-    };
-    var init = {
-        method: 'GET',
-        headers: header,
-    };
-    let songLength = -1;
-    fetch('https://api.spotify.com/v1/tracks/' + songID, init)
-        .then(function (res) {
-            if (res.status === 200) {
-                console.log("got track data");
-                songLength = 0;
-                console.log(JSON.stringify(res));
-            }
-            else {
-                console.log('ERROR: ' + res.status);
-            }
-        });
-}
-*/
-
-
 
 /* -------------------------------------------------------------------------- */
 /* ---------------------------- AUTHORIZATION FUNCTIONS --------------------- */
@@ -1340,6 +1345,9 @@ function pingSpotify(authToken, callbackSuccess, callbackFail) {
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */
 
+/**
+ *  Makes spotify api call to search by albums
+ */
 function searchAlbum(authToken, albumId) {
     var headers = {
         "Accept": "application/json",
@@ -1392,6 +1400,9 @@ function searchAlbum(authToken, albumId) {
         });
 }
 
+/**
+ *  Makes spotify api call to find the top songs for certain artists
+ */
 function searchArtistTopSongs(authToken, artistId) {
     var headers = {
         "Accept": "application/json",
@@ -1437,6 +1448,9 @@ function searchArtistTopSongs(authToken, artistId) {
         });
 }
 
+/**
+ *  Makes spotify api call to search by artists
+ */
 function searchArtistInfo(authToken, artistId) {
     var headers = {
         "Accept": "application/json",
@@ -1474,6 +1488,9 @@ function searchArtistInfo(authToken, artistId) {
         });
 }
 
+/**
+ *  Makes spotify api call to search for an artist's albums
+ */
 function searchArtistAlbums(authToken, artistId) {
     var headers = {
         "Accept": "application/json",
@@ -1634,6 +1651,9 @@ function parse_search(query) {
     return query.replace(/ /i, '%20');
 }
 
+/**
+ *  Makes spotify api call to look for playlists for a certain user
+ */
 function searchPlaylist(authToken, playlistId) {
 
     var header = {
@@ -1747,6 +1767,10 @@ function addToPlaylist(authToken, userId, playlistId, tracks) {
 /* ---------------------------- SONG OBJECT/INFO ---------------------------- */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Song object to store in the database;
+ * after a song is entered into the database, the getter functions no longer work
+ */
 function Song () {
     this.songName = null;
     this.albumName = null;
@@ -1845,6 +1869,9 @@ function Song () {
     };
 }
 
+/**
+ * Album object that holds info about albums so they can be sent to the user
+ */
 function Album () {
     this.id = null;
     this.name = null;
@@ -1902,6 +1929,9 @@ function Album () {
     };
 }
 
+/**
+ * Artist info, so that it can be sent to the user
+ */
 function Artist () {
     this.id = null;
     this.name = null;
@@ -1940,6 +1970,9 @@ function Artist () {
     };
 }
 
+/**
+ * Playlist info, so that it can be sent to the user
+ */
 function Playlist () {
     this.id = null;
     this.name = null;
