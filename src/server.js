@@ -304,22 +304,47 @@ app.use(passport.session());
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- ENDPOINTS ------------------------------- */
 /* ------------------------------------------------------------------------- */
+
+/**
+ *  Endpoint to send you to signin page
+ */
 app.get('/signin', function(req, res){
     res.sendFile(__dirname+"/client/signin.html");
 });
 
+/**
+ *  Endpoint to send you to artist's page
+ */
 app.get('/party/*/search/artist/*', function(req, res){
     res.sendFile(__dirname+"/client/artist.html");
 });
 
+/**
+ *  Endpoint to send you to album page
+ */
 app.get('/party/*/search/album/*', function(req, res){
     res.sendFile(__dirname+"/client/album.html");
 });
 
+/**
+ *  Endpoint to send you to sign up page
+ */
 app.get('/signup', function(req, res){
     res.sendFile(__dirname+"/client/signup.html");
 });
 
+/**
+ *  Endpoint to send you to homepage
+ */
+// , authenticationMiddleware() add when done
+app.get('/home', authenticationMiddleware() ,function(req, res){
+    // TODO THIS SHOULD REDIRECT TO LOGIN PAGE
+    res.sendFile(__dirname+"/client/home.html");
+});
+
+/**
+ *  Endpoint to log out user
+ */
 app.get('/logout', function(req, res){
     req.logout();
     req.session.destroy();
@@ -327,14 +352,13 @@ app.get('/logout', function(req, res){
     res.redirect('/signin');
 });
 
-// , authenticationMiddleware() add when done
-app.get('/home', authenticationMiddleware() ,function(req, res){
-    // TODO THIS SHOULD REDIRECT TO LOGIN PAGE
-    res.sendFile(__dirname+"/client/home.html");
-});
+
 
 // Needs: artist name, photo, album names, album images, album id, top songs name,
 //        top songs id,
+/**
+ *  Endpoint that returns search results for an artist
+ */
 app.get('/search/artist/*', function (req, res) {
     let artistId = (req.path).split("/")[3];
     // let authToken = TEMP_AUTH_TOKEN;
@@ -401,6 +425,9 @@ app.get('/search/artist/*', function (req, res) {
     }
 });
 
+/**
+ *  Endpoint that returns search for album
+ */
 app.get('/search/album/*', function (req, res) {
     // var authToken = TEMP_AUTH_TOKEN;
     let albumId = (req.path).split("/")[3];
@@ -419,6 +446,9 @@ app.get('/search/album/*', function (req, res) {
     }
 });
 
+/**
+ *  Endpoint for searching songs
+ */
 app.get('/search', function(req,res) {
     let query = req.query.query || '';
     let type = req.query.type || 'all';
@@ -440,6 +470,9 @@ app.get('/search', function(req,res) {
 
 /* ----------------------------------------------------------------------- */
 
+/**
+ *  Endpoint for signing in users, sends you to home after
+ */
 app.put('/account/sign-in', function (req, res) {
     let username = req.body.username || '';
     let password = req.body.password || '';
@@ -471,7 +504,9 @@ app.put('/account/sign-in', function (req, res) {
     }
 });
 
-
+/**
+ *  Endpoint for creating accounts, sends you to home after, logged in
+ */
 app.put('/account/sign-up', function (req, res) {
     let minUserLen = 3;
     let maxUserLen = 20;
@@ -528,7 +563,9 @@ app.put('/account/sign-up', function (req, res) {
     }
 });
 
-
+/**
+ *  Endpoint that returns info about an account
+ */
 app.get('/account/get-info', function (req, res) {
     var user = req.user;
     let userID = {
