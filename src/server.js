@@ -85,8 +85,8 @@ var database = {
     /* General Databse Information */
     name: "aqusticDB",
     // the below line should replace the other url in final
-    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
-    // url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
+    //url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
@@ -715,7 +715,7 @@ app.put('/party/join-party', function(req, res) {
             partyToken: req.body.partyToken
         };
         database.findOne("PARTIES", query, function (result) {
-            if (result == null) {
+            if (result === null) {
                 res.send({
                     error: "PARTY NOT FOUND"
                 });
@@ -762,7 +762,16 @@ app.put('/party/*/queue-song', function(req, res) {
             let queue = partyResult.songQueue;
             let newSongIndex = queue.length - 1;
 
-            while (newSongIndex > 0 && (queue[newSongIndex].score > queue[newSongIndex - 1])) {
+            console.log("-------Kais Info:-------");
+            console.log(newSong.songName);
+            console.log(newSongIndex);
+            console.log("Score 1:");
+            console.log(queue[newSongIndex].score);
+            console.log("Score 2:");
+            console.log(queue[newSongIndex - 1].score);
+            console.log("------------------------");
+            while (newSongIndex > 0 && (queue[newSongIndex].score > queue[newSongIndex - 1].score)) {
+                console.log("yoooooooo");
                 let temp = queue[newSongIndex];
                 queue[newSongIndex] = queue[newSongIndex - 1];
                 queue[newSongIndex - 1] = temp;
