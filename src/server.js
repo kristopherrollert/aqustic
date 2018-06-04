@@ -762,16 +762,7 @@ app.put('/party/*/queue-song', function(req, res) {
             let queue = partyResult.songQueue;
             let newSongIndex = queue.length - 1;
 
-            console.log("-------Kais Info:-------");
-            console.log(newSong.songName);
-            console.log(newSongIndex);
-            console.log("Score 1:");
-            console.log(queue[newSongIndex].score);
-            console.log("Score 2:");
-            console.log(queue[newSongIndex - 1].score);
-            console.log("------------------------");
             while (newSongIndex > 0 && (queue[newSongIndex].score > queue[newSongIndex - 1].score)) {
-                console.log("yoooooooo");
                 let temp = queue[newSongIndex];
                 queue[newSongIndex] = queue[newSongIndex - 1];
                 queue[newSongIndex - 1] = temp;
