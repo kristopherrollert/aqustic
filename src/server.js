@@ -33,7 +33,7 @@ const port = 3000;
 const baseUrl = `http://localhost:${port}`;
 // const baseUrl = 'https://aqustic-20'
 
-/* Server Modules */
+/*----------- Server Modules -----------*/
 const http = require('http');
 const crypto = require('crypto');
 const events = require('events');
@@ -44,9 +44,11 @@ const fetch = require("node-fetch");
 const bodyParser = require('body-parser');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
-const session = require("express-session");
 const passport = require("passport");
+const session = require("express-session");
+const MongoStore = require("connect-mongo")(session);
 const sessionSecret = "aqusticServer"; //TODO: should be hidden
+
 
 const app = express();
 const server = require('http').Server(app);
@@ -54,6 +56,7 @@ const io = require('socket.io')(server);
 const mongoClient = mongo.MongoClient;
 const mongoUser = 'admin';
 const mongoPass = 'aqustic115';
+
 
 server.listen(8080);
 
@@ -85,8 +88,8 @@ var database = {
     /* General Databse Information */
     name: "aqusticDB",
     // the below line should replace the other url in final
-    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
-    // url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
+    //url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+     url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
@@ -244,7 +247,7 @@ database.createCollection("PARTIES");
 /* -------------------------------------------------------------------------- */
 
 /*
- * description: middleware thatremoves the browwer from blocking certain
+ * description: middleware that removes the browser from blocking certain
  * requests.
  *
  * notes: When this project is completed, this should not be here, it should be
@@ -268,12 +271,32 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 /* Save login cookies */
+// app.use(session({
+//     secret: "asdf",
+//     resave: false,
+//     saveUninitialized: false
+//     //cookie: {secure: true}
+// }));
+
 app.use(session({
-    secret: "asdf",
-    resave: true,
-    saveUninitialized: true
-    //cookie: {secure: true}
+    cookieName: 'session',
+    duration: 30 * 60 * 1000,
+    activeDuration: 5 * 60 * 1000,
+    store: new MongoStore({
+        url: 'mongodb://localhost:27017/',
+        touchAfter: 24 * 24 * 3600 // time period in seconds
+    }),
+    secret: 'asdf',//make secrets secret
+    saveUninitialized: false, // don't create session until something stored
+    resave: false, //don't save session if unmodified
+    cookie: {
+        secure: false,
+        path: '/',
+        httpOnly: true,
+        maxAge: new Date(Date.now() + 3600000),
+    }
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -305,7 +328,6 @@ app.get('/signup', function(req, res){
 
 // , authenticationMiddleware() add when done
 app.get('/home', authenticationMiddleware() ,function(req, res){
-
     // TODO THIS SHOULD REDIRECT TO LOGIN PAGE
     res.sendFile(__dirname+"/client/home.html");
 });
@@ -415,7 +437,7 @@ app.get('/search', function(req,res) {
 
 });
 
-/* ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------- */
 
 app.put('/account/sign-in', function (req, res) {
     let username = req.body.username || '';
@@ -489,7 +511,7 @@ app.put('/account/sign-up', function (req, res) {
                     salt: passwordData.salt,
                     loginCode: loginCode,
                     authenticateID: null,
-                    refreshToken : null
+                    refreshToken: null
                 };
                 database.insertOne("ACCOUNTS", query);
                 const userID = username;
@@ -524,7 +546,7 @@ app.get('/account/get-info', function (req, res) {
     });
 });
 
-/*------------Store Sessions------------*/
+/*-----------------Store Sessions-----------------*/
 passport.serializeUser(function(userID, done) {
     done(null, userID);
 });
@@ -575,7 +597,6 @@ app.get('/settings', function(req, res){
 app.get('/callback', function(req, res) {
     // your application requests refresh and access tokens
     // after checking the state parameter
-
     var code = req.query.code || null;
     var state = req.query.state || null;
     var storedState = req.cookies ? req.cookies[authStateKey] : null;
@@ -719,7 +740,7 @@ app.put('/party/join-party', function(req, res) {
             partyToken: req.body.partyToken
         };
         database.findOne("PARTIES", query, function (result) {
-            if (result == null) {
+            if (result === null) {
                 res.send({
                     error: "PARTY NOT FOUND"
                 });
@@ -761,6 +782,18 @@ app.put('/party/*/queue-song', function(req, res) {
             newSong.setSongArtists(songInfo.songArtists);
             newSong.setSongLength(songInfo.songLength);
             queuePush.call(partyResult.songQueue, newSong);
+
+            let queue = partyResult.songQueue;
+            let newSongIndex = queue.length - 1;
+
+            while (newSongIndex > 0 && (queue[newSongIndex].score > queue[newSongIndex - 1].score)) {
+                let temp = queue[newSongIndex];
+                queue[newSongIndex] = queue[newSongIndex - 1];
+                queue[newSongIndex - 1] = temp;
+                newSongIndex -= 1;
+            }
+
+
             let updates = {
                 $set: {
                     songQueue: partyResult.songQueue
@@ -1150,37 +1183,15 @@ function getSongLength (authToken, songID) {
 
 
 /* -------------------------------------------------------------------------- */
-/* ---------------------------- Authorization FUNCTIONS --------------------- */
+/* ---------------------------- AUTHORIZATION FUNCTIONS --------------------- */
 /* -------------------------------------------------------------------------- */
-function pingSpotify(authToken, callbackSuccess, callbackFail) {
 
-    let header = {
-        "Authorization": `Bearer ${authToken}`
-    };
 
-    let init = {
-        method: 'GET',
-        headers: header
-    };
-
-    return fetch("https://api.spotify.com/v1/me", init).then(function (response) {
-        if (response.status == 200){
-            //console.log('Got response so true...');
-            //console.log(response);
-            return callbackSuccess();
-        }
-        else {
-            //console.log('Failed so false...');
-            return callbackFail();
-        }
-    }).then(res => {return res});
-};
 /*
-* Gets an Authentication token from party host sends to
-* pingSpotify to check if the code works then uses it
-* if working. If token is experied it refresh token and
-* updates the token in the user's database.
-*/
+ * Gets an Authentication token from party host sends to
+ * pingSpotify to check if the code works then uses it
+ * updates the token in the user's database.
+ */
 function getAuthToken(partyToken, callback) {
     //console.log("yyyypartyyyy");
     //console.log('partyToken:' + partyToken);
@@ -1250,7 +1261,32 @@ function getAuthToken(partyToken, callback) {
 
 };
 
+/*
+ * Makes a call to Spotify to check if authToken is valid.
+ */
+function pingSpotify(authToken, callbackSuccess, callbackFail) {
 
+    let header = {
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    let init = {
+        method: 'GET',
+        headers: header
+    };
+
+    return fetch("https://api.spotify.com/v1/me", init).then(function (response) {
+        if (response.status == 200){
+            //console.log('Got response so true...');
+            //console.log(response);
+            return callbackSuccess();
+        }
+        else {
+            //console.log('Failed so false...');
+            return callbackFail();
+        }
+    }).then(res => {return res});
+};
 /* -------------------------------------------------------------------------- */
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */
@@ -1588,6 +1624,75 @@ function searchPlaylist(authToken, playlistId) {
             console.error(error);
         });
 }
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------- CREATE PLAYLIST ----------------------------- */
+/* -------------------------------------------------------------------------- */
+
+//This function will create a playlist with the party name.
+//returns the id of the playlist created for the party - needs to be saved
+function createPlaylist(authToken, userId, partyName) {
+
+    var header = {
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var body = {
+        "name": `aqustic_${partyName}`,
+    };
+
+    var init = {
+        method: 'POST',
+        headers: header,
+        body: JSON.stringify(body),
+    };
+    //TODO make the query "device_id" equal to the name of the player
+    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists`, init)
+        .then(function (res) {
+            if (res.status == 201) {
+                console.log("Creating Playlist...");
+                res.json().then(function(data) {
+                    console.log(data);
+                });
+            }
+            else {
+                console.log("ERROR: " + res.status);
+            }
+        })
+}
+
+//from the userId and playlistId, adds tracks to the playlist
+//form of tracks - 'spotify:track:songId' in an array
+//ex: ['spotify:track:1301WleyT98MSxVHPZCA6M']
+function addToPlaylist(authToken, userId, playlistId, tracks) {
+
+    var header = {
+        'Authorization': `Bearer ${authToken}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    };
+
+    var body = {
+        'uris': tracks
+    };
+
+    var init = {
+        method: 'POST',
+        headers: header,
+        body: JSON.stringify(body)
+    };
+
+    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`, init).then(function (res) {
+        console.log(res);
+        if (res.status == 201) {
+            console.log('adding songs');
+        }
+        else {
+            console.log('ERROR: ' + JSON.stringify(res));
+        }
+    });
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* ---------------------------- SONG OBJECT/INFO ---------------------------- */
