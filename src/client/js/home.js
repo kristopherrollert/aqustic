@@ -42,9 +42,9 @@ $(document).ready(function () {
 /* ------------------------- HOME SPECIFIC FUNCTIONS ------------------------ */
 /* -------------------------------------------------------------------------- */
 
-/*
+/**
  * Attempts to join party, if it fails, it displays error message
- * @param String partyToken : a string of the partyToken to join
+ * @param {String} partyToken : a string of the partyToken to join
  */
 function joinParty (partyToken) {
     $.ajax({
@@ -57,6 +57,7 @@ function joinParty (partyToken) {
         if (data.hasOwnProperty("error")) {
             $("#join-error-text").text(data.error);
             $("#join-error").show();
+            $("#party-token").val("");
         }
         else if (data.hasOwnProperty("redirect")) {
             window.location.href = data.redirect;
@@ -68,9 +69,9 @@ function joinParty (partyToken) {
     });
 }
 
-/*
+/**
  * Attempts to create party, if it fails, it displays error message
- * @param String partyName : a string of the party's name
+ * @param {String} partyName : a string of the party's name
  */
 function createParty (partyName, authenticated) {
     $.ajax({
@@ -95,18 +96,18 @@ function createParty (partyName, authenticated) {
     });
 }
 
-/*
+/**
  * Displays the correct authentication HTML depending on if they have been authenticated
- * @param Boolean authenticated : if the account has been authenticated
+ * @param {Boolean} authenticated : if the account has been authenticated
  */
 function displayAuthenticationContent (authenticated) {
     (authenticated ? $(".auth-true") : $(".auth-false")).show();
 }
 
-/*
+/**
  * TODO
  * Displays the User's username the page
- * @param String username : the username of the user to be displayed
+ * @param {String} username : the username of the user to be displayed
  */
 function generateUsernameHeader (username) {
 

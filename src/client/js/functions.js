@@ -2,10 +2,10 @@
 /* ---------------------------- GENERAL FUNCTIONS --------------------------- */
 /* -------------------------------------------------------------------------- */
 
-/*
+/**
  * Takes the artists and parses them into a single string with artist names seperated
  * by commas
- * @param Array artists : a list of artist objects
+ * @param {Array} artists : a list of artist objects
  */
 function artistsToText(artists) {
     var artistsText = artists[0].name.toUpperCase();
@@ -15,9 +15,9 @@ function artistsToText(artists) {
     return artistsText;
 }
 
-/*
+/**
  * Closes the song cover that is clicked
- * @param Object event : event data when clicked on
+ * @param {Object} event : event data when clicked on
  */
 function closeSongCover(event) {
     if (event.target.className == "song-cover" ||
@@ -27,45 +27,33 @@ function closeSongCover(event) {
     }
 }
 
-/*
+/**
  * Gets the party token from the url
- * @return String : the string associated with the party
+ * @return {String} : the string associated with the party
  */
 function getPartyToken () {
     return (window.location.pathname).split("/")[2];
 }
 
-/*
+/**
  * Gets the party token from the event data
- * @return String : the string associated with the party
+ * @return {String} : the string associated with the party
  */
 function eventGetPartyToken (event) {
     return (event.view.window.location.pathname).split("/")[2];
 }
 
-/*
+/**
  * Get the Album/Artist/Playlist id from the url
- * @return String : string of the url's id
+ * @return {String} : string of the url's id
  */
 function getUrlId() {
     return (window.location.pathname).split("/")[5];
 }
 
-/*
- * Closes the song cover over the page
- * @param Object event : the event that is clicked on
- */
-function closeSongCover(event) {
-    if (event.target.className == "song-cover" ||
-        event.target.id == "sc-close") {
-            $("body").removeClass("body-cover");
-            $(".song-cover").remove();
-    }
-}
-
-/*
+/**
  * Gets the song id from the item clicked on and queues that song
- * @param Object event : the event that is clicked on
+ * @param {Object} event : the event that is clicked on
  */
 function queueSong (event) {
     var partyToken = eventGetPartyToken(event);
@@ -79,12 +67,13 @@ function queueSong (event) {
         var socket = io.connect('http://localhost:8080');
         socket.emit('updateQueuePing', partyToken);
         $(".song-cover").remove();
+        $("body").removeClass("body-cover");
     });
 }
 
-/*
+/**
  * When clicked on, generates the pop up for that specific song
- * @param Object event : the event that is clicked on
+ * @param {Object} event : the event that is clicked on
  */
 var onSongClick = function(event) {
 
@@ -115,9 +104,9 @@ var onSongClick = function(event) {
    $("#sc-artists").bind("click", {songInfo : songInfo}, redirectToArtist);
 };
 
-/*
+/**
  * Redirects to artist page with the artist id taken from the data binded
- * @param Object event : the event that is clicked on
+ * @param {Object} event : the event that is clicked on
  */
 function redirectToArtist (event) {
     var partyToken = eventGetPartyToken(event);
@@ -125,9 +114,9 @@ function redirectToArtist (event) {
     $(location).attr("href", "/party/" + partyToken + "/search/artist/" + artistId);
 }
 
-/*
+/**
  * Redirects to album page with the album id taken from the data binded
- * @param Object event : the event that is clicked on
+ * @param {Object} event : the event that is clicked on
  */
 function redirectToAlbum (event) {
     var partyToken = eventGetPartyToken(event);
@@ -287,12 +276,12 @@ function openLoadingScreen () {
 
 }
 
-/*
+/**
  * Redirects to album page with the album id taken from the data binded
- * @param jQuery-Object $bar : the bar to edit
- * @param Integer speed : the speed of the bar to move
- * @param Integer max : the maximium size of the box
- * @param Integer min : the minimium size of the box
+ * @param {jQuery-Object} $bar : the bar to edit
+ * @param {Integer} speed : the speed of the bar to move
+ * @param {Integer} max : the maximium size of the box
+ * @param {Integer} min : the minimium size of the box
  */
 function moveBar($bar, speed, max, min) {
     var randomMax = Math.floor((max - min) / 2 * Math.random()) + min + (max - min) / 2;

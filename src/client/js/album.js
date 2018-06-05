@@ -40,11 +40,11 @@ $(document).ready(function() {
 /* ----------------------- ALBUM SPECIFIC FUNCTIONS ------------------------- */
 /* -------------------------------------------------------------------------- */
 
-/*
+/**
  * Generates header HTML
- * @param String name : the name of the
- * @param Array artists : a list of artist objects
- * @param String img : the url (or null) of the image
+ * @param {String} name : the name of the
+ * @param {Array} artists : a list of artist objects
+ * @param {String} img : the url (or null) of the image
  */
 function generateHeader(name, artists, img) {
     var headerTemplate = Handlebars.compile($("#content-header-temp").html());
@@ -57,9 +57,9 @@ function generateHeader(name, artists, img) {
     $(".content-header-section").append(headerHtml);
 }
 
-/*
+/**
  * Generates HTML from a list of tracks
- * @param Array tracks : a list of tracks on the album to display
+ * @param {Array} tracks : a list of tracks on the album to display
  */
 function generateAlbumTracks(tracks) {
     var trackTemplate = Handlebars.compile($("#album-song-temp").html());

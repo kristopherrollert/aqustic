@@ -40,9 +40,9 @@ $(document).ready(function () {
 /* ----------------------- SIGN UP SPECIFIC FUNCTIONS ----------------------- */
 /* -------------------------------------------------------------------------- */
 
-/*
+/**
  * Displays the given error to the error section
- * @param String error : message to be displayed
+ * @param {String} error : message to be displayed
  */
 function throwLoginError(error) {
     var width =  $("#username-section").outerWidth() - 30;

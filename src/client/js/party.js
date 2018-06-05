@@ -50,9 +50,9 @@ function completedTask () {
         closeLoadingScreen();
 }
 
-/*
+/**
  * Pulls basic party information from the server and geneartes header
- * @param String partyToken : the token for the party-to-join
+ * @param {String} partyToken : the token for the party-to-join
  */
 function pullHeaderAndGenerate (partyToken) {
     $.ajax({
@@ -64,10 +64,10 @@ function pullHeaderAndGenerate (partyToken) {
     });
 }
 
-/*
+/**
  * Pulls the updated queue from the server, deletes old queue display
  * and rebuilds it with new queue.
- * @param String partyToken : the token for the party-to-join
+ * @param {String} partyToken : the token for the party-to-join
  */
 function pullQueueAndUpdate (partyToken) {
     $.ajax({
@@ -80,10 +80,10 @@ function pullQueueAndUpdate (partyToken) {
     });
 }
 
-/*
+/**
  * Pulls the updated currently playing song from the server, deletes
  * old song display and rebuilds the new currently playing song.
- * @param String partyToken : the token for the party-to-join
+ * @param {String} partyToken : the token for the party-to-join
  */
 function pullCurrentlyPlayingAndUpdated (partyToken) {
     $.ajax({
@@ -96,9 +96,9 @@ function pullCurrentlyPlayingAndUpdated (partyToken) {
     });
 }
 
-/*
+/**
  * Given data about the party, displays it using templates
- * @param Object headerData : information about the party from the server
+ * @param {Object} headerData : information about the party from the server
  */
 function generatePartyInfoContent (headerData) {
     var partyInfoTemplate = Handlebars.compile($("#party-info-template").html());
@@ -111,9 +111,9 @@ function generatePartyInfoContent (headerData) {
     $(".party-info-section").append(partyInfoHtml);
 }
 
-/*
+/**
  * Given data about the currently playing song, displays it using templates
- * @param Object currentlyPlayingSong : information about the currently playing
+ * @param {Object} currentlyPlayingSong : information about the currently playing
  *               song pulled from the server.
  */
 function generateNowPlayingContent (currentlyPlayingSong) {
@@ -138,9 +138,9 @@ function generateNowPlayingContent (currentlyPlayingSong) {
 }
 
 
-/*
+/**
  * Given data about the queue, displays it using templates
- * @param Array queueInfo : a list of song objects from the server representing a queue
+ * @param {Array} queueInfo : a list of song objects from the server representing a queue
  *
  */
 function generateQueueContent(queueInfo) {

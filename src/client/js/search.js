@@ -81,19 +81,19 @@ function hideAllErrorMessages () {
     $("#playlist-error").hide();
 }
 
-/*
+/**
  * Writes the message to a specific section's error text
- * @param jQuery $item : jQuery object of where to show text
- * @param String message : the text about what error to display
+ * @param {jQuery} $item : jQuery object of where to show text
+ * @param {String} message : the text about what error to display
  */
 function throwSingleErrorMessage ($item, message) {
     $item.text(message).show();
 }
 
 
-/*
+/**
  * Writes the message to all section's error text
- * @param String message : the text about what error to display
+ * @param {String} message : the text about what error to display
  */
 function throwAllErrorMessages (message) {
     $("#song-error").text(message).css("display", "block");
@@ -133,10 +133,10 @@ function removeSearchContent () {
 }
 
 
-/*
+/**
  * From information about the songs, generate song HTML from templates
- * @param Integer maxResults : the number of results to be displayed
- * @param Array songData : a list of information about each song
+ * @param {Integer} maxResults : the number of results to be displayed
+ * @param {Array} songData : a list of information about each song
  */
 function generateSongContent(maxResults, songData) {
     if (songData.length == 0) {
@@ -177,10 +177,10 @@ function generateSongContent(maxResults, songData) {
     }
 }
 
-/*
+/**
  * From information about the albums, generate album HTML from templates
- * @param Integer maxResults : the number of results to be displayed
- * @param Array albumData : a list of information about each album
+ * @param {Integer} maxResults : the number of results to be displayed
+ * @param {Array} albumData : a list of information about each album
  */
 function generateAlbumContent (maxResults, albumData) {
     if (albumData.length == 0) {
@@ -241,10 +241,10 @@ function generateAlbumContent (maxResults, albumData) {
 }
 
 
-/*
+/**
  * From information about the playlist, generate playlist HTML from templates
- * @param Integer maxResults : the number of results to be displayed
- * @param Array playlistData : a list of information about each playlist
+ * @param {Integer} maxResults : the number of results to be displayed
+ * @param {Array} playlistData : a list of information about each playlist
  */
 function generatePlaylistContent(maxResults, playlistData) {
     if (playlistData.length == 0) {
@@ -310,10 +310,10 @@ function generatePlaylistContent(maxResults, playlistData) {
 }
 
 
-/*
+/**
  * From information about the artists, generate artist HTML from templates
- * @param Integer maxResults : the number of results to be displayed
- * @param Array artistData : a list of information about each artist
+ * @param {Integer} maxResults : the number of results to be displayed
+ * @param {Array} artistData : a list of information about each artist
  */
 function generateArtistContent(maxResults, artistData) {
     if (artistData.length == 0) {
