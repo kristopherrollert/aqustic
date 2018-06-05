@@ -186,6 +186,10 @@ function albumHoverOut () {
     });
 }
 
+
+/*
+ * Adds links to PARTY, SEARCH, and LOGOUT buttons
+ */
 function setHeaderLinks(partyToken) {
     $("#header-menu-party").attr("href", "/party/" + partyToken);
     $("#header-menu-search").attr("href", "/party/" + partyToken + "/search");
