@@ -863,7 +863,6 @@ app.put('/party/*/queue-song', function(req, res) {
             });
 
             if (partyResult.currentlyPlaying === null) {
-                console.log("going into playLoop");
                 playLoop(partyToken);
             }
             res.end();
