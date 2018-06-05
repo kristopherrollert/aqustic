@@ -138,10 +138,10 @@ input[type="text"]:focus, input[type="password"]:focus {
 
 .button-3 {
     background-color: transparent;
-    color: $primary-color;
+    color: $highlight-color;
     font-family: 'Poppins', sans-serif;
     font-size: 18px;
-    border: .5px solid $primary-color;
+    border: .5px solid $highlight-color;
     border-radius: 3px;
     padding: 8px;
     padding-left: 15px;
@@ -155,8 +155,8 @@ input[type="text"]:focus, input[type="password"]:focus {
 }
 
 .button-3:hover {
-    background-color: $primary-color;
-    color: white;
+    background-color: $highlight-color;
+    color: $background-color;
 }
 
 .button-1:hover {
@@ -684,7 +684,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     cursor: pointer;
 }
 
-.top-song-item:hover, .album-song-item:hover {
+.top-song-item:hover, .album-song-item:hover, .playlist-song-item:hover {
     background-color: $background-color;
 }
 
@@ -847,14 +847,14 @@ input[type="text"]:focus, input[type="password"]:focus {
 .home-page-full {
     width: 100vw;
     height: 100vh;
-    background-color: $highlight-color;
+    background: linear-gradient(to bottom right, $primary-color, $background-color);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .home-page-header {
-    color: $header-color;
+    color: $highlight-color;
     font-size: 80px;
 }
 

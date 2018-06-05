@@ -1,6 +1,5 @@
 /* jshint esversion: 6 */
 let TEMP_LOCATION_ASSUMPTION = "US";
-// ^ this is just for kris, please don't delete
 /*
  *                               _    _
  *                              | |  (_)
@@ -20,9 +19,6 @@ let TEMP_LOCATION_ASSUMPTION = "US";
 /* ------------------------------------------------------------------------- */
 /* -------------------------------- GLOBALS -------------------------------- */
 /* ------------------------------------------------------------------------- */
-
-// KRIS: use events to prevent the database query from returning too early
-//https://www.tutorialspoint.com/nodejs/nodejs_event_emitter.htm
 
 /* Constants to be changed before release */
 const clientID = "1951f93df40942a59574ed5d17e5425a";
@@ -74,17 +70,24 @@ function queuePush (song) {
     this.push(song);
 }
 
-
 /* ------------------------------------------------------------------------- */
 /* ----------------------------- DATABASE CODE ----------------------------- */
 /* ------------------------------------------------------------------------- */
 
 var database = {
+
     /* General Database Information */
     name: "aqusticDB",
+
     // the below line should replace the other url in final for the server
     //url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
-     url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
+    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
+
+    /**
+     * Creates a database collection
+     * @param {String} collectionName : name of the collection
+     * @param {Function} calback : todo after database task completes
+     */
     createCollection: function(collectionName, callback = null) {
         mongoClient.connect(this.url, function(err, db) {
             if (err) throw err;
@@ -99,6 +102,13 @@ var database = {
             );
         });
     },
+
+    /**
+     * Insert one element into the database
+     * @param {String} collectionName : name of the collection
+     * @param {Object} item : query of an item to add to database
+     * @param {Function} calback : todo after database task completes
+     */
     insertOne: function (collectionName, item, callback = null) {
         mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
@@ -107,13 +117,19 @@ var database = {
                 function (err, result) {
                     if (err) throw err;
                     if (debug) console.log("Inserted One Element");
-                    //console.log(result);
                     db.close();
                     if (callback) callback(result);
                 }
             );
         });
     },
+
+    /**
+     * Insert multiple elements into the database
+     * @param {String} collectionName : name of the collection
+     * @param {Object} items : query of the items to add to database
+     * @param {Function} calback : todo after database task completes
+     */
     insertMany: function (collectionName, items, callback = null) {
         mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
@@ -129,7 +145,12 @@ var database = {
         });
     },
 
-    /* returns an array of */
+    /**
+     * Finds an element in the database
+     * @param {String} collectionName : name of the collection
+     * @param {Object} query : query of the item to find
+     * @param {Function} calback : todo after database task completes
+     */
     findOne: function (collectionName, query = {}, callback = null) {
         return mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
@@ -148,6 +169,13 @@ var database = {
         });
     },
 
+    /**
+     * Finds a specific number of elements in the database
+     * @param {String} collectionName : name of the collection
+     * @param {Object} query : query of the items to find
+     * @param {Integer} limit : the max number of results to return
+     * @param {Function} calback : todo after database task completes
+     */
     find: function(collectionName, query = {}, limit = 0, callback = null){
         return mongoClient.connect(this.url, function (err, db) {
             if (err) throw err;
@@ -166,10 +194,23 @@ var database = {
         });
     },
 
+    /**
+     * Finds all elements in the database
+     * @param {String} collectionName : name of the collection
+     * @param {Object} query : query of the items to find
+     * @param {Function} calback : todo after database task completes
+     */
     findAll: function (collectionName, query = {}, callback = null) {
         return this.find(collectionName, query, 0, callback );
     },
 
+    /**
+     * Updates one element in the database
+     * @param {String} collectionName : name of the collection
+     * @param {Object} query : query of the item to change
+     * @param {Object} newValues : information on what to change
+     * @param {Function} calback : todo after database task completes
+     */
     updateOne: function (collectionName, query, newValues, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
@@ -187,6 +228,13 @@ var database = {
         });
     },
 
+    /**
+     * Updates multiple elements in the database
+     * @param {String} collectionName : name of the collection
+     * @param {Object} query : query of the items to change
+     * @param {Object} newValues : information on what to change
+     * @param {Function} calback : todo after database task completes
+     */
     update: function (collectionName, query, newValues, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
@@ -203,6 +251,12 @@ var database = {
         });
     },
 
+    /**
+     * Deletes one element in the database
+     * @param {String} collectionName : name of the collection
+     * @param {Object} query : query of the item to delete
+     * @param {Function} calback : todo after database task completes
+     */
     deleteOne: function (collectionName, query, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
@@ -217,6 +271,12 @@ var database = {
         });
     },
 
+    /**
+     * Deletes all elements in the database matching the query
+     * @param {String} collectionName : name of the collection
+     * @param {Object} query : query of the items to delete
+     * @param {Function} calback : todo after database task completes
+     */
     delete: function (collectionName, query, callback = null) {
         mongoClient.connect(this.url, function(err, db){
             if (err) throw err;
@@ -233,7 +293,6 @@ var database = {
 
 };
 
-
 database.createCollection("ACCOUNTS");
 database.createCollection("PARTIES");
 
@@ -242,7 +301,7 @@ database.createCollection("PARTIES");
 /* -------------------------------------------------------------------------- */
 
 /*
- * description: middleware that removes the browser from blocking certain
+ * Middleware that removes the browser from blocking certain
  * requests.
  *
  * notes: When this project is completed, this should not be here, it should be
@@ -257,21 +316,13 @@ app.use(function(req, res, next) {
 });
 
 /*
- * description: middleware that parses cookies from the client folder.
+ * Middleware that parses cookies from the client folder.
  */
 app.use(express.static(__dirname + '/client')).use(cookieParser());
 
 // these allow us to support JSON-encoded bodies and URL-encoded bodies
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
-/* Save login cookies */
-// app.use(session({
-//     secret: "asdf",
-//     resave: false,
-//     saveUninitialized: false
-//     //cookie: {secure: true}
-// }));
 
 app.use(session({
     cookieName: 'session',
@@ -294,12 +345,6 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-
-/* ------------------------------------------------------------------------- */
-/* ------------------------------- TESTING ------------------------------- */
-/* ------------------------------------------------------------------------- */
-
 
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- ENDPOINTS ------------------------------- */
@@ -343,9 +388,7 @@ app.get('/signup', function(req, res){
 /**
  *  Endpoint to send you to homepage
  */
-// , authenticationMiddleware() add when done
 app.get('/home', authenticationMiddleware() ,function(req, res){
-    // TODO THIS SHOULD REDIRECT TO LOGIN PAGE
     res.sendFile(__dirname+"/client/home.html");
 });
 
@@ -359,10 +402,6 @@ app.get('/logout', function(req, res){
     res.redirect('/signin');
 });
 
-
-
-// Needs: artist name, photo, album names, album images, album id, top songs name,
-//        top songs id,
 /**
  *  Endpoint that returns search results for an artist
  */
@@ -612,7 +651,10 @@ app.get('/account/get-info', function (req, res) {
     });
 });
 
-/*-----------------Store Sessions-----------------*/
+/* ------------------------------------------------------------------------- */
+/* ----------------------------- STORE SESSIONS ---------------------------- */
+/* ------------------------------------------------------------------------- */
+
 passport.serializeUser(function(userID, done) {
     done(null, userID);
 });
@@ -621,9 +663,11 @@ passport.deserializeUser(function(userID, done) {
     done(null, userID);
 });
 
+/*
+ * Checks if user is authenticated, if not redirects them back to the sign in page
+ */
 function authenticationMiddleware () {
     return (req, res, next) => {
-        console.log(`req.session.passport.user: ${JSON.stringify(req.session.passport)}`);
         if (req.isAuthenticated()) return next();
         res.redirect('/signin');
     };
@@ -675,7 +719,6 @@ app.get('/callback', function(req, res) {
     };
 
     if (state === null || state !== storedState) {
-        //TODO: make a better error report
         res.redirect('/#' +
             querystring.stringify({
                 error: 'state_mismatch'
@@ -720,7 +763,6 @@ app.get('/callback', function(req, res) {
 
             }
             else {
-                // TODO better error handleing
                 res.redirect('/#' +
                     querystring.stringify({
                         error: 'invalid_token'
@@ -833,7 +875,6 @@ app.put('/party/*/queue-song', function(req, res) {
         if(partyResult == null)
             res.send({ error: 'Party not found' });
         else {
-            console.log('Party Found!');
             let newSong = new Song();
             newSong.setSongId(songInfo.songId);
             newSong.setSongName(songInfo.songName);
@@ -858,12 +899,9 @@ app.put('/party/*/queue-song', function(req, res) {
                 }
             };
 
-            database.updateOne("PARTIES", query, updates, function () {
-//                res.end();
-            });
+            database.updateOne("PARTIES", query, updates);
 
             if (partyResult.currentlyPlaying === null) {
-                console.log("going into playLoop");
                 playLoop(partyToken);
             }
             res.end();
@@ -1074,6 +1112,8 @@ app.get('/party/*', authenticationMiddleware(), function(req, res){
 
 
 /* ------------------------------------------------------------------------- */
+/* ---------------------------- SOCKET FUNCTIONS --------------------------- */
+/* ------------------------------------------------------------------------- */
 
 /**
  *  Socket.io functions to handle live updating of votes and currentlyPlaying
@@ -1124,9 +1164,8 @@ function generateRandomString(length) {
 
 /**
  * hash password with sha512.
- * @function
- * @param {string} password - List of required fields.
- * @param {string} salt - Data to be validated.
+ * @param {string} password : List of required fields.
+ * @param {string} salt : Data to be validated.
  */
 var sha512 = function(password, salt){
     var hash = crypto.createHmac('sha512', salt); /** Hashing algorithm sha512 */
@@ -1140,24 +1179,28 @@ var sha512 = function(password, salt){
 
 /**
  * returns hashed password and salt
+ * @param {string} userpassword : the user's password as a sting
  */
-function saltHashPassword(userpassword) {
+function saltHashPassword(userPassword) {
     let salt = generateRandomString(16);
-    let passwordData = sha512(userpassword, salt);
+    let passwordData = sha512(userPassword, salt);
     return { hashPassword: passwordData.passwordHash,
         salt: passwordData.salt };
 }
 
 /**
  * Hashes password with salt
+ * @param {String} userPassword : the string of user's password
+ * @param {String} salt : the salt given
  */
-function hashPassword(userpassword, salt) {
-    let passwordData = sha512(userpassword, salt);
+function hashPassword(userPassword, salt) {
+    let passwordData = sha512(userPassword, salt);
     return passwordData.passwordHash;
 }
 
-/*
+/**
  * Returns true if string has special characters
+ * @param {String} str : the string to check if valid
  */
 function isValid(str){
     return !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(str);
@@ -1173,6 +1216,8 @@ function isValid(str){
  *
  * This function is called recursively by the setTimeout(), which calls this function after
  * the duration of the song to be played.
+ *
+ *  @param {String} partyToken : the string of the party indetification
  */
 function playLoop(partyToken) {
 
@@ -1228,8 +1273,7 @@ function playLoop(partyToken) {
             let newVals = {
                 $set: {
                     songQueue: queue,
-//                  vv The below line causes the server to crash vv
-//                  playTimeoutId: timeoutId,
+                 // playTimeoutId: timeoutId,
                     currentlyPlaying: nextSong,
                 }
             };
@@ -1245,6 +1289,9 @@ function playLoop(partyToken) {
 /**
  * This function makes the spotify api call to play a song, using the spotify authentication token
  * and the song song uri (the one with track:spotify:... before it).
+ *
+ * @param {String} authToken : the authorization token given from spotify
+ * @param {String} songURI : the spotify code for the song
  */
 function playSong(authToken, songURI) {
 
@@ -1263,7 +1310,7 @@ function playSong(authToken, songURI) {
     };
 
     //TODO make the query "device_id" equal to the name of the player
-    return fetch("https://api.spotify.com/v1/me/player/play", init)
+    fetch("https://api.spotify.com/v1/me/player/play", init)
         .then(function (res) {
             if (res.status === 204) {
                 console.log("Playing Song...");
@@ -1281,10 +1328,13 @@ function playSong(authToken, songURI) {
 /* -------------------------------------------------------------------------- */
 
 
-/*
+/**
  * Gets an Authentication token from party host sends to
  * pingSpotify to check if the code is valid then if valid
  * uses it, if not updates the token in the user's database.
+ *
+ * @param {String} partyToken : the party identification string
+ * @param {Function} callback : the function callback to run after completion
  */
 function getAuthToken(partyToken, callback) {
 
@@ -1298,16 +1348,13 @@ function getAuthToken(partyToken, callback) {
                 username: result.admin
             };
 
-            // console.log('----------');
-            // console.log("user: " + result.admin);
-            // console.log('----------');
-
             database.findOne("ACCOUNTS", userId, function (res) {
                 let authToken = res.authenticateID;
                 let refreshToken = res.refreshToken;
                 let userID = {
                     username: res.username
                 };
+
                 pingSpotify(authToken, function () {
                     callback(authToken);
                 }, function () {
@@ -1321,7 +1368,7 @@ function getAuthToken(partyToken, callback) {
                             json: true
                         };
 
-                    return request.post(authOptions, function(error, response, body) {
+                    request.post(authOptions, function(error, response, body) {
                         if (!error && response.statusCode === 200) {
                             var access_token = body.access_token;
                             let updateAccess = {
@@ -1329,11 +1376,7 @@ function getAuthToken(partyToken, callback) {
                                     authenticateID: access_token
                                 }
                             };
-                            database.updateOne("ACCOUNTS", userID, updateAccess, function (result) {
-                                if (result != null){
-                                    // console.log("Updated Refresh");
-                                }
-                            });
+                            database.updateOne("ACCOUNTS", userID, updateAccess);
                             callback(access_token);
                         }
                         else {
@@ -1348,8 +1391,12 @@ function getAuthToken(partyToken, callback) {
 
 }
 
-/*
+/**
  * Makes a call to Spotify to check if authToken is valid.
+ * @param {String} authToken : string of the spotify authorization token
+ * @param {Function} callbackSuccess : the function to run if pinging succeeds
+ * @param {Function} callbackFail : the function to run if pinging fails
+ *
  */
 function pingSpotify(authToken, callbackSuccess, callbackFail) {
 
@@ -1379,7 +1426,10 @@ function pingSpotify(authToken, callbackSuccess, callbackFail) {
 /* -------------------------------------------------------------------------- */
 
 /**
- *  Makes spotify api call to search by albums
+ * Makes spotify api call to search by albums
+ * @param {String} authToken : spotify authorization token
+ * @param {String} albumId : spotify album id
+ * @param {Object} : album information
  */
 function searchAlbum(authToken, albumId) {
     var headers = {
@@ -1432,7 +1482,10 @@ function searchAlbum(authToken, albumId) {
 }
 
 /**
- *  Makes spotify api call to find the top songs for certain artists
+ * Makes spotify api call to find the top songs for certain artists
+ * @param {String} authToken : spotify authorization token
+ * @param {String} artistId : spotify artist id
+ * @return {Array} : a list of song objects
  */
 function searchArtistTopSongs(authToken, artistId) {
     var headers = {
@@ -1480,7 +1533,10 @@ function searchArtistTopSongs(authToken, artistId) {
 }
 
 /**
- *  Makes spotify api call to search by artists
+ * Makes spotify api call for artists' basic information
+ * @param {String} authToken : spotify authorization token
+ * @param {String} artistId : spotify artist id
+ * @return {Object} : basic artist informaton
  */
 function searchArtistInfo(authToken, artistId) {
     var headers = {
@@ -1521,6 +1577,9 @@ function searchArtistInfo(authToken, artistId) {
 
 /**
  *  Makes spotify api call to search for an artist's albums
+ * @param {String} authToken : spotify authorization token
+ * @param {String} artistId : spotify artist id
+ * @return {Array} : a list of the artist's album
  */
 function searchArtistAlbums(authToken, artistId) {
     var headers = {
@@ -1571,6 +1630,10 @@ function searchArtistAlbums(authToken, artistId) {
 
 /**
  *  Makes spotify api call to look for playlists for a certain user
+ * @param {String} authToken : spotify authorization token
+ * @param {String} playlistId : spotify playlist id
+ * @param {String} userId : spotify user id for the playlist
+ * @param {Array} : a list of tracks on the playlist
  */
 function searchPlaylist(authToken, playlistId, userId) {
 
@@ -1619,13 +1682,13 @@ function searchPlaylist(authToken, playlistId, userId) {
 
 
 
-/*
- * DESCRIPTION: A way to search for songs on spotify
- * ARGUMENTS:
- *  authorization -> authorization to work with spotify api
- *  query -> what we are searching
- *  type(optional) -> type of thing to search for. defaults to all. options: track, album, playlist, artist
- * Returns a dictionary of the names of the top 20 results from spotify, and song objects (still needs work)
+/**
+ * A way to search for songs on spotify
+ * @param {String} authToken : spotify authorization token
+ * @param {Object} query : the search query
+ * @param {String} type : what content you want returned
+ * @return {Object} : a dictionary of the names of the top 20 results from
+ *                    spotify, and song objects (still needs work)
  */
 function search(authToken, query, type = 'all') {
     if (type == 'all')
@@ -1723,11 +1786,10 @@ function search(authToken, query, type = 'all') {
         });
 }
 
-/*
- * DESCRIPTION: A way to parse a query from a user into something usable by the spotify API
- * ARGUMENTS:
- *  query -> a search query from a user
- * returns a usable string for the spotify API
+/**
+ * A way to parse a query from a user into something usable by the spotify API
+ * @param {String} query : a search query from a user
+ * @return : a usable string for the spotify API
  */
 function parse_search(query) {
     return query.replace(/ /i, '%20');
@@ -1737,8 +1799,14 @@ function parse_search(query) {
 /* ---------------------------- CREATE PLAYLIST ----------------------------- */
 /* -------------------------------------------------------------------------- */
 
-//This function will create a playlist with the party name.
-//returns the id of the playlist created for the party - needs to be saved
+/**
+ * This function will create a playlist with the party name.
+ * @param {String} authToken : spotify autherization token
+ * @param {String} userId : the spotify id for the user
+ * @param {String} partyName : the name of the party
+ * @return : the id of the playlist created for the party
+ * TODO: needs to be saved
+ */
 function createPlaylist(authToken, userId, partyName) {
 
     var header = {
@@ -1769,9 +1837,18 @@ function createPlaylist(authToken, userId, partyName) {
         });
 }
 
-//from the userId and playlistId, adds tracks to the playlist
+
 //form of tracks - 'spotify:track:songId' in an array
 //ex: ['spotify:track:1301WleyT98MSxVHPZCA6M']
+
+/**
+ * From the userId and playlistId, adds tracks to the playlist
+ * @param {String} authToken : spotify autherization token
+ * @param {String} userId : the spotify id for the user
+ * @param {String} partyName : the name of the party
+ * @param {Array} tracks : a list of tracks to be added to the playlist
+ * TODO: needs to be saved
+ */
 function addToPlaylist(authToken, userId, playlistId, tracks) {
 
     var header = {
@@ -1790,7 +1867,7 @@ function addToPlaylist(authToken, userId, playlistId, tracks) {
         body: JSON.stringify(body)
     };
 
-    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`, init).then(function (res) {
+    fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`, init).then(function (res) {
         console.log(res);
         if (res.status == 201) {
             console.log('adding songs');

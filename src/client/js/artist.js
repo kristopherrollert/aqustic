@@ -45,10 +45,10 @@ $(document).ready(function() {
 /* ------------------------ ARTIST SPECIFIC FUNCTIONS ----------------------- */
 /* -------------------------------------------------------------------------- */
 
-/*
+/**
  * Generates header HTML
- * @param String name : the name of the
- * @param String img : the url (or null) of the image
+ * @param {String} name : the name of the
+ * @param {String} img : the url (or null) of the image
  */
 function generateHeader(name, img) {
     var headerTemplate = Handlebars.compile($("#content-header-temp").html());
@@ -80,10 +80,10 @@ function generateTopSongs (topSongsData) {
     }
 }
 
-/*
+/**
  * Generates HTML from the album list
- * @param Integer maxResults : the number of results to display
- * @param Array albumData : the list of the album objects
+ * @param {Integer} maxResults : the number of results to display
+ * @param {Array} albumData : the list of the album objects
  */
 function generateAlbums (maxResults, albumData) {
     var width =  $(".content-box").outerWidth();
@@ -128,9 +128,9 @@ function generateAlbums (maxResults, albumData) {
     }
 }
 
-/*
+/**
  * Redirects to the album that was clicked on
- * @param Object event : information about the click event
+ * @param {Object} event : information about the click event
  */
 function albumClick (event) {
     var partyToken = eventGetPartyToken(event);
