@@ -4,11 +4,15 @@
 
 $(document).ready(function () {
 
+    openLoadingScreen();
+
     /*
      * DESC: Pull the queue and currently playing song from server and generates
      * templates from data.
      */
     var partyToken = getPartyToken();
+
+    setHeaderLinks(partyToken);
     pullQueueAndUpdate(partyToken);
     pullCurrentlyPlayingAndUpdated(partyToken);
     pullHeaderAndGenerate(partyToken);
@@ -34,6 +38,18 @@ $(document).ready(function () {
 /* ------------------------ PARTY SPECIFIC FUNCTIONS ------------------------ */
 /* -------------------------------------------------------------------------- */
 
+/* -- GLOBALS -- */
+var completedTasks = 0;
+
+/*
+ * Tracks genreated content, when all is complete it closes the loadng screen
+ */
+function completedTask () {
+    completedTasks++;
+    if (completedTasks == 3)
+        closeLoadingScreen();
+}
+
 /*
  * Pulls basic party information from the server and geneartes header
  * @param String partyToken : the token for the party-to-join
@@ -44,6 +60,7 @@ function pullHeaderAndGenerate (partyToken) {
         url: "/party/" + partyToken + "/get-info"
     }).done(function (data) {
         generatePartyInfoContent(data);
+        completedTask();
     });
 }
 
@@ -59,6 +76,7 @@ function pullQueueAndUpdate (partyToken) {
     }).done(function (queue) {
         $(".song-queue-item").remove();
         generateQueueContent(queue);
+        completedTask();
     });
 }
 
@@ -74,6 +92,7 @@ function pullCurrentlyPlayingAndUpdated (partyToken) {
     }).done(function (currentlyPlayingSong) {
         $(".now-playing-section > .song-item").remove();
         generateNowPlayingContent(currentlyPlayingSong);
+        completedTask();
     });
 }
 

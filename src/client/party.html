@@ -16,8 +16,28 @@
     <script src="/js/party.js"></script>
 </head>
 <body>
+    <div class="loading-screen">
+        <div class="loading-box">
+            <div class="center-box">
+              <div class="bar-box">
+                    <div id="bar1"></div>
+                    <div id="bar2"></div>
+                    <div id="bar3"></div>
+                    <div id="bar4"></div>
+                    <div id="bar5"></div>
+                </div>
+            </div>
+            <h1 class="loading-text">loading</h1>
+        </div>
+    </div>
     <div class="small-header">
         <h1 class="small-page-header">aqustic</h1>
+        <div class="header-menu">
+            <a href="#" class="header-menu-item" id="header-menu-party" >PARTY</a>
+            <a href="#" class="header-menu-item" id="header-menu-search" >SEARCH</a>
+            <div class="header-menu-item">||</div>
+            <a href="#" class="header-menu-item" id="header-menu-sign-out" >SIGN OUT</a>
+        </div>
     </div>
     <div class="content-section full-page">
         <div class="content-box">
@@ -30,13 +50,13 @@
                     <script id="party-info-template" type="text/x-handlebars-template">
                         <p class="contected-to-text">Connected to: <span class="highlight">{{PARTY_NAME}}</span></p>
                         <p class="party-owner-text">The party owner is <span class="highlight">{{PARTY_OWNER}}</span></p>
-                        <p class="party-owner-text">The party owner is <span class="highlight">{{PARTY_TOKEN}}</span></p>
+                        <p class="party-owner-text">The party token is <span class="highlight">{{PARTY_TOKEN}}</span></p>
                     </script>
                 </div>
                 <div class="now-playing-section">
                     <h3 class="section-header">NOW PLAYING</h3>
                     <div id="no-currently-playing-section">
-                        <p class="no-currently-playing-text">No Song is Currently Playing</p>
+                        <p class="no-currently-playing-text">Queue a song to start playing!</p>
                     </div>
                     <script id="now-playing-template" type="text/x-handlebars-template">
                         <div class="song-item" id="now-playing-item">

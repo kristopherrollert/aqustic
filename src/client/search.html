@@ -42,6 +42,12 @@
     </script>
     <div class="small-header">
         <h1 class="small-page-header">aqustic</h1>
+        <div class="header-menu">
+            <a href="#" class="header-menu-item" id="header-menu-party" >PARTY</a>
+            <a href="#" class="header-menu-item" id="header-menu-search" >SEARCH</a>
+            <div class="header-menu-item">||</div>
+            <a href="#" class="header-menu-item" id="header-menu-sign-out" >SIGN OUT</a>
+        </div>
     </div>
     <div class="content-section full-page">
         <div class="content-box">
@@ -63,6 +69,22 @@
                 </div>
                 <div class="search-content">
                     <h2 class="open-message">Use the search bar above<br /> to start queueing!</h2>
+                    <div class="search-loading-box">
+                        <div class="loading-screen-search">
+                            <div class="loading-box">
+                                <div class="center-box">
+                                  <div class="bar-box">
+                                        <div id="bar1"></div>
+                                        <div id="bar2"></div>
+                                        <div id="bar3"></div>
+                                        <div id="bar4"></div>
+                                        <div id="bar5"></div>
+                                    </div>
+                                </div>
+                                <h1 class="loading-text">loading</h1>
+                            </div>
+                        </div>
+                    </div>
                     <div class="song-content search-section-cur">
                         <h2 id="song-error">...</h2>
                         <script id="song-item-template" type="text/x-handlebars-template">
@@ -118,7 +140,7 @@
                     <div class="playlist-content">
                         <h2 id="playlist-error">...</h2>
                         <script id="playlist-item-template" type="text/x-handlebars-template">
-                            <div class="playlist-item" id="playlist-{{PLAYLIST_ID}}">
+                            <div class="playlist-item" id="playlist-{{PLAYLIST_ID}}-{{USER_ID}}">
                                 <div class="playlist-cover-section">
                                     <img src= "{{IMG}}" class="playlist-cover-image">
                                 </div>

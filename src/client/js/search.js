@@ -2,9 +2,9 @@
 /* -------------------------- SEARCH ON-LOAD CODE -------------------------- */
 /* ------------------------------------------------------------------------- */
 $(document).ready(function () {
-
     // Parses out the party token from the url
     var partyToken = getPartyToken();
+    setHeaderLinks(partyToken);
 
     /* DESC: Set default size for the page */
     var width =  $(".content-box").outerWidth();
@@ -30,15 +30,18 @@ $(document).ready(function () {
     /* DESC: On click, searches and displays all content from the query */
     $("#search-button").click(function() {
         var query = $("#search-query").val();
+        $(".open-message").hide();
+        removeSearchContent();
         if (query == "") {
-            $(".open-message").hide();
             removeSearchContent();
+            closeSearchLoadingScreen();
             throwAllErrorMessages("SEARCH CANNOT BE EMPTY");
             return;
         }
 
         var currentMaxResults = 6;
         hideAllErrorMessages();
+        openSearchLoadingScreen();
 
 
         $.ajax({
@@ -50,11 +53,10 @@ $(document).ready(function () {
                 partyToken: partyToken
             }
         }).done( function (data) {
-            $(".open-message").hide();
-            removeSearchContent();
             if (data.tracks == null)
                 throwAllErrorMessages("COULD NOT GET SONGS FROM SPOTIFY");
             else {
+                closeSearchLoadingScreen();
                 generateSongContent(currentMaxResults, data.tracks);
                 generateAlbumContent(currentMaxResults, data.albums);
                 generateArtistContent(currentMaxResults, data.artists);
@@ -122,6 +124,12 @@ function removeSearchContent () {
 
     if ($("#show-more-artist") != null)
         $("#show-more-artist").remove();
+
+    if ($(".playlist-item") != null)
+        $(".playlist-item").remove();
+
+    if ($("#show-more-playlist") != null)
+        $("#show-more-playlist").remove();
 }
 
 
@@ -211,23 +219,7 @@ function generateAlbumContent (maxResults, albumData) {
         $(albumQuery + " > .album-cover-section").css(squareCSS);
         $(albumQuery + " > .album-content-section").css("width", albumItemTextWidth + "px");
         $(albumQuery).css("visibility", "visible");
-        $(albumQuery).hover(function () {
-            $(this).find(".album-cover-section").css({
-                "border": "1px solid #222b2f",
-                "backgroundColor" : "#222b2f"
-            });
-            $(this).find(".album-content-section").css({
-                "border" : "1px solid #222b2f",
-                "backgroundColor" : "#222b2f"
-            });
-
-        }, function () {
-            $(this).find(".album-cover-section").css("border", "1px solid #f6ca5a");
-            $(this).find(".album-content-section").css({
-                "border" : "1px solid #f6ca5a",
-                "backgroundColor" : "transparent"
-            });
-        });
+        $(albumQuery).hover(albumHoverIn, albumHoverOut);
 
         $(albumQuery).bind('click', {albumInfo: albumData[y]}, function (event) {
             var partyToken = eventGetPartyToken(event);
@@ -272,11 +264,13 @@ function generatePlaylistContent(maxResults, playlistData) {
             NAME: currentPlaylist.name,
             CREATOR: currentPlaylist.ownerName.toUpperCase(),
             COUNT: currentPlaylist.songCount,
+            USER_ID: currentPlaylist.ownerId,
             PLAYLIST_ID: currentPlaylist.id,
             IMG: currentPlaylist.image
         };
         var playlistHtml = playlistTemplate(playlistInfo);
-        var playlistQuery = "#playlist-" + playlistInfo.PLAYLIST_ID;
+        var playlistQuery = "#playlist-" + playlistInfo.PLAYLIST_ID + "-" + playlistInfo.USER_ID;
+        console.log(playlistQuery);
         $(".playlist-content").append(playlistHtml);
 
         /* DESC: Complicated height calculation and setting*/
@@ -292,28 +286,12 @@ function generatePlaylistContent(maxResults, playlistData) {
         $(playlistQuery).css("visibility", "visible");
 
         /* DESC: Making the elments hoverable */
-        $(playlistQuery).hover(function () {
-            $(this).find(".playlist-cover-section").css({
-                "border": "1px solid #222b2f",
-                "backgroundColor" : "#222b2f"
-            });
-
-            $(this).find(".playlist-content-section").css({
-                "border" : "1px solid #222b2f",
-                "backgroundColor" : "#222b2f"
-            });
-
-        }, function () {
-            $(this).find(".playlist-cover-section").css("border", "1px solid #f6ca5a");
-            $(this).find(".playlist-content-section").css({
-                "border" : "1px solid #f6ca5a",
-                "backgroundColor" : "transparent"
-            });
-        });
+        $(playlistQuery).hover(playlistHoverIn, playlistHoverOut);
 
         $(playlistQuery).bind('click', {playlistInfo: playlistData[y]}, function (event) {
             var partyToken = eventGetPartyToken(event);
-            window.location.href = "/party/" + partyToken + "/search/playlist/" + event.data.playlistInfo.id ;
+            var fullPlaylistId = event.data.playlistInfo.id + "-" + event.data.playlistInfo.ownerId;
+            window.location.href = "/party/" + partyToken + "/search/playlist/" + fullPlaylistId;
         });
     }
 

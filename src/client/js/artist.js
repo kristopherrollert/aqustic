@@ -1,43 +1,55 @@
 /* -------------------------------------------------------------------------- */
-/* -------------------------- SIGN UP ON-LOAD CODE -------------------------- */
+/* -------------------------- ARTIST ON-LOAD CODE --------------------------- */
 /* -------------------------------------------------------------------------- */
+
 $(document).ready(function() {
+
     openLoadingScreen();
-    var artistId = (window.location.pathname).split("/")[5];
-    var partyToken = (window.location.pathname).split("/")[2];
+    var artistId = getUrlId();
+    var partyToken = getPartyToken();
+    setHeaderLinks(partyToken);
+
+    /* DESC: If there is no artist id then throw error */
     if (artistId == null || artistId == undefined) {
         $(".content-box").hide();
         $("#artist-error").text("NO ARTIST FOUND").show();
         setTimeout(closeLoadingScreen, 1000);
         return;
     }
+
+    /* DESC: Pull artist data and generate HTML content */
     $.ajax({
-        type: "GET",
-        url: "/search/artist/" + artistId,
-        data: {
-            partyToken : partyToken
-        }
-    }).done(function(data) {
-        if (data.hasOwnProperty("error")) {
-            $(".content-box").hide();
-            $("#artist-error").text(data.error).show();
-            setTimeout(closeLoadingScreen, 1000);
-        }
-        else {
-            var maxResults = 4;
-            generateHeader(data.name, data.image);
-            generateTopSongs(data.topSongs);
-            generateAlbums(maxResults, data.albums);
-            setTimeout(closeLoadingScreen, 1000);
-        }
-    });
+            type: "GET",
+            url: "/search/artist/" + artistId,
+            data: {
+                partyToken : partyToken
+            }
+        }).done(function(data) {
+            if (data.hasOwnProperty("error")) {
+                $(".content-box").hide();
+                $("#artist-error").text(data.error).show();
+                setTimeout(closeLoadingScreen, 1000);
+            }
+            else {
+                var maxResults = 4;
+                generateHeader(data.name, data.image);
+                generateTopSongs(data.topSongs);
+                generateAlbums(maxResults, data.albums);
+                setTimeout(closeLoadingScreen, 1000);
+            }
+        });
 
 });
 
 /* -------------------------------------------------------------------------- */
-/* ----------------------- SIGN UP SPECIFIC FUNCTIONS ----------------------- */
+/* ------------------------ ARTIST SPECIFIC FUNCTIONS ----------------------- */
 /* -------------------------------------------------------------------------- */
 
+/*
+ * Generates header HTML
+ * @param String name : the name of the
+ * @param String img : the url (or null) of the image
+ */
 function generateHeader(name, img) {
     var headerTemplate = Handlebars.compile($("#content-header-temp").html());
     var headerInfo = {
@@ -48,6 +60,10 @@ function generateHeader(name, img) {
     $(".content-header-section").append(headerHtml);
 }
 
+/*
+ * Generates HTML from the top songs list
+ * @param Array topSongsData : the list of the song objects
+ */
 function generateTopSongs (topSongsData) {
     var topSongTemplate = Handlebars.compile($("#top-song-temp").html());
     var m = 5 < topSongsData.length ? 5 : topSongsData.length;
@@ -64,6 +80,11 @@ function generateTopSongs (topSongsData) {
     }
 }
 
+/*
+ * Generates HTML from the album list
+ * @param Integer maxResults : the number of results to display
+ * @param Array albumData : the list of the album objects
+ */
 function generateAlbums (maxResults, albumData) {
     var width =  $(".content-box").outerWidth();
     var albumTemplate = Handlebars.compile($("#album-item-template").html());
@@ -91,29 +112,8 @@ function generateAlbums (maxResults, albumData) {
         $(albumQuery + " > .album-cover-section").css(squareCSS);
         $(albumQuery + " > .album-content-section").css("width", albumItemTextWidth + "px");
         $(albumQuery).css("visibility", "visible");
-        $(albumQuery).hover(function () {
-            $(this).find(".album-cover-section").css({
-                "border": "1px solid #222b2f",
-                "backgroundColor" : "#222b2f"
-            });
-            $(this).find(".album-content-section").css({
-                "border" : "1px solid #222b2f",
-                "backgroundColor" : "#222b2f"
-            });
-
-        }, function () {
-            $(this).find(".album-cover-section").css("border", "1px solid #f6ca5a");
-            $(this).find(".album-content-section").css({
-                "border" : "1px solid #f6ca5a",
-                "backgroundColor" : "transparent"
-            });
-        });
-
-        $(albumQuery).bind('click', {albumInfo: albumData[y]}, function (event) {
-            var path = event.view.window.location.pathname;
-            var partyToken = path.split("/")[2];
-            window.location.href = "/party/" + partyToken + "/search/album/" + event.data.albumInfo.id ;
-        });
+        $(albumQuery).hover(albumHoverIn, albumHoverOut);
+        $(albumQuery).bind('click', {albumInfo: albumData[y]}, albumClick);
     }
 
     if (maxResults < albumData.length) {
@@ -126,4 +126,13 @@ function generateAlbums (maxResults, albumData) {
             generateAlbums(maxResults + 4, albumData);
         });
     }
+}
+
+/*
+ * Redirects to the album that was clicked on
+ * @param Object event : information about the click event
+ */
+function albumClick (event) {
+    var partyToken = eventGetPartyToken(event);
+    window.location.href = "/party/" + partyToken + "/search/album/" + event.data.albumInfo.id ;
 }

@@ -218,10 +218,28 @@ input[type="text"]:focus, input[type="password"]:focus {
 .small-header {
     background-color: $background-color;
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-menu {
+    margin-right: 15px;
+}
+
+.header-menu-item {
+    font-weight: 300;
+    margin: 0;
+    text-decoration: none;
+    color: $highlight-color;
+    display: inline-block;
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
 .small-page-header {
     margin-top: 0;
+    margin-bottom: 0;
     padding-top: 12px;
     padding-bottom: 12px;
     padding-left: 30px;
@@ -230,6 +248,28 @@ input[type="text"]:focus, input[type="password"]:focus {
 }
 
 /* _____ Search Styling ______*/
+
+.search-loading-box {
+    display: none;
+    position: relative;
+    width: 100%;
+    margin-top: 200px;
+}
+
+
+.loading-screen-search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: $primary-color;
+    z-index: 2;
+    transform: scale(.5);
+}
 
 .button-2,.search {
     margin-left: 10px;
@@ -355,7 +395,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     cursor: pointer;
 }
 
-.album-title, .album-artists, .playlist-title {
+.album-title, .album-artists, .playlist-title, .playlist-artists{
     margin-bottom: 3px;
 }
 
@@ -392,7 +432,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     background-color: $highlight-color;
 }
 
-/* ALBUM SPECIFIC */
+/* ARTIST SPECIFIC */
 
 .artist-item {
     border: 1px solid $highlight-color;
@@ -619,14 +659,14 @@ input[type="text"]:focus, input[type="password"]:focus {
     margin-right: 20px;
 }
 
-.top-song-text, .album-song-text {
+.top-song-text, .album-song-text, .playlist-song-text {
     color: white;
     flex-grow: 1;
     word-wrap: break-word;
     width: calc(100% - 90px);
 }
 
-.top-song-name, .album-song-name {
+.top-song-name, .album-song-name, .playlist-song-name {
     font-weight:400;
     font-size: 24px;
     margin-top: 12px;
@@ -636,7 +676,7 @@ input[type="text"]:focus, input[type="password"]:focus {
     overflow: hidden;
 }
 
-.top-song-item, .album-song-item{
+.top-song-item, .album-song-item, .playlist-song-item{
     display:flex;
     width: 100%;
     align-items: center;
@@ -702,11 +742,11 @@ input[type="text"]:focus, input[type="password"]:focus {
 
 // ALBUM SPECIFIC CONTENT
 
-.album-songs-section {
+.album-songs-section, .playlist-songs-section {
     margin-top: 30px;
 }
 
-.album-page-image{
+.album-page-image, .playlist-page-image{
     overflow: hidden;
     background-position: center center;
     background-size: cover;
@@ -714,20 +754,20 @@ input[type="text"]:focus, input[type="password"]:focus {
     padding-top: 80px;
 }
 
-.album-image-border-box {
+.album-image-border-box, .playlist-image-border-box {
     border: 1px solid $highlight-color;
 }
 
-.album-song-item:first-of-type {
+.album-song-item:first-of-type, .playlist-song-item:first-of-type {
     border-top: 1px solid $highlight-color;
 }
 
-.album-song-name {
+.album-song-name, .playlist-song-name {
     margin-bottom: 0;
     margin-top: 10px;
 }
 
-.album-song-artists {
+.album-song-artists, .playlist-song-artists {
     margin-top: 0;
     font-weight: 400;
     margin-bottom: 10px;

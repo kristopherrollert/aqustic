@@ -1,16 +1,20 @@
 /* -------------------------------------------------------------------------- */
-/* -------------------------- SIGN UP ON-LOAD CODE -------------------------- */
+/* -------------------------- ALBUM ON-LOAD CODE -------------------------- */
 /* -------------------------------------------------------------------------- */
 $(document).ready(function() {
+
     openLoadingScreen();
-    var albumId = (window.location.pathname).split("/")[5];
-    var partyToken = (window.location.pathname).split("/")[2];
+    var albumId = getUrlId();
+    var partyToken = getPartyToken();
+    setHeaderLinks(partyToken);
+
+    /* DESC: If there is no album id then throw error */
     if (albumId == null || albumId == undefined) {
-        // TODO : DEAL WITH THIS
         console.log("NO ALBUM GIVEN");
         return;
     }
 
+    /* DESC: Pull album data and generate HTML content */
     $.ajax({
         type: "GET",
         url: "/search/album/" + albumId,
@@ -33,10 +37,15 @@ $(document).ready(function() {
 });
 
 /* -------------------------------------------------------------------------- */
-/* ----------------------- SIGN UP SPECIFIC FUNCTIONS ----------------------- */
+/* ----------------------- ALBUM SPECIFIC FUNCTIONS ------------------------- */
 /* -------------------------------------------------------------------------- */
 
-
+/*
+ * Generates header HTML
+ * @param String name : the name of the
+ * @param Array artists : a list of artist objects
+ * @param String img : the url (or null) of the image
+ */
 function generateHeader(name, artists, img) {
     var headerTemplate = Handlebars.compile($("#content-header-temp").html());
     var headerInfo = {
@@ -48,6 +57,10 @@ function generateHeader(name, artists, img) {
     $(".content-header-section").append(headerHtml);
 }
 
+/*
+ * Generates HTML from a list of tracks
+ * @param Array tracks : a list of tracks on the album to display
+ */
 function generateAlbumTracks(tracks) {
     var trackTemplate = Handlebars.compile($("#album-song-temp").html());
     for (var i = 0; i < tracks.length; i++) {

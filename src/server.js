@@ -321,6 +321,10 @@ app.get('/party/*/search/album/*', function(req, res){
     res.sendFile(__dirname+"/client/album.html");
 });
 
+app.get('/party/*/search/playlist/*', function(req, res){
+    res.sendFile(__dirname+"/client/playlist.html");
+});
+
 app.get('/signup', function(req, res){
     res.sendFile(__dirname+"/client/signup.html");
 });
@@ -342,7 +346,6 @@ app.get('/home', authenticationMiddleware() ,function(req, res){
 //        top songs id,
 app.get('/search/artist/*', function (req, res) {
     let artistId = (req.path).split("/")[3];
-    // let authToken = TEMP_AUTH_TOKEN;
     if (artistId == null || artistId == undefined) {
         res.send({
             error: "NO ARTIST GIVEN"
@@ -407,7 +410,6 @@ app.get('/search/artist/*', function (req, res) {
 });
 
 app.get('/search/album/*', function (req, res) {
-    // var authToken = TEMP_AUTH_TOKEN;
     let albumId = (req.path).split("/")[3];
     if (albumId == null) {
         res.send({
@@ -415,9 +417,29 @@ app.get('/search/album/*', function (req, res) {
         });
     }
     else {
-        console.log(req.query.partyToken);
         getAuthToken(req.query.partyToken, function (authToken) {
             searchAlbum(authToken, albumId).then(data => {
+                res.send(data);
+            });
+        });
+    }
+});
+
+app.get('/search/playlist/*', function (req, res) {
+    let playlistInfo = (req.path).split("/")[3].split("-");
+    let playlistId = playlistInfo[0];
+    let userId = playlistInfo[1];
+    if (playlistId === null ||
+        playlistId === "" ||
+        userId === null ||
+        userId === "") {
+        res.send({
+            error: "NO PLAYLIST GIVEN"
+        });
+    }
+    else {
+        getAuthToken(req.query.partyToken, function (authToken) {
+            searchPlaylist(authToken, playlistId, userId).then(data => {
                 res.send(data);
             });
         });
@@ -641,43 +663,20 @@ app.get('/callback', function(req, res) {
                 access_token = body.access_token;
                 refresh_token = body.refresh_token;
 
-                var options = {
-                    url: 'https://api.spotify.com/v1/me',
-                    headers: { 'Authorization': 'Bearer ' + access_token },
-                    json: true
-                };
-
                 /*
                  *  Save authentication token and update token to the database
                  */
-                 let updateAuth = {
+                 let updateAuthAndRefresh = {
                      $set: {
-                         authenticateID: access_token
-                     }
-                 }
-
-                 database.updateOne("ACCOUNTS", userID, updateAuth, function (result) {
-                     if (result != null){
-                         console.log("Updated Authtoken");
-                     }
-                 });
-
-                 let updateRefresh = {
-                     $set: {
+                         authenticateID: access_token,
                          refreshToken: refresh_token
                      }
-                 }
+                 };
 
-                 database.updateOne("ACCOUNTS", userID, updateRefresh, function (result) {
-                     if (result != null){
-                         console.log("Updated Refresh");
-                     }
+                 database.update("ACCOUNTS", userID, updateAuthAndRefresh, function (result) {
+                     res.redirect("/home");
                  });
 
-                // use the access token to access the Spotify Web API
-                request.get(options, function(error, response, body) {
-                    console.log(body);
-                });
             }
             else {
                 // TODO better error handleing
@@ -689,7 +688,6 @@ app.get('/callback', function(req, res) {
             }
         });
     }
-    res.redirect("/home");
 });
 
 
@@ -1199,13 +1197,10 @@ function getSongLength (authToken, songID) {
  * updates the token in the user's database.
  */
 function getAuthToken(partyToken, callback) {
-    //console.log("yyyypartyyyy");
-    //console.log('partyToken:' + partyToken);
-    //console.log("yyyypartyyyy");
 
     let prtyToken = {
         partyToken: partyToken
-    }
+    };
 
     database.findOne("PARTIES", prtyToken, function (result) {
         if (result) {
@@ -1223,14 +1218,9 @@ function getAuthToken(partyToken, callback) {
                 let userID = {
                     username: res.username
                 };
-                //console.log("username of user: " + res.username);
                 pingSpotify(authToken, function () {
-                    // console.log('----');
-                    // console.log('The authToken should be working!!');
-                    // console.log('----');
                     callback(authToken);
                 }, function () {
-                    console.log("Token is broken/expired please get new token");
                     var authOptions = {
                             url: 'https://accounts.spotify.com/api/token',
                             headers: { 'Authorization': 'Basic ' + (new Buffer(clientID + ':' + clientSecret).toString('base64')) },
@@ -1243,29 +1233,30 @@ function getAuthToken(partyToken, callback) {
 
                     return request.post(authOptions, function(error, response, body) {
                         if (!error && response.statusCode === 200) {
-                            console.log('its working I think?');
                             var access_token = body.access_token;
                             let updateAccess = {
                                 $set: {
                                     authenticateID: access_token
                                 }
-                            }
+                            };
                             database.updateOne("ACCOUNTS", userID, updateAccess, function (result) {
                                 if (result != null){
-                                    console.log("Updated Refresh");
+                                    // console.log("Updated Refresh");
                                 }
                             });
                             callback(access_token);
                         }
-                        else console.log('its not working I think? :( ');
+                        else {
+                            console.log('ERROR: getting new refresh token');
+                        }
                      });
-                })
-            })
+                });
+            });
         }
 
     });
 
-};
+}
 
 /*
  * Makes a call to Spotify to check if authToken is valid.
@@ -1291,8 +1282,8 @@ function pingSpotify(authToken, callbackSuccess, callbackFail) {
             //console.log('Failed so false...');
             return callbackFail();
         }
-    }).then(res => {return res});
-};
+    }).then(res => {return res;});
+}
 /* -------------------------------------------------------------------------- */
 /* ---------------------------- SEARCH FUNCTIONS ---------------------------- */
 /* -------------------------------------------------------------------------- */
@@ -1321,14 +1312,12 @@ function searchAlbum(authToken, albumId) {
                     };
                     for (let i = 0; i < data.tracks.items.length; i++) {
                         var track = new Song();
-                        // console.log("______________________________");
-                        // console.log(data.tracks.items[i]);
                         track.setSongName(data.tracks.items[i].name);
                         track.setSongId(data.tracks.items[i].id);
                         track.setSongArtists(data.tracks.items[i].artists);
                         track.setSongLength(data.tracks.items[i].duration_ms);
                         track.setAlbumName(data.name);
-                        track.setAlbumId(data.tracks.id);
+                        track.setAlbumId(data.id);
                         track.setAlbumImage(data.images[0].url);
                         albumInfo.tracks.push(track);
                     }
@@ -1478,6 +1467,53 @@ function searchArtistAlbums(authToken, artistId) {
         });
 }
 
+function searchPlaylist(authToken, playlistId, userId) {
+
+    var header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+    };
+
+    var init = {
+        method: 'GET',
+        headers: header,
+    };
+
+    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}`, init)
+        .then(function (res) {
+            if (res.status == 200) {
+                return res.json().then(function(data) {
+                    var tracks = [];
+                    for (i = 0; i < data.tracks.items.length; i++) {
+                        var track = new Song();
+                        track.setSongName(data.tracks.items[i].track.name);
+                        track.setSongId(data.tracks.items[i].track.id);
+                        track.setSongArtists(data.tracks.items[i].track.artists);
+                        track.setSongLength(data.tracks.items[i].track.duration_ms);
+                        track.setAlbumName(data.tracks.items[i].track.album.name);
+                        track.setAlbumId(data.tracks.items[i].track.album.id);
+                        track.setAlbumImage(data.tracks.items[i].track.album.images[0].url);
+                        tracks.push(track);
+                    }
+                    return {
+                        name: data.name,
+                        creator: data.owner.display_name || data.owner.id,
+                        image: data.images[0].url,
+                        tracks : tracks
+                    };
+                });
+            }
+            else {
+                throw new Error(`Something went wrong on api server! ${res.status}`);
+            }
+        }).catch(error => {
+            console.log(error);
+        });
+}
+
+
+
 /*
  * DESCRIPTION: A way to search for songs on spotify
  * ARGUMENTS:
@@ -1543,6 +1579,7 @@ function search(authToken, query, type = 'all') {
                         for (let i = 0; i < data.playlists.items.length; i++) {
                             var playlist = new Playlist();
                             playlist.setPlaylistName(data.playlists.items[i].name);
+                            playlist.setPlaylistOwnerId(data.playlists.items[i].owner.id);
                             playlist.setPlaylistId(data.playlists.items[i].id);
                             playlist.setPlaylistSongCount(data.playlists.items[i].tracks.total);
                             playlist.setPlaylistImage(data.playlists.items[i].images[0].url);
@@ -1589,46 +1626,6 @@ function search(authToken, query, type = 'all') {
  */
 function parse_search(query) {
     return query.replace(/ /i, '%20');
-}
-
-function searchPlaylist(authToken, playlistId) {
-
-    var header = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-    };
-
-    var init = {
-        method: 'GET',
-        headers: header,
-    };
-
-    return fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`, init)
-        .then(function (res) {
-            if (res.status == 200) {
-                return res.json().then(function(data) {
-                    var tracks = [];
-                    for (i = 0; i < data.items.length; i++) {
-                        var track = new Song();
-                        track.setSongName(data.items[i].track.name);
-                        track.setSongId(data.items[i].track.id);
-                        track.setSongArtists(data.items[i].track.artists);
-                        track.setSongLength(data.items[i].track.duration_ms);
-                        tracks.push(track);
-                    }
-                    return tracks;
-                });
-            }
-            else {
-                throw new Error(`Something went wrong on api server! ${res.status}`);
-            }
-        })
-        .then(response => {
-            console.debug(response);
-        }).catch(error => {
-            console.error(error);
-        });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1899,8 +1896,17 @@ function Playlist () {
     this.id = null;
     this.name = null;
     this.ownerName = null;
+    this.ownerId = null;
     this.image = null;
     this.songCount = 0;
+
+    this.getPlaylistOwnerId = function() {
+        return this.ownerId;
+    };
+
+    this.setPlaylistOwnerId = function(id) {
+        this.ownerId = id;
+    };
 
     this.getPlaylistSongCount = function() {
         return this.songCount;
