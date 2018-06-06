@@ -2145,3 +2145,5 @@ function Playlist () {
         this.ownerName = ownerName;
     };
 }
+
+exports.database = database;
