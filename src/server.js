@@ -991,7 +991,8 @@ app.get('/party/*/now-playing', function(req, res){
  */
 app.get('/party/*/play', function(req, res) {
     let partyToken = (req.path).split("/")[2];
-    playLoop(partyToken, res);
+    let back = playLoop(partyToken);
+    res.send(back);
 });
 
 /**
@@ -1227,7 +1228,7 @@ function playLoop(partyToken) {
 
     database.findOne("PARTIES", query, function (result) {
         if (result === null) {
-            return "Party not found!";
+            return {error: "Party not found!"};
         }
         else {
             let queue = result.songQueue;
@@ -1245,7 +1246,7 @@ function playLoop(partyToken) {
                 database.updateOne("PARTIES", query, newVals, function (result) {
                     io.to(partyToken).emit('updateQueue');
                 });
-                return;
+                return {error: "Queue is empty!"};
             }
 
             let nextSong = queuePop.call(queue);
@@ -1282,7 +1283,7 @@ function playLoop(partyToken) {
             });
         }
     });
-    return "Playing Songs...";
+    return {message: "Playing Song..."};
 }
 
 
@@ -1313,10 +1314,10 @@ function playSong(authToken, songURI) {
     fetch("https://api.spotify.com/v1/me/player/play", init)
         .then(function (res) {
             if (res.status === 204) {
-                console.log("Playing Song...");
+                return "Playing Song...";
             }
             else {
-                console.log(JSON.stringify(res.status));
+                return res.status;
             }
         });
 
