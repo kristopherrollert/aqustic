@@ -779,6 +779,7 @@ app.get('/callback', function(req, res) {
 app.put('/party/create-party', function(req, res) {
     let partyToken = generateRandomString(8);
     let admin = req.user;
+    console.log("ADMIN", admin);
     let partyName = req.body.partyName;
     let authenticated = JSON.parse(req.body.authenticated);
     if (!authenticated) {
