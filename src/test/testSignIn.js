@@ -50,5 +50,54 @@ describe('Server', function() {
             done();
         });
     });
+
+    it('should return correct error message when no username is given', function(done) {
+
+        var signInData = {
+            url : 'http://localhost:3000/account/sign-in',
+            form : {
+                username : null,
+                password : "123456"
+            }
+        };
+
+        request.put(signInData , function (error, response, body) {
+            assert.equal(JSON.parse(body).error, "Username cannot be blank!");
+            done();
+        });
+    });
+
+    it('should return correct error message when no password is given', function(done) {
+
+        var signInData = {
+            url : 'http://localhost:3000/account/sign-in',
+            form : {
+                username : "kris",
+                password : null
+            }
+        };
+
+        request.put(signInData , function (error, response, body) {
+            assert.equal(JSON.parse(body).error, "Password cannot be blank!");
+            done();
+        });
+    });
+
+    it('should return correct error message when no information is given', function(done) {
+
+        var signInData = {
+            url : 'http://localhost:3000/account/sign-in',
+            form : {
+                username : null,
+                password : null
+            }
+        };
+
+        request.put(signInData , function (error, response, body) {
+            assert.equal(JSON.parse(body).error, "Enter a username and a password!");
+            done();
+        });
+    });
+
   });
 });
