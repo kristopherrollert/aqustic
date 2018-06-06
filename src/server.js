@@ -303,9 +303,6 @@ database.createCollection("PARTIES");
 /*
  * Middleware that removes the browser from blocking certain
  * requests.
- *
- * notes: When this project is completed, this should not be here, it should be
- * in the web.config file.
  */
 app.use(function(req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -391,6 +388,15 @@ app.get('/signup', function(req, res){
 app.get('/home', authenticationMiddleware() ,function(req, res){
     res.sendFile(__dirname+"/client/home.html");
 });
+
+/**
+ *  Endpoint that sends you to the homepage of a specific party
+ */
+app.get('/party/*', authenticationMiddleware(), function(req, res){
+    res.sendFile(__dirname+"/client/party.html");
+});
+
+
 
 /**
  *  Endpoint to log out user
@@ -1104,13 +1110,6 @@ app.put('/party/*/vote', function (req, res) {
 
 });
 
-/**
- *  Endpoint that sends you to the homepage of a specific party
- */
-app.get('/party/*', authenticationMiddleware(), function(req, res){
-    res.sendFile(__dirname+"/client/party.html");
-});
-
 
 
 /* ------------------------------------------------------------------------- */
@@ -1414,7 +1413,6 @@ function pingSpotify(authToken, callbackSuccess, callbackFail) {
     return fetch("https://api.spotify.com/v1/me", init).then(function (response) {
         if (response.status == 200){
             //console.log('Got response so true...');
-            //console.log(response);
             return callbackSuccess();
         }
         else {
@@ -2147,3 +2145,5 @@ function Playlist () {
         this.ownerName = ownerName;
     };
 }
+
+exports.database = database;
