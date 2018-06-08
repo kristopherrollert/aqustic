@@ -900,12 +900,12 @@ app.put('/party/*/queue-song', function(req, res) {
                 }
             };
 
-            database.updateOne("PARTIES", query, updates);
-
-            if (partyResult.currentlyPlaying === null) {
-                playLoop(partyToken);
-            }
-            res.end();
+            database.updateOne("PARTIES", query, updates, function(result) {
+                if (partyResult.currentlyPlaying === null) {
+                    playLoop(partyToken);
+                }
+                res.end();
+            });
 
         }
     });
