@@ -24,8 +24,8 @@ let TEMP_LOCATION_ASSUMPTION = "US";
 const clientID = "1951f93df40942a59574ed5d17e5425a";
 const clientSecret = "048262fe59c048e18ce94d18d5784078";
 const port = 3000;
-const baseUrl = `http://localhost:${port}`;
-// const baseUrl = 'https://aqustic-20'
+//const baseUrl = `http://localhost:${port}`;
+ const baseUrl = 'https://aqustic-205720.appspot.com'
 
 /*----------- Server Modules -----------*/
 const http = require('http');
@@ -80,8 +80,8 @@ var database = {
     name: "aqusticDB",
 
     // the below line should replace the other url in final for the server
-    //url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
-    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
+    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+//    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
 
     /**
      * Creates a database collection
@@ -326,7 +326,8 @@ app.use(session({
     duration: (30 * 60 * 1000 * 100),
     activeDuration: (5 * 60 * 1000 * 100),
     store: new MongoStore({
-        url: 'mongodb://localhost:27017/',
+//        url: 'mongodb://localhost:27017/',
+        url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic`,
         touchAfter: (24 * 24 * 36000) // time period in seconds
     }),
     secret: 'asdf',//make secrets secret

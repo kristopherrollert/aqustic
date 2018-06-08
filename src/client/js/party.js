@@ -18,7 +18,7 @@ $(document).ready(function () {
     pullHeaderAndGenerate(partyToken);
 
     /* DESC: Connectes to the socket.io port and joins the party */
-    var socket = io.connect('http://localhost:8080');
+    var socket = io.connect('https://aqustic-205720.appspot.com');
     socket.emit("join-party", partyToken);
 
     /* DESC: Regenerates the display of the queue from the updateQueue ping */
