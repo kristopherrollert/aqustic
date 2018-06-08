@@ -24,8 +24,8 @@ let TEMP_LOCATION_ASSUMPTION = "US";
 const clientID = "1951f93df40942a59574ed5d17e5425a";
 const clientSecret = "048262fe59c048e18ce94d18d5784078";
 const port = 3000;
-//const baseUrl = `http://localhost:${port}`;
- const baseUrl = 'https://aqustic-205720.appspot.com'
+const baseUrl = `http://localhost:${port}`;
+ // const baseUrl = 'https://aqustic-205720.appspot.com'
 
 /*----------- Server Modules -----------*/
 const http = require('http');
@@ -80,8 +80,8 @@ var database = {
     name: "aqusticDB",
 
     // the below line should replace the other url in final for the server
-    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
-//    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
+    // url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
 
     /**
      * Creates a database collection
@@ -326,8 +326,8 @@ app.use(session({
     duration: (30 * 60 * 1000 * 100),
     activeDuration: (5 * 60 * 1000 * 100),
     store: new MongoStore({
-//        url: 'mongodb://localhost:27017/',
-        url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic`,
+        url: 'mongodb://localhost:27017/',
+        // url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic`,
         touchAfter: (24 * 24 * 36000) // time period in seconds
     }),
     secret: 'asdf',//make secrets secret
@@ -347,57 +347,6 @@ app.use(passport.session());
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- ENDPOINTS ------------------------------- */
 /* ------------------------------------------------------------------------- */
-
-/**
- *  Endpoint to send you to signin page
- */
-app.get('/signin', function(req, res){
-    res.sendFile(__dirname+"/client/signin.html");
-});
-
-/**
- *  Endpoint to send you to artist's page
- */
-app.get('/party/*/search/artist/*', function(req, res){
-    res.sendFile(__dirname+"/client/artist.html");
-});
-
-/**
- *  Endpoint to send you to album page
- */
-app.get('/party/*/search/album/*', function(req, res){
-    res.sendFile(__dirname+"/client/album.html");
-});
-
-/**
- *  Endpoint to send you to playlist page
- */
-app.get('/party/*/search/playlist/*', function(req, res){
-    res.sendFile(__dirname+"/client/playlist.html");
-});
-
-/**
- *  Endpoint to send you to sign up page
- */
-app.get('/signup', function(req, res){
-    res.sendFile(__dirname+"/client/signup.html");
-});
-
-/**
- *  Endpoint to send you to homepage
- */
-app.get('/home', authenticationMiddleware() ,function(req, res){
-    res.sendFile(__dirname+"/client/home.html");
-});
-
-/**
- *  Endpoint that sends you to the homepage of a specific party
- */
-app.get('/party/*', authenticationMiddleware(), function(req, res){
-    res.sendFile(__dirname+"/client/party.html");
-});
-
-
 
 /**
  *  Endpoint to log out user
@@ -1136,6 +1085,55 @@ io.on('connection', function(socket){
 });
 
 /**
+ *  Endpoint to send you to signin page
+ */
+app.get('/signin', function(req, res){
+    res.sendFile(__dirname+"/client/signin.html");
+});
+
+/**
+ *  Endpoint to send you to artist's page
+ */
+app.get('/party/*/search/artist/*', function(req, res){
+    res.sendFile(__dirname+"/client/artist.html");
+});
+
+/**
+ *  Endpoint to send you to album page
+ */
+app.get('/party/*/search/album/*', function(req, res){
+    res.sendFile(__dirname+"/client/album.html");
+});
+
+/**
+ *  Endpoint to send you to playlist page
+ */
+app.get('/party/*/search/playlist/*', function(req, res){
+    res.sendFile(__dirname+"/client/playlist.html");
+});
+
+/**
+ *  Endpoint to send you to sign up page
+ */
+app.get('/signup', function(req, res){
+    res.sendFile(__dirname+"/client/signup.html");
+});
+
+/**
+ *  Endpoint to send you to homepage
+ */
+app.get('/home', authenticationMiddleware() ,function(req, res){
+    res.sendFile(__dirname+"/client/home.html");
+});
+
+/**
+ *  Endpoint that sends you to the homepage of a specific party
+ */
+app.get('/party/*', authenticationMiddleware(), function(req, res){
+    res.sendFile(__dirname+"/client/party.html");
+});
+
+/**
  *  Initialization of node.js
  */
 app.listen(port, (err) => {
@@ -1144,7 +1142,6 @@ app.listen(port, (err) => {
     }
     console.log(`server is listening on ${port}`);
 });
-
 
 
 /* ------------------------------------------------------------------------- */
