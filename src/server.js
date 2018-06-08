@@ -24,8 +24,8 @@ let TEMP_LOCATION_ASSUMPTION = "US";
 const clientID = "1951f93df40942a59574ed5d17e5425a";
 const clientSecret = "048262fe59c048e18ce94d18d5784078";
 const port = 3000;
-const baseUrl = `http://localhost:${port}`;
-// const baseUrl = 'https://aqustic-20'
+//const baseUrl = `http://localhost:${port}`;
+ const baseUrl = 'https://aqustic-205720.appspot.com'
 
 /*----------- Server Modules -----------*/
 const http = require('http');
@@ -80,8 +80,8 @@ var database = {
     name: "aqusticDB",
 
     // the below line should replace the other url in final for the server
-    //url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
-    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
+    url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` || 'mongodb://localhost:27017/',
+//    url: 'mongodb://localhost:27017/' || `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic` ,
 
     /**
      * Creates a database collection
@@ -303,9 +303,6 @@ database.createCollection("PARTIES");
 /*
  * Middleware that removes the browser from blocking certain
  * requests.
- *
- * notes: When this project is completed, this should not be here, it should be
- * in the web.config file.
  */
 app.use(function(req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -329,7 +326,8 @@ app.use(session({
     duration: (30 * 60 * 1000 * 100),
     activeDuration: (5 * 60 * 1000 * 100),
     store: new MongoStore({
-        url: 'mongodb://localhost:27017/',
+//        url: 'mongodb://localhost:27017/',
+        url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic`,
         touchAfter: (24 * 24 * 36000) // time period in seconds
     }),
     secret: 'asdf',//make secrets secret
@@ -391,6 +389,15 @@ app.get('/signup', function(req, res){
 app.get('/home', authenticationMiddleware() ,function(req, res){
     res.sendFile(__dirname+"/client/home.html");
 });
+
+/**
+ *  Endpoint that sends you to the homepage of a specific party
+ */
+app.get('/party/*', authenticationMiddleware(), function(req, res){
+    res.sendFile(__dirname+"/client/party.html");
+});
+
+
 
 /**
  *  Endpoint to log out user
@@ -1104,13 +1111,6 @@ app.put('/party/*/vote', function (req, res) {
 
 });
 
-/**
- *  Endpoint that sends you to the homepage of a specific party
- */
-app.get('/party/*', authenticationMiddleware(), function(req, res){
-    res.sendFile(__dirname+"/client/party.html");
-});
-
 
 
 /* ------------------------------------------------------------------------- */
@@ -1414,7 +1414,6 @@ function pingSpotify(authToken, callbackSuccess, callbackFail) {
     return fetch("https://api.spotify.com/v1/me", init).then(function (response) {
         if (response.status == 200){
             //console.log('Got response so true...');
-            //console.log(response);
             return callbackSuccess();
         }
         else {
@@ -2147,3 +2146,5 @@ function Playlist () {
         this.ownerName = ownerName;
     };
 }
+
+exports.database = database;
