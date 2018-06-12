@@ -323,12 +323,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(session({
     cookieName: 'session',
-    duration: (30 * 60 * 1000 * 100),
-    activeDuration: (5 * 60 * 1000 * 100),
+    duration: (30 * 60 * 1000),
+    activeDuration: (5 * 60 * 1000),
     store: new MongoStore({
         url: 'mongodb://localhost:27017/',
         // url: `mongodb://${mongoUser}:${mongoPass}@ds241570.mlab.com:41570/aqustic`,
-        touchAfter: (24 * 24 * 36000) // time period in seconds
+        touchAfter: (24 * 24 * 36000 * 36000), // time period in seconds
     }),
     secret: 'asdf',//make secrets secret
     saveUninitialized: false, // don't create session until something stored
@@ -337,7 +337,7 @@ app.use(session({
         secure: false,
         path: '/',
         httpOnly: true,
-        maxAge: new Date(Date.now() + 36000000),
+        maxAge: new Date(Date.now() + (36000000 * 1000)),
     }
 }));
 
