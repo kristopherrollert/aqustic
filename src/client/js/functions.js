@@ -64,7 +64,7 @@ function queueSong (event) {
             songInfo: JSON.stringify(event.data.songInfo)
         }
     }).done(function(data) {
-        var socket = io.connect();
+        var socket = io.connect('https://aqustic-205720.appspot.com');
         socket.emit('updateQueuePing', partyToken);
         $(".song-cover").remove();
         $("body").removeClass("body-cover");
